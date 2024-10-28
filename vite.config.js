@@ -49,4 +49,7 @@ export default defineConfig({
     react(),
     VitePWA(manifestForPlugin)
   ],
+  devOptions: {
+    enabled: true
+  }
 })
