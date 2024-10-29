@@ -1,9 +1,10 @@
+// vite.config.js
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 const manifestForPlugin = {
-  registerType: 'prompt',
+  registerType: 'autoUpdate',
   includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
   manifest: {
     name: "InfoUnityResponse",
@@ -41,6 +42,30 @@ const manifestForPlugin = {
     scope: '/',
     start_url: "/",
     orientation: 'portrait'
+  },
+  workbox: {
+    clientsClaim: true,
+    skipWaiting: true,
+    cleanupOutdatedCaches: true,
+    runtimeCaching: [{
+      urlPattern: new RegExp('^https://.*'),
+      handler: 'NetworkFirst',
+      options: {
+        cacheName: 'api-cache',
+        networkTimeoutSeconds: 5,
+        expiration: {
+          maxEntries: 50,
+          maxAgeSeconds: 24 * 60 * 60 // 24 hours
+        },
+        cacheableResponse: {
+          statuses: [0, 200]
+        }
+      }
+    }],
+    globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}']
+  },
+  devOptions: {
+    enabled: true
   }
 }
 
@@ -48,8 +73,5 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA(manifestForPlugin)
-  ],
-  devOptions: {
-    enabled: true
-  }
+  ]
 })
