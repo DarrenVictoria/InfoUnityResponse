@@ -1,6 +1,6 @@
 // src/pages/HomePage.jsx
 import { useState } from 'react';
-import './HomePage.css';
+import './Homepage.css';
 
 function HomePage() {
   const [isGlowing, setIsGlowing] = useState(false);
