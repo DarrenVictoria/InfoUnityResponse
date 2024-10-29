@@ -41,7 +41,7 @@ function HomePage() {
         {/* Development Status */}
         <div className="development-status">
           <div className="status-indicator"></div>
-          <span>Under Development</span>
+          <span>Starting Development</span>
         </div>
       </div>
     </div>
