@@ -1,6 +1,7 @@
 // src/main.jsx
 import React from 'react'
 import ReactDOM from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import './index.css'
 
@@ -17,23 +18,8 @@ if ('serviceWorker' in navigator) {
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <App />
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
   </React.StrictMode>
 )
-
-// src/App.jsx
-import { Suspense } from 'react'
-import UpdateNotification from './components/UpdateNotification'
-
-function App() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <div className="app">
-        {/* Your app content */}
-        <UpdateNotification />
-      </div>
-    </Suspense>
-  )
-}
-
-export default App
