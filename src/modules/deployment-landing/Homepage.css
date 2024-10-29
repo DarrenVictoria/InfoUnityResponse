@@ -5,28 +5,6 @@
     text-align: center;
   }
 
-.logos-container {
-    display: flex;
-    justify-content: center;
-    gap: 2rem;
-    margin-bottom: 2rem;
-  }
-  
-  .logo {
-    height: 6em;
-    padding: 1.5em;
-    will-change: filter;
-    transition: filter 300ms;
-  }
-  
-  .logo:hover {
-    filter: drop-shadow(0 0 2em #646cffaa);
-  }
-  
-  .logo.react:hover {
-    filter: drop-shadow(0 0 2em #61dafbaa);
-  }
-  
   .info-unity-container {
     display: flex;
     flex-direction: column;
@@ -53,6 +31,10 @@
     height: 4rem;
     color: #60a5fa;
     margin-bottom: 1rem;
+  }
+
+  .app-logo{
+    width: 10rem;
   }
   
   .unity-content {
