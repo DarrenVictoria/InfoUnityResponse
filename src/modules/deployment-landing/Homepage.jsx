@@ -30,7 +30,7 @@ function HomePage() {
       {/* Main Content */}
       <div className="unity-content">
         <h2 className="gradient-text">
-          Comprehensive Disaster Management Platform
+          Comprehensive Disaster Response Platform
         </h2>
         
         <p className="description">
