@@ -36,7 +36,7 @@ function LanguageToggle() {
       <div className="language-toggle">
         <button onClick={() => changeLanguage('en')}>English</button>
         <button onClick={() => changeLanguage('si')}>සිංහල</button>
-        <button onClick={() => changeLanguage('ta')}>தமிழ්</button>
+        <button onClick={() => changeLanguage('ta')}>தமிழ்</button>
       </div>
     </>
   );
