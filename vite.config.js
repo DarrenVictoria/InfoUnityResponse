@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 const manifestForPlugin = {
-  registerType: 'autoUpdate',
+  registerType: 'prompt',
   includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
   manifest: {
     name: "InfoUnityResponse",
@@ -45,7 +45,7 @@ const manifestForPlugin = {
   },
   workbox: {
     clientsClaim: true,
-    skipWaiting: true,
+    skipWaiting: false,
     cleanupOutdatedCaches: true,
     runtimeCaching: [{
       urlPattern: new RegExp('^https://.*'),

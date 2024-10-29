@@ -3,7 +3,7 @@ import { Suspense } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import UpdateNotification from './components/UpdateNotification'
 import Layout from './components/Layout'
-import HomePage from './modules/deployment-landing/Homepage'
+import HomePage from './views/deployment-landing/Homepage'
 // Import other pages as needed
 
 function App() {
