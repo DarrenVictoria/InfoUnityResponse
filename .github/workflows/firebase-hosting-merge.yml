@@ -38,7 +38,7 @@ jobs:
       # Verify PWA assets
       - name: Verify PWA assets
         run: |
-          if [ ! -f "dev-dist/manifest.webmanifest" ]; then
+          if [ ! -f "dist/manifest.webmanifest" ]; then
             echo "Error: manifest.webmanifest not found"
             exit 1
           fi
