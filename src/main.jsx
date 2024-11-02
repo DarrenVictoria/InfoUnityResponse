@@ -5,15 +5,21 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import './index.css'
 import './i18n'; // Import the i18n configuration
+import { registerSW } from 'virtual:pwa-register'
 
-// Register PWA Service Worker
+// Register service worker
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').then(registration => {
-      console.log('SW registered:', registration)
-    }).catch(error => {
-      console.log('SW registration failed:', error)
-    })
+  // Add this to handle reloading on service worker update
+  const updateSW = registerSW({
+    onNeedRefresh() {
+      if (confirm('New content available. Reload?')) {
+        updateSW(true)
+      }
+    },
+    onOfflineReady() {
+      console.log('App ready to work offline')
+    },
+    immediate: true
   })
 }
 
