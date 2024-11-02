@@ -1,8 +1,8 @@
-// src/pages/HomePage.jsx
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import LanguageToggle from '../../components/LanguageToggle';
-import './Homepage.css';
+import './Homepage.css'
+
 
 function HomePage() {
   const [isGlowing, setIsGlowing] = useState(false);
@@ -16,6 +16,7 @@ function HomePage() {
     <div className="info-unity-container">
       {/* Language Toggle */}
       <LanguageToggle />
+
 
       {/* Logo Section with Glow Effect */}
       <div
