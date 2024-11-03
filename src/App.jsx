@@ -13,6 +13,7 @@ import HomePage from './views/deployment-landing/Homepage';
 
 function App() {
   return (
+    
     <NextUIProvider>
       <Suspense fallback={<div>Loading...</div>}>
         <Layout>
@@ -20,12 +21,14 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/home" element={<RespondantLanding />} />
             {/* Add other routes as needed */}
+            
           </Routes>
           <UpdateNotification />
         </Layout>
       </Suspense>
     </NextUIProvider>
   );
+  console.log(import.meta.env)
 }
 
 export default App;
