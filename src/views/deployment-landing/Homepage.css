@@ -1,15 +1,14 @@
 #root {
-    max-width: 500px;
+    max-width: 100%;
     margin: 0 auto;
-    padding: 2rem;
     text-align: center;
     font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
     line-height: 1.5;
     font-weight: 400;
   
     color-scheme: light dark;
-    color: rgba(255, 255, 255, 0.87);
-    background-color: #242424;
+    color: rgba(0, 0, 0, 0.87);
+    
   
     font-synthesis: none;
     text-rendering: optimizeLegibility;
@@ -17,8 +16,8 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-body{
-  background-color: #242424;
+#body{
+  
 }
 
   .info-unity-container {
@@ -26,6 +25,8 @@ body{
     flex-direction: column;
     align-items: center;
     gap: 2rem;
+    padding:1.5rem;
+    height: 100%;
   }
   
   .unity-logo-container {
@@ -39,7 +40,7 @@ body{
   
   .unity-logo-container.glowing {
     transform: scale(1.05);
-    box-shadow: 0 0 20px #FFD23F;
+    box-shadow: 0 0 20px #111ece;
   }
   
   .unity-icon {
@@ -70,7 +71,7 @@ body{
   }
   
   .description {
-    color: #94a3b8;
+    color: #000000;
     margin-bottom: 2rem;
   }
   
