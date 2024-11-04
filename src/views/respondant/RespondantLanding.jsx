@@ -36,7 +36,7 @@ const RespondantLanding = () => {
 
 export default RespondantLanding;
 
-const StatusIndicator = ({ label, status, type, t }) => {
+const StatusIndicator = ({ label, status, type }) => {
   const baseStyles = "px-4 py-2 rounded-md font-medium text-sm inline-flex items-center justify-center min-w-[120px]";
 
   const getStatusStyles = () => {
@@ -54,14 +54,14 @@ const StatusIndicator = ({ label, status, type, t }) => {
   };
 
   const getStatusText = () => {
-    if (type === 'warning') return `${status} ${t('risk')}`;
-    if (type === 'safety') return status ? t('safe') : t('notSafe');
-    return status ? t('required') : t('notRequired');
+    if (type === 'warning') return `${status} Risk`;
+    if (type === 'safety') return status ? 'Safe' : 'Not Safe';
+    return status ? 'Required' : 'Not Required';
   };
 
   return (
     <div className="flex flex-col items-start gap-1">
-      <span className="text-sm text-gray-200">{t(label)}</span>
+      <span className="text-sm text-gray-200">{label}</span>
       <div className={`${baseStyles} ${getStatusStyles()}`}>
         {type === 'warning' && <AlertTriangle className="w-4 h-4 mr-2" />}
         {getStatusText()}
