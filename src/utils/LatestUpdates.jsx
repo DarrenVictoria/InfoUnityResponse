@@ -3,6 +3,7 @@ import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestor
 import { db } from '../../firebase';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { AlertCircle, AlertTriangle, Droplets, Mountain } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 // Standardized interface for disaster updates
 const DISASTER_TYPES = {
@@ -33,6 +34,7 @@ const DISASTER_CONFIG = {
 };
 
 const LatestUpdates = () => {
+  const { t } = useTranslation();
   const [updates, setUpdates] = useState([]);
   const [scrollPosition, setScrollPosition] = useState(0);
   const containerRef = React.useRef(null);
@@ -50,11 +52,11 @@ const LatestUpdates = () => {
         ...doc.data(),
         // Ensure all required fields exist with defaults
         type: doc.data().type?.toLowerCase() || 'other',
-        title: doc.data().title || 'Untitled Update',
-        description: doc.data().description || 'No description provided',
-        location: doc.data().location || 'Location unknown',
-        status: doc.data().status || 'Pending',
-        createdBy: doc.data().createdBy || 'Anonymous',
+        title: doc.data().title || t('updates.untitledUpdate'),
+        description: doc.data().description || t('updates.noDescription'),
+        location: doc.data().location || t('updates.unknownLocation'),
+        status: doc.data().status || t('updates.statusPending'),
+        createdBy: doc.data().createdBy || t('updates.anonymous'),
         timeStamp: doc.data().timeStamp || new Date(),
         magnitude: doc.data().magnitude || null,
         casualties: doc.data().casualties || null,
@@ -65,7 +67,7 @@ const LatestUpdates = () => {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [t]);
 
   const scroll = (direction) => {
     if (containerRef.current) {
@@ -98,13 +100,13 @@ const LatestUpdates = () => {
   return (
     <div className="relative bg-gray-100 py-6">
       <div className="max-w-screen-xl mx-auto px-4">
-        <h2 className="text-xl font-bold mb-4">LATEST UPDATES</h2>
+        <h2 className="text-xl font-bold mb-4">{t('updates.latestUpdates')}</h2>
         
         <div className="relative group">
           <button 
             onClick={() => scroll('left')}
             className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full p-2 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-            aria-label="Scroll left"
+            aria-label={t('updates.scrollLeft')}
           >
             <ChevronLeft size={24} />
           </button>
@@ -112,7 +114,7 @@ const LatestUpdates = () => {
           <button 
             onClick={() => scroll('right')}
             className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full p-2 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-            aria-label="Scroll right"
+            aria-label={t('updates.scrollRight')}
           >
             <ChevronRight size={24} />
           </button>
@@ -136,11 +138,24 @@ const LatestUpdates = () => {
 };
 
 const UpdateCard = ({ update, formatTimestamp }) => {
+  const { t } = useTranslation();
   const disasterConfig = DISASTER_CONFIG[update.type?.toLowerCase()] || {
     icon: AlertCircle,
     bgColor: 'bg-gray-100',
     borderColor: 'border-gray-500',
     iconColor: 'text-gray-500'
+  };
+
+  // Helper function to map status to translation key
+  const getStatusTranslation = (status) => {
+    // Create a mapping of database values to translation keys
+    const statusMap = {
+      'Approved': 'approved',
+      'Pending': 'pending',
+      'Rejected': 'rejected'
+    };
+    
+    return t(`updates.status.${statusMap[status] || 'pending'}`);
   };
 
   const IconComponent = disasterConfig.icon;
@@ -153,7 +168,7 @@ const UpdateCard = ({ update, formatTimestamp }) => {
           <span className={`px-2 py-1 text-xs rounded-full ${
             update.status === 'Approved' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
           }`}>
-            {update.status}
+            {getStatusTranslation(update.status)}
           </span>
         </div>
         <span className="text-xs font-medium text-gray-500">
@@ -166,23 +181,26 @@ const UpdateCard = ({ update, formatTimestamp }) => {
         <p className="text-sm text-gray-600">{update.location}</p>
         <p className="text-sm text-gray-600 line-clamp-2">{update.description}</p>
         
-        {/* Conditional fields based on disaster type */}
         {update.magnitude && (
-          <p className="text-sm text-gray-600">Magnitude: {update.magnitude}</p>
+          <p className="text-sm text-gray-600">{t('updates.magnitude')}: {update.magnitude}</p>
         )}
         {update.casualties && (
-          <p className="text-sm text-gray-600">Casualties: {update.casualties}</p>
+          <p className="text-sm text-gray-600">{t('updates.casualties')}: {update.casualties}</p>
         )}
         {update.damageLevel && (
-          <p className="text-sm text-gray-600">Damage Level: {update.damageLevel}</p>
+          <p className="text-sm text-gray-600">
+            {t('updates.damageLevel')}: {t(`updates.damageLevels.${update.damageLevel.toLowerCase()}`)}
+          </p>
         )}
         {update.evacuationStatus && (
-          <p className="text-sm text-gray-600">Evacuation Status: {update.evacuationStatus}</p>
+          <p className="text-sm text-gray-600">
+            {t('updates.evacuationStatus')}: {t(`updates.evacuationStatuses.${update.evacuationStatus.toLowerCase()}`)}
+          </p>
         )}
       </div>
 
       <div className="mt-3 text-xs text-gray-500">
-        Created by: {update.createdBy}
+        {t('updates.createdBy')}: {update.createdBy}
       </div>
     </div>
   );

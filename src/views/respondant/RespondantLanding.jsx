@@ -280,40 +280,40 @@ const Hero = () => {
 };
 
 const InfoUnitySection = () => {
+  const { t } = useTranslation();
+  
   return (
-    <div className="bg-gray-100 py-10 relative ">
-      <div className="flex flex-col md:flex-row justify-center gap-6 mb-10 px-4 -mt-20 ">
+    <div className="bg-gray-100 py-10 relative">
+      <div className="flex flex-col md:flex-row justify-center gap-6 mb-10 px-4 -mt-20">
         <InfoUnityCard
-          title="Information"
-          description="Provide accurate, real-time information during disasters. Achieved through real-time mapping, AI chatbot, and disaster catalogue."
+          title={t('section.information.title')}
+          description={t('section.information.description')}
           icon={<MapPin size={28} />}
         />
         <InfoUnityCard
-          title="Unity"
-          description="Unite communities, volunteers, and authorities in disaster response efforts. Facilitated by volunteer management, missing person registry, and resource allocation features."
+          title={t('section.unity.title')}
+          description={t('section.unity.description')}
           icon={<Users size={28} />}
         />
         <InfoUnityCard
-          title="Response"
-          description="Enable swift, coordinated response to minimize disaster impact. Facilitated by volunteer management, missing person registry, and resource allocation features."
+          title={t('section.response.title')}
+          description={t('section.response.description')}
           icon={<AlertTriangle size={28} />}
         />
       </div>
 
-  
       <ActionButtonsSection />
-     
 
       <div className="flex justify-center px-4">
-  <Button
-    color="error"
-    variant="outline"
-    className="w-full max-w-md px-6 py-3 border border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-200 flex items-center justify-center gap-2"
-  >
-    <AlertOctagon size={24} />
-    Report a Disaster
-  </Button>
-</div>
+        <Button
+          color="error"
+          variant="outline"
+          className="w-full max-w-md px-6 py-3 border border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-200 flex items-center justify-center gap-2"
+        >
+          <AlertOctagon size={24} />
+          {t('button.reportDisaster')}
+        </Button>
+      </div>
     </div>
   );
 };
@@ -347,34 +347,36 @@ const ActionButton = ({ label, icon, path }) => {
 };
 
 const ActionButtonsSection = () => {
+  const { t } = useTranslation();
+  
   const actions = [
     {
-      label: "Realtime Maps",
+      label: t('action.realtimeMaps'),
       icon: <MapPin size={24} color="red" />,
       path: "/realtime-maps"
     },
     {
-      label: "Support Chatbot",
+      label: t('action.supportChatbot'),
       icon: <MessageCircle size={24} color="teal" />,
       path: "/support-chat"
     },
     {
-      label: "Volunteer",
+      label: t('action.volunteer'),
       icon: <Heart size={24} color="darkorange" />,
       path: "/volunteer"
     },
     {
-      label: "Missing Person Registry",
+      label: t('action.missingRegistry'),
       icon: <Search size={24} color="lightblue" />,
       path: "/missing-persons"
     },
     {
-      label: "Resource Allocation",
+      label: t('action.resources'),
       icon: <Users size={24} color="purple" />,
       path: "/resources"
     },
     {
-      label: "Donate",
+      label: t('action.donate'),
       icon: <DollarSign size={24} color="green" />,
       path: "/donate"
     }
@@ -382,7 +384,7 @@ const ActionButtonsSection = () => {
 
   return (
     <>
-      <h2 className="text-2xl font-bold text-center mb-6">WHAT ARE YOU HERE FOR?</h2>
+      <h2 className="text-2xl font-bold text-center mb-6">{t('section.whatFor')}</h2>
       <div className="flex justify-center flex-wrap gap-6 mb-8 px-4">
         {actions.map((action, index) => (
           <ActionButton
@@ -424,54 +426,52 @@ const AccordionItem = ({ title, content, isOpen, onToggle, number }) => {
 };
 
 const WhoAreWe = () => {
+  const { t } = useTranslation();
+
   const [openItem, setOpenItem] = useState(null);
 
   const accordionData = [
     {
-      title: "What is the overarching vision of InfoUnity Response?",
-      content: "InfoUnity Response envisions a future where communities are resilient in the face of disasters, empowered by seamless access to critical information and resources. We aim to revolutionize disaster management by creating a unified platform that bridges the gap between those affected by disasters and those responding to them. Our vision is to minimize the impact of disasters on human lives and livelihoods by leveraging cutting-edge technology to enable rapid, coordinated, and effective responses. Ultimately, we see InfoUnity Response as a catalyst for building more prepared, connected, and resilient communities worldwide."
+      title: t('whoWeAre.vision.title'),
+      content: t('whoWeAre.vision.content')
     },
     {
-      title: "How does InfoUnity Response's mission align with its technological operation?",
-      content: "InfoUnity Response's mission is to provide a comprehensive, user-friendly platform that unifies disaster-related information, coordinates response efforts, and empowers communities to act swiftly and effectively during crises. This mission aligns perfectly with our technological approach of creating a Progressive Web Application (PWA) that's accessible across devices and network conditions. By leveraging technologies like React for a responsive interface, Firebase for real-time data synchronization and push notifications, and AI for predictive analysis and chatbot interactions, we ensure that our platform is not only technologically advanced but also highly practical and user-centric. Our use of multilingual support further reinforces our mission to make critical information accessible to all, regardless of language barriers."
+      title: t('whoWeAre.mission.title'),
+      content: t('whoWeAre.mission.content')
     },
     {
-      title: "What does the InfoUnity Response brand represent?",
-      content: "The InfoUnity Response brand represents trust, innovation, and community empowerment in the face of adversity. Our brand embodies the idea that when information and people are united, we can respond more effectively to any challenge. This is reflected in our application through features like real-time disaster mapping, which showcases our commitment to providing trustworthy, up-to-date information. The volunteer management system exemplifies our focus on community empowerment, while the AI-powered chatbot demonstrates our innovative approach to problem-solving. The clean, intuitive interface of our app, combined with its robust functionality, reinforces our brand image as a reliable, cutting-edge solution for disaster management. Even our color scheme, predominantly using calming blues and energetic greens, is chosen to evoke a sense of trust and hope during challenging times."
+      title: t('whoWeAre.brand.title'),
+      content: t('whoWeAre.brand.content')
     },
     {
-      title: "What are the key responsibilities and duties?",
-      content: "InfoUnity Response holds a significant responsibility towards its users and the communities it serves. Our primary duty is to ensure the accuracy and timeliness of the information we provide, as lives may depend on it during disasters. We have a responsibility to maintain the highest standards of data privacy and security, protecting sensitive information about affected individuals and responders. It's our duty to ensure the platform remains accessible and functional even under extreme conditions, which we achieve through offline capabilities and low-bandwidth optimizations. We are also responsible for fostering cooperation between various stakeholders - from individual volunteers to government agencies - to ensure a coordinated response. Additionally, we have a duty to continually improve our platform based on user feedback and evolving disaster management best practices, ensuring that InfoUnity Response remains an effective tool for saving lives and minimizing disaster impacts."
+      title: t('whoWeAre.responsibilities.title'),
+      content: t('whoWeAre.responsibilities.content')
     },
     {
-      title: "How does InfoUnity Response leverage technology?",
-      content: "InfoUnity Response stays at the forefront of disaster management by strategically leveraging cutting-edge technologies. We utilize machine learning algorithms for disaster impact prediction and resource allocation, allowing for proactive rather than reactive responses. Our use of real-time data synchronization through Firebase ensures that all users have access to the most current information, critical in rapidly evolving disaster scenarios. The implementation of a Progressive Web App architecture allows our platform to function effectively even in low-connectivity areas often encountered during disasters. We incorporate AI-driven chatbots to provide immediate, contextual assistance to users, and employ geospatial technologies for accurate mapping and location-based services. By continuously exploring emerging technologies like improved natural language processing, advanced data analytics, and potentially augmented reality for on-ground assistance, we ensure that InfoUnity Response remains a technological leader in the disaster management field."
+      title: t('whoWeAre.technology.title'),
+      content: t('whoWeAre.technology.content')
     }
   ];
-
+  
   return (
     <div className="w-full min-h-screen bg-gray-800">
       <div className="max-w-6xl mx-auto p-4 py-8">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-white mb-4">WHO WE ARE AT INFO UNITY RESPONSE ?</h1>
+          <h1 className="text-2xl font-bold text-white mb-4">{t('whoWeAre.title')}</h1>
         </div>
-
+        {/* Rest of the component remains the same, just using the updated accordionData */}
         {/* Mobile Layout */}
         <div className="lg:hidden space-y-6">
-          {/* Logo Section */}
           <div className="space-y-4">
             <div className="bg-gray-700 p-4 rounded-lg">
-            <img src={mainLogo} alt="Main Logo" className="w-full grayscale" />
+              <img src={mainLogo} alt={t('logo.alt')} className="w-full grayscale" />
             </div>
             <div className="flex justify-center gap-4 bg-gray-700 p-4 rounded-lg">
-            <img src={redCrossLogo} alt="Partner Logo 1" className="w-24 h-auto" />
-            <img src={dmcLogo} alt="Partner Logo 2" className="w-24 h-auto" />
-              
+              <img src={redCrossLogo} alt={t('logo.partner1')} className="w-24 h-auto" />
+              <img src={dmcLogo} alt={t('logo.partner2')} className="w-24 h-auto" />
             </div>
-            
           </div>
           
-          {/* Accordion */}
           <div className="border border-gray-700 rounded-lg bg-gray-800/50">
             {accordionData.map((item, index) => (
               <AccordionItem
@@ -488,19 +488,17 @@ const WhoAreWe = () => {
 
         {/* Desktop Layout */}
         <div className="hidden lg:grid lg:grid-cols-2 lg:gap-8">
-          {/* Left Side: Images */}
           <div className="space-y-4">
             <div className="bg-gray-700 p-4 rounded-lg p-20">
-            <img src={mainLogo} alt="Main Logo" className="w-full grayscale" />
+              <img src={mainLogo} alt={t('logo.alt')} className="w-full grayscale" />
             </div>
             <div className="flex justify-center gap-4 bg-gray-700 p-4 rounded-lg">
-              <p style={{color: 'white'}}>In Partnership With</p>
-            <img src={redCrossLogo} alt="Partner Logo 1" className="w-24 h-auto" />
-            <img src={dmcLogo} alt="Partner Logo 2" className="w-24 h-auto" />
+              <p style={{color: 'white'}}>{t('whoWeAre.partnership')}</p>
+              <img src={redCrossLogo} alt={t('logo.partner1')} className="w-24 h-auto" />
+              <img src={dmcLogo} alt={t('logo.partner2')} className="w-24 h-auto" />
             </div>
           </div>
 
-          {/* Right Side: Accordion */}
           <div className="border border-gray-700 rounded-lg bg-gray-800/50">
             {accordionData.map((item, index) => (
               <AccordionItem
@@ -514,12 +512,11 @@ const WhoAreWe = () => {
             ))}
           </div>
         </div>
-
-        
       </div>
     </div>
   );
 };
+
 
 const EmergencyCard = ({ title, image, path }) => {
   return (
@@ -547,24 +544,26 @@ const EmergencyCard = ({ title, image, path }) => {
 };
 
 const EmergencyResponseGrid = () => {
+  const { t } = useTranslation();
+  
   const cards = [
     {
-      title: "RESPONSE TO DROUGHTS",
+      title: t('emergency.drought'),
       image: Drought,
       path: "/response/droughts"
     },
     {
-      title: "RESPONSE TO TSUNAMIS",
+      title: t('emergency.tsunami'),
       image: Tsunami,
       path: "/response/tsunamis"
     },
     {
-      title: "RESPONSE TO RAIN / FLOOD",
+      title: t('emergency.flood'),
       image: Flood,
       path: "/response/floods"
     },
     {
-      title: "RESPONSE TO LANDSLIDES",
+      title: t('emergency.landslide'),
       image: Landslide,
       path: "/response/landslides"
     }
@@ -572,7 +571,7 @@ const EmergencyResponseGrid = () => {
 
   return (
     <div className="max-w-6xl mx-auto p-8">
-      <h2 className="text-2xl font-bold text-center mb-8">STAY INFORMED</h2>
+      <h2 className="text-2xl font-bold text-center mb-8">{t('emergency.stayInformed')}</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 justify-items-center">
         {cards.map((card, index) => (
           <EmergencyCard
