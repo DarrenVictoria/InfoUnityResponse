@@ -127,7 +127,7 @@ const Hero = () => {
         return null;
       }
     } catch (error) {
-      console.error('Error fetching location status:', error);
+      console.error('Error fetching location based status:', error);
       return null;
     }
   };
