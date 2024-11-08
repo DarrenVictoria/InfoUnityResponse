@@ -11,8 +11,10 @@ import {
   AlertTriangle,
   User,
   Menu,
-  X
+  X,
+  LogOut
 } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 
 // Reusable dropdown component
 const NavDropdown = ({ translationKey, icon: Icon, items, isOpen, onToggle, isMobile }) => {
@@ -69,7 +71,8 @@ const NavigationBar = () => {
   const { t, i18n } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { user, roles, logout } = useAuth();
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
   const languages = [
@@ -101,6 +104,7 @@ const NavigationBar = () => {
       setIsMobile(window.innerWidth < 1024);
       if (window.innerWidth >= 1024) {
         setIsMenuOpen(false);
+        setIsProfileOpen(false);
       }
     };
 
@@ -114,6 +118,7 @@ const NavigationBar = () => {
     const handleClickOutside = (event) => {
       if (!event.target.closest('.dropdown-container')) {
         setOpenDropdown(null);
+        setIsProfileOpen(false);
       }
     };
 
@@ -128,6 +133,10 @@ const NavigationBar = () => {
   const handleLanguageChange = (langCode) => {
     i18n.changeLanguage(langCode);
     setOpenDropdown(null);
+  };
+
+  const handleProfileToggle = () => {
+    setIsProfileOpen(!isProfileOpen);
   };
 
   const renderNavItems = () => (
@@ -164,7 +173,6 @@ const NavigationBar = () => {
       </a>
     </>
   );
-
 
   const renderLanguageSelector = () => (
     <div className={`${isMobile ? 'px-3 py-2' : 'relative dropdown-container'}`}>
@@ -213,67 +221,95 @@ const NavigationBar = () => {
     </div>
   );
 
+  const renderProfileDropdown = () => (
+    <div className="relative dropdown-container">
+      <button onClick={handleProfileToggle} className="flex items-center p-2 hover:bg-gray-100">
+        <User className="h-5 w-5" />
+        <ChevronDown className={`h-4 w-4 ml-1 ${isProfileOpen ? 'rotate-180' : ''}`} />
+      </button>
+      {isProfileOpen && (
+        <div className="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg z-50">
+          {/* User Info */}
+          <div className="p-4 border-b">
+            <p className="font-semibold">{user?.displayName || 'User'}</p>
+            <p className="text-gray-400 text-xs">{user?.email}</p>
+          </div>
+
+          {/* Roles and Dashboard Links */}
+          <div className="py-2">
+            {roles.map((role, index) => (
+              <a
+                key={index}
+                href={`/${role.toLowerCase().replace(/\s+/g, '-')}-dashboard`}
+                className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+              >
+                {role} Dashboard
+              </a>
+            ))}
+          </div>
+
+          {/* Logout Button */}
+          <button
+            onClick={logout}
+            className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
+          >
+            <LogOut className="h-4 w-4 mr-2 inline" />
+            {t('nav.logout')}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md">
-      <div className="max-w-[1920px] mx-auto px-4 lg:px-6">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <div className="flex items-center flex-shrink-0">
-            <div className="flex items-center mr-10">
-              <img 
-                src="/favicon-32x32.png" 
-                alt={t('logo.alt')} 
-                className="h-10 w-10 rounded-lg"
-              />
-              <span className="ml-2 text-lg font-bold whitespace-nowrap text-black">
-                {t('InfoUnity Response')}
-              </span>
-            </div>
+      <div className="max-w-[1920px] mx-auto px-4 lg:px-6 flex items-center justify-between h-16">
+        {/* Logo */}
+        <div className="flex items-center flex-shrink-0">
+          <img src="/favicon-32x32.png" alt="Logo" className="h-10 w-10" />
+          <span className="ml-2 text-lg font-bold text-black">
+            {t('InfoUnity Response')}
+          </span>
+        </div>
 
-            {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center space-x-1">
-              {renderNavItems()}
-            </div>
-          </div>
+        {/* Desktop Navigation */}
+        <div className="hidden lg:flex items-center space-x-1">
+          {renderNavItems()}
+        </div>
 
-          {/* Right section */}
-          <div className="hidden lg:flex items-center space-x-4">
-            {renderLanguageSelector()}
+        {/* Right Section: Language Selector, SOS Button, Profile/Login */}
+        <div className="hidden lg:flex items-center space-x-4">
+          {renderLanguageSelector()}
 
-            {/* SOS Button */}
-            <button className="px-1 py-1 text-red-600 font-medium rounded-md border-2 border-red-600 hover:bg-red-50 flex items-center">
-              <AlertTriangle className="h-4 w-4 mr-1" />
-              <span className="hidden sm:inline">{t('nav.sos')}</span>
-            </button>
+          {/* SOS Button */}
+          <button className="px-1 py-1 text-red-600 font-medium rounded-md border-2 border-red-600 hover:bg-red-50 flex items-center">
+            <AlertTriangle className="h-4 w-4 mr-1" />
+            <span className="hidden sm:inline">{t('nav.sos')}</span>
+          </button>
 
-            {/* Login Button / Avatar */}
-            {isLoggedIn ? (
-              <button className="w-10 h-10 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center">
-                <User className="h-6 w-6 text-gray-600" />
-              </button>
-            ) : (
-              <button 
-                onClick={() => setIsLoggedIn(true)}
-                className="px-4 py-2 text-white font-medium rounded-md bg-blue-900 hover:bg-blue-800"
-              >
-                {t('nav.login')}
-              </button>
-            )}
-          </div>
-
-          {/* Mobile menu button */}
-          <div className="lg:hidden flex items-center">
+          {/* Render Profile or Login Button */}
+          {user ? renderProfileDropdown() : (
             <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="p-2 rounded-md text-gray-700 hover:bg-gray-100"
+              onClick={() => (window.location.href = '/login')}
+              className="px-4 py-2 bg-blue-900 text-white rounded-md"
             >
-              {isMenuOpen ? (
-                <X className="h-6 w-6" />
-              ) : (
-                <Menu className="h-6 w-6" />
-              )}
+              {t('nav.login')}
             </button>
-          </div>
+          )}
+        </div>
+
+        {/* Mobile menu button */}
+        <div className="lg:hidden flex items-center">
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="p-2 rounded-md text-gray-700 hover:bg-gray-100"
+          >
+            {isMenuOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
+          </button>
         </div>
       </div>
 
@@ -290,14 +326,14 @@ const NavigationBar = () => {
                 {t('nav.sos')}
               </button>
               
-              {isLoggedIn ? (
-                <button className="w-full px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md flex items-center justify-center">
+              {user ? (
+                <button onClick={handleProfileToggle} className="w-full px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md flex items-center justify-center">
                   <User className="h-6 w-6" />
                   <span className="ml-2">{t('nav.profile')}</span>
                 </button>
               ) : (
                 <button 
-                  onClick={() => setIsLoggedIn(true)}
+                  onClick={() => (window.location.href = '/role-selection')}
                   className="w-full px-4 py-2 text-white font-medium rounded-md bg-blue-900 hover:bg-blue-800"
                 >
                   {t('nav.login')}

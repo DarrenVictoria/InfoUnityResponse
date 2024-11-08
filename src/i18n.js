@@ -16,6 +16,7 @@ const resources = {
       "nav.sos": "SOS",
       "nav.login": "Login",
       "nav.profile": "Profile",
+      "nav.logout": "Logout",
       "InfoUnity Response": "InfoUnity Response",
       "Uniting Information, Empowering Response": "Uniting Information, Empowering Response",
       "Search divisional secretariats...": "Search divisional secretariats...",
