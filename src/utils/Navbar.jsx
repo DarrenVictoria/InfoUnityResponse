@@ -130,13 +130,111 @@ const NavigationBar = () => {
     setOpenDropdown(openDropdown === dropdownName ? null : dropdownName);
   };
 
+  const handleLogout = async (e) => {
+    e?.preventDefault();
+    try {
+      await logout();
+      setIsMenuOpen(false);
+      setOpenDropdown(null);
+      setIsProfileOpen(false);
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
   const handleLanguageChange = (langCode) => {
     i18n.changeLanguage(langCode);
     setOpenDropdown(null);
   };
 
-  const handleProfileToggle = () => {
-    setIsProfileOpen(!isProfileOpen);
+  const handleProfileToggle = (e) => {
+    e?.stopPropagation(); // Prevent event bubbling
+    if (isMobile) {
+      setOpenDropdown(openDropdown === 'profile' ? null : 'profile');
+    } else {
+      setIsProfileOpen(!isProfileOpen);
+    }
+  };
+
+  const renderMobileMenu = () => (
+    <div className="lg:hidden bg-white border-t">
+      <div className="px-2 pt-2 pb-3 space-y-1">
+        {renderNavItems()}
+        {renderLanguageSelector()}
+
+        <div className="px-3 pt-4 space-y-2">
+          {/* SOS Button */}
+          <button className="w-full px-4 py-2 text-red-600 font-medium rounded-md border-2 border-red-600 hover:bg-red-50 flex items-center justify-center">
+            <AlertTriangle className="h-4 w-4 mr-1" />
+            {t('nav.sos')}
+          </button>
+          
+          {user ? (
+            <>
+              <button 
+                onClick={handleProfileToggle}
+                className="w-full px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md flex items-center justify-between transition-colors"
+              >
+                <div className="flex items-center">
+                  <User className="h-5 w-5 text-gray-600" />
+                  <span className="ml-2">{user.displayName || t('nav.profile')}</span>
+                </div>
+                <ChevronDown 
+                  className={`h-4 w-4 transform transition-transform duration-200 ${
+                    openDropdown === 'profile' ? 'rotate-180' : ''
+                  }`} 
+                />
+              </button>
+              {openDropdown === 'profile' && renderMobileProfileMenu()}
+            </>
+          ) : (
+            <button 
+              onClick={() => window.location.href = '/login'}
+              className="w-full px-4 py-2 text-white font-medium rounded-md bg-blue-900 hover:bg-blue-800 transition-colors"
+            >
+              {t('nav.login')}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderMobileProfileMenu = () => {
+    if (!user) return null;
+
+    return (
+      <div className="px-3 py-2 space-y-2 bg-gray-50 rounded-md mx-2">
+        {/* User Info */}
+        <div className="px-2 py-3 border-b border-gray-200">
+          <p className="font-semibold text-gray-900">{user?.displayName || 'User'}</p>
+          <p className="text-gray-500 text-sm">{user?.email}</p>
+        </div>
+
+        {/* Roles and Dashboard Links */}
+        <div className="space-y-1 py-2">
+          {roles?.map((role, index) => (
+            <a
+              key={index}
+              href={`/${role.toLowerCase().replace(/\s+/g, '-')}-dashboard`}
+              className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              {role} Dashboard
+            </a>
+          ))}
+        </div>
+
+        {/* Logout Button */}
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center justify-center px-3 py-2 text-red-600 hover:bg-red-50 rounded-md transition-colors"
+        >
+          <LogOut className="h-4 w-4 mr-2" />
+          {t('nav.logout')}
+        </button>
+      </div>
+    );
   };
 
   const renderNavItems = () => (
@@ -223,25 +321,32 @@ const NavigationBar = () => {
 
   const renderProfileDropdown = () => (
     <div className="relative dropdown-container">
-      <button onClick={handleProfileToggle} className="flex items-center p-2 hover:bg-gray-100">
-        <User className="h-5 w-5" />
-        <ChevronDown className={`h-4 w-4 ml-1 ${isProfileOpen ? 'rotate-180' : ''}`} />
+      <button 
+        onClick={handleProfileToggle} 
+        className="flex items-center p-2 hover:bg-gray-100 rounded-md transition-colors"
+      >
+        <User className="h-5 w-5 text-gray-600" />
+        <ChevronDown 
+          className={`h-4 w-4 ml-1 transform transition-transform duration-200 ${
+            isProfileOpen ? 'rotate-180' : ''
+          }`} 
+        />
       </button>
       {isProfileOpen && (
         <div className="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg z-50">
           {/* User Info */}
           <div className="p-4 border-b">
-            <p className="font-semibold">{user?.displayName || 'User'}</p>
-            <p className="text-gray-400 text-xs">{user?.email}</p>
+            <p className="font-semibold text-gray-900">{user?.displayName || 'User'}</p>
+            <p className="text-gray-500 text-sm">{user?.email}</p>
           </div>
 
           {/* Roles and Dashboard Links */}
           <div className="py-2">
-            {roles.map((role, index) => (
+            {roles?.map((role, index) => (
               <a
                 key={index}
                 href={`/${role.toLowerCase().replace(/\s+/g, '-')}-dashboard`}
-                className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                className="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors"
               >
                 {role} Dashboard
               </a>
@@ -250,8 +355,8 @@ const NavigationBar = () => {
 
           {/* Logout Button */}
           <button
-            onClick={logout}
-            className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
+            onClick={handleLogout}
+            className="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 transition-colors border-t"
           >
             <LogOut className="h-4 w-4 mr-2 inline" />
             {t('nav.logout')}
@@ -277,21 +382,19 @@ const NavigationBar = () => {
           {renderNavItems()}
         </div>
 
-        {/* Right Section: Language Selector, SOS Button, Profile/Login */}
+        {/* Right Section */}
         <div className="hidden lg:flex items-center space-x-4">
           {renderLanguageSelector()}
 
-          {/* SOS Button */}
-          <button className="px-1 py-1 text-red-600 font-medium rounded-md border-2 border-red-600 hover:bg-red-50 flex items-center">
+          <button className="px-1 py-1 text-red-600 font-medium rounded-md border-2 border-red-600 hover:bg-red-50 flex items-center transition-colors">
             <AlertTriangle className="h-4 w-4 mr-1" />
             <span className="hidden sm:inline">{t('nav.sos')}</span>
           </button>
 
-          {/* Render Profile or Login Button */}
           {user ? renderProfileDropdown() : (
             <button
-              onClick={() => (window.location.href = '/login')}
-              className="px-4 py-2 bg-blue-900 text-white rounded-md"
+              onClick={() => window.location.href = '/login'}
+              className="px-4 py-2 bg-blue-900 text-white rounded-md hover:bg-blue-800 transition-colors"
             >
               {t('nav.login')}
             </button>
@@ -301,8 +404,11 @@ const NavigationBar = () => {
         {/* Mobile menu button */}
         <div className="lg:hidden flex items-center">
           <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="p-2 rounded-md text-gray-700 hover:bg-gray-100"
+            onClick={() => {
+              setIsMenuOpen(!isMenuOpen);
+              setOpenDropdown(null);
+            }}
+            className="p-2 rounded-md text-gray-700 hover:bg-gray-100 transition-colors"
           >
             {isMenuOpen ? (
               <X className="h-6 w-6" />
@@ -314,35 +420,7 @@ const NavigationBar = () => {
       </div>
 
       {/* Mobile menu */}
-      {isMenuOpen && (
-        <div className="lg:hidden bg-white border-t">
-          <div className="px-2 pt-2 pb-3 space-y-1">
-            {renderNavItems()}
-            {renderLanguageSelector()}
-
-            <div className="px-3 pt-4 space-y-2">
-              <button className="w-full px-4 py-2 text-red-600 font-medium rounded-md border-2 border-red-600 hover:bg-red-50 flex items-center justify-center">
-                <AlertTriangle className="h-4 w-4 mr-1" />
-                {t('nav.sos')}
-              </button>
-              
-              {user ? (
-                <button onClick={handleProfileToggle} className="w-full px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md flex items-center justify-center">
-                  <User className="h-6 w-6" />
-                  <span className="ml-2">{t('nav.profile')}</span>
-                </button>
-              ) : (
-                <button 
-                  onClick={() => (window.location.href = '/role-selection')}
-                  className="w-full px-4 py-2 text-white font-medium rounded-md bg-blue-900 hover:bg-blue-800"
-                >
-                  {t('nav.login')}
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      {isMenuOpen && renderMobileMenu()}
     </nav>
   );
 };
