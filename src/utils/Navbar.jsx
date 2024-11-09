@@ -208,7 +208,7 @@ const NavigationBar = () => {
         {/* User Info */}
         <div className="px-2 py-3 border-b border-gray-200">
           <p className="font-semibold text-gray-900">{user?.displayName || 'User'}</p>
-          <p className="text-gray-500 text-sm">{user?.email}</p>
+          <p className="text-gray-500 text-xs">{user?.email}</p>
         </div>
 
         {/* Roles and Dashboard Links */}
@@ -337,7 +337,7 @@ const NavigationBar = () => {
           {/* User Info */}
           <div className="p-4 border-b">
             <p className="font-semibold text-gray-900">{user?.displayName || 'User'}</p>
-            <p className="text-gray-500 text-sm">{user?.email}</p>
+            <p className="text-gray-500 text-xs">{user?.email}</p>
           </div>
 
           {/* Roles and Dashboard Links */}

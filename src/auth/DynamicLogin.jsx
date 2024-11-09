@@ -52,6 +52,10 @@ const DynamicLogin = ({ title, path }) => {
   };
 
   const roleclean = role.charAt(0).toUpperCase() + role.slice(1);
+  
+  
+  // Check if registration should be shown for the current role
+  const showRegistration = !['Red cross manager', 'Dmc system admin'].includes(roleclean);
 
   return (
     <div
@@ -97,15 +101,17 @@ const DynamicLogin = ({ title, path }) => {
           Login
         </button>
 
-        {/* Register Link */}
-        <div className="mt-4 text-center">
-          <p className="text-sm">
-            Don't have an account?{' '}
-            <a href={`/register/${role}`} className="text-blue-500 hover:underline">
-              Register
-            </a>
-          </p>
-        </div>
+        {/* Register Link - Only shown for roles that allow registration */}
+        {showRegistration && (
+          <div className="mt-4 text-center">
+            <p className="text-sm">
+              Don't have an account?{' '}
+              <a href={`/register/${role}`} className="text-blue-500 hover:underline">
+                Register
+              </a>
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
