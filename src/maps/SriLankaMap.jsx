@@ -4,7 +4,7 @@ import Map from 'react-map-gl';
 import { GeoJsonLayer, ScatterplotLayer } from '@deck.gl/layers';
 
 // Note: Replace with your actual Mapbox token
-const MAPBOX_TOKEN = 'pk.eyJ1IjoiaW5mb3VuaXR5cmVzcG9uc2UiLCJhIjoiY20zZzgwNml1MDFrMDJycTI4OGMzajR4eCJ9.C93aGIc5IHdwuu1lElzfwQ';
+const MAPBOX_TOKEN = import.meta.env.MAPBOX_API_TOKEN;;
 
 const sriLankaGeoJson = {
   "type": "FeatureCollection",

@@ -30,7 +30,7 @@ const RespondentRegister = () => {
 
   const handleLocationChange = (selectedDistrict, selectedDivision) => {
     setDistrict(selectedDistrict);
-    setDivision(selectedDivision);
+    setDivision(selectedDivision); 
   };
 
   // Validate NIC number (alphanumeric, 1 to 13 characters)
