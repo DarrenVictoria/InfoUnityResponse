@@ -1,59 +1,75 @@
-import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { 
-  ChevronDown, 
-  Globe, 
-  BookOpen, 
-  Bot, 
-  Users, 
-  Wrench, 
+import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import {
+  ChevronDown,
+  Globe,
+  BookOpen,
+  Bot,
+  Users,
+  Wrench,
   Search,
   AlertTriangle,
   User,
   Menu,
   X,
-  LogOut
-} from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
+  LogOut,
+} from "lucide-react";
+import { useAuth } from "../hooks/useAuth";
 
 // Reusable dropdown component
-const NavDropdown = ({ translationKey, icon: Icon, items, isOpen, onToggle, isMobile }) => {
+const NavDropdown = ({
+  translationKey,
+  icon: Icon,
+  items,
+  isOpen,
+  onToggle,
+  isMobile,
+}) => {
   const { t } = useTranslation();
-  
+
   return (
-    <div className={`${isMobile ? 'px-3 py-2' : 'relative dropdown-container'}`}>
+    <div
+      className={`${isMobile ? "px-3 py-2" : "relative dropdown-container"}`}
+    >
       <button
         onClick={(e) => {
           e.stopPropagation();
           onToggle();
         }}
         className={`
-          ${isMobile 
-            ? 'flex items-center w-full text-gray-700' 
-            : 'px-3 py-2 text-gray-700 hover:text-gray-900 rounded-md flex items-center'
+          ${
+            isMobile
+              ? "flex items-center w-full text-gray-700"
+              : "px-3 py-2 text-gray-700 hover:text-gray-900 rounded-md flex items-center"
           }
         `}
       >
         {Icon && <Icon className="h-4 w-4 mr-2" />}
         {t(translationKey)}
-        <ChevronDown className={`ml-1 h-4 w-4 transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown
+          className={`ml-1 h-4 w-4 transform ${isOpen ? "rotate-180" : ""}`}
+        />
       </button>
       {isOpen && (
-        <div className={`
-          ${isMobile 
-            ? 'mt-2 pl-4 space-y-2' 
-            : 'absolute top-full left-0 w-56 bg-white border rounded-md shadow-lg py-1 mt-1'
+        <div
+          className={`
+          ${
+            isMobile
+              ? "mt-2 pl-4 space-y-2"
+              : "absolute top-full left-0 w-56 bg-white border rounded-md shadow-lg py-1 mt-1"
           }
-        `}>
+        `}
+        >
           {items.map((item, index) => (
             <a
               key={index}
               href={item.href}
               className={`
                 flex items-center
-                ${isMobile 
-                  ? 'px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md' 
-                  : 'px-4 py-2 text-gray-700 hover:bg-gray-100 text-sm'
+                ${
+                  isMobile
+                    ? "px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                    : "px-4 py-2 text-gray-700 hover:bg-gray-100 text-sm"
                 }
               `}
             >
@@ -76,26 +92,30 @@ const NavigationBar = () => {
   const [isMobile, setIsMobile] = useState(false);
 
   const languages = [
-    { code: 'en', name: 'English' },
-    { code: 'si', name: 'සිංහල' },
-    { code: 'ta', name: 'தமிழ்' }
+    { code: "en", name: "English" },
+    { code: "si", name: "සිංහල" },
+    { code: "ta", name: "தமிழ்" },
   ];
 
   const navItems = {
     learn: {
-      translationKey: 'nav.learn',
+      translationKey: "nav.learn",
       items: [
-        { translationKey: 'nav.disasterCatalogue', icon: BookOpen, href: '#' },
-        { translationKey: 'nav.aiChatbot', icon: Bot, href: '#' }
-      ]
+        { translationKey: "nav.disasterCatalogue", icon: BookOpen, href: "#" },
+        { translationKey: "nav.aiChatbot", icon: Bot, href: "#" },
+      ],
     },
     tools: {
-      translationKey: 'nav.tools',
+      translationKey: "nav.tools",
       items: [
-        { translationKey: 'nav.responseManagement', icon: Wrench, href: '#' },
-        { translationKey: 'nav.missingPersonRegistry', icon: Search, href: '#' }
-      ]
-    }
+        { translationKey: "nav.responseManagement", icon: Wrench, href: "#" },
+        {
+          translationKey: "nav.missingPersonRegistry",
+          icon: Search,
+          href: "#",
+        },
+      ],
+    },
   };
 
   // Handle screen resize
@@ -108,22 +128,22 @@ const NavigationBar = () => {
       }
     };
 
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
     handleResize();
-    return () => window.removeEventListener('resize', handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (!event.target.closest('.dropdown-container')) {
+      if (!event.target.closest(".dropdown-container")) {
         setOpenDropdown(null);
         setIsProfileOpen(false);
       }
     };
 
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
   const handleDropdownToggle = (dropdownName) => {
@@ -138,7 +158,7 @@ const NavigationBar = () => {
       setOpenDropdown(null);
       setIsProfileOpen(false);
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error("Logout failed:", error);
     }
   };
 
@@ -150,7 +170,7 @@ const NavigationBar = () => {
   const handleProfileToggle = (e) => {
     e?.stopPropagation(); // Prevent event bubbling
     if (isMobile) {
-      setOpenDropdown(openDropdown === 'profile' ? null : 'profile');
+      setOpenDropdown(openDropdown === "profile" ? null : "profile");
     } else {
       setIsProfileOpen(!isProfileOpen);
     }
@@ -166,33 +186,35 @@ const NavigationBar = () => {
           {/* SOS Button */}
           <button className="w-full px-4 py-2 text-red-600 font-medium rounded-md border-2 border-red-600 hover:bg-red-50 flex items-center justify-center">
             <AlertTriangle className="h-4 w-4 mr-1" />
-            {t('nav.sos')}
+            {t("nav.sos")}
           </button>
-          
+
           {user ? (
             <>
-              <button 
+              <button
                 onClick={handleProfileToggle}
                 className="w-full px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md flex items-center justify-between transition-colors"
               >
                 <div className="flex items-center">
                   <User className="h-5 w-5 text-gray-600" />
-                  <span className="ml-2">{user.displayName || t('nav.profile')}</span>
+                  <span className="ml-2">
+                    {user.displayName || t("nav.profile")}
+                  </span>
                 </div>
-                <ChevronDown 
+                <ChevronDown
                   className={`h-4 w-4 transform transition-transform duration-200 ${
-                    openDropdown === 'profile' ? 'rotate-180' : ''
-                  }`} 
+                    openDropdown === "profile" ? "rotate-180" : ""
+                  }`}
                 />
               </button>
-              {openDropdown === 'profile' && renderMobileProfileMenu()}
+              {openDropdown === "profile" && renderMobileProfileMenu()}
             </>
           ) : (
-            <button 
-              onClick={() => window.location.href = '/login'}
+            <button
+              onClick={() => (window.location.href = "/login")}
               className="w-full px-4 py-2 text-white font-medium rounded-md bg-blue-900 hover:bg-blue-800 transition-colors"
             >
-              {t('nav.login')}
+              {t("nav.login")}
             </button>
           )}
         </div>
@@ -207,7 +229,9 @@ const NavigationBar = () => {
       <div className="px-3 py-2 space-y-2 bg-gray-50 rounded-md mx-2">
         {/* User Info */}
         <div className="px-2 py-3 border-b border-gray-200">
-          <p className="font-semibold text-gray-900">{user?.displayName || 'User'}</p>
+          <p className="font-semibold text-gray-900">
+            {user?.displayName || "User"}
+          </p>
           <p className="text-gray-500 text-xs">{user?.email}</p>
         </div>
 
@@ -216,7 +240,7 @@ const NavigationBar = () => {
           {roles?.map((role, index) => (
             <a
               key={index}
-              href={`/${role.toLowerCase().replace(/\s+/g, '-')}-dashboard`}
+              href={`/${role.toLowerCase().replace(/\s+/g, "-")}-dashboard`}
               className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
               onClick={() => setIsMenuOpen(false)}
             >
@@ -231,7 +255,7 @@ const NavigationBar = () => {
           className="w-full flex items-center justify-center px-3 py-2 text-red-600 hover:bg-red-50 rounded-md transition-colors"
         >
           <LogOut className="h-4 w-4 mr-2" />
-          {t('nav.logout')}
+          {t("nav.logout")}
         </button>
       </div>
     );
@@ -239,13 +263,17 @@ const NavigationBar = () => {
 
   const renderNavItems = () => (
     <>
-      <a href="#" className={`
-        ${isMobile 
-          ? 'block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md text-left' 
-          : 'px-3 py-2 text-gray-700 hover:text-gray-900 rounded-md'
+      <a
+        href="realtime"
+        className={`
+        ${
+          isMobile
+            ? "block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md text-left"
+            : "px-3 py-2 text-gray-700 hover:text-gray-900 rounded-md"
         }
-      `}>
-        {t('nav.realtime')}
+      `}
+      >
+        {t("nav.realtime")}
       </a>
 
       {Object.entries(navItems).map(([key, { translationKey, items }]) => (
@@ -259,55 +287,75 @@ const NavigationBar = () => {
         />
       ))}
 
-      <a href="#" className={`
+      <a
+        href="#"
+        className={`
         flex items-center
-        ${isMobile 
-          ? 'px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md' 
-          : 'px-3 py-2 text-gray-700 hover:text-gray-900 rounded-md'
+        ${
+          isMobile
+            ? "px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+            : "px-3 py-2 text-gray-700 hover:text-gray-900 rounded-md"
         }
-      `}>
+      `}
+      >
         <Users className="h-4 w-4 mr-2" />
-        {t('nav.volunteer')}
+        {t("nav.volunteer")}
       </a>
     </>
   );
 
   const renderLanguageSelector = () => (
-    <div className={`${isMobile ? 'px-3 py-2' : 'relative dropdown-container'}`}>
+    <div
+      className={`${isMobile ? "px-3 py-2" : "relative dropdown-container"}`}
+    >
       <button
         onClick={(e) => {
           e.stopPropagation();
-          handleDropdownToggle('language');
+          handleDropdownToggle("language");
         }}
         className={`
-          ${isMobile 
-            ? 'flex items-center w-full text-gray-700' 
-            : 'p-2 rounded-md hover:bg-gray-100 flex items-center'
+          ${
+            isMobile
+              ? "flex items-center w-full text-gray-700"
+              : "p-2 rounded-md hover:bg-gray-100 flex items-center"
           }
         `}
       >
         <Globe className="h-5 w-5 text-gray-600 mr-2" />
-        <span className={isMobile ? '' : 'ml-1 text-sm hidden xl:inline text-gray-700'}>
-          {languages.find(lang => lang.code === i18n.language)?.name || 'English'}
-        </span>
-        <ChevronDown className={`ml-1 h-4 w-4 text-gray-700 transform ${openDropdown === 'language' ? 'rotate-180' : ''}`} />
-      </button>
-      {openDropdown === 'language' && (
-        <div className={`
-          ${isMobile 
-            ? 'mt-2 pl-4 space-y-2' 
-            : 'absolute top-full right-0 w-32 bg-white border rounded-md shadow-lg py-1 mt-1'
+        <span
+          className={
+            isMobile ? "" : "ml-1 text-sm hidden xl:inline text-gray-700"
           }
-        `}>
+        >
+          {languages.find((lang) => lang.code === i18n.language)?.name ||
+            "English"}
+        </span>
+        <ChevronDown
+          className={`ml-1 h-4 w-4 text-gray-700 transform ${
+            openDropdown === "language" ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+      {openDropdown === "language" && (
+        <div
+          className={`
+          ${
+            isMobile
+              ? "mt-2 pl-4 space-y-2"
+              : "absolute top-full right-0 w-32 bg-white border rounded-md shadow-lg py-1 mt-1"
+          }
+        `}
+        >
           {languages.map((lang) => (
             <button
               key={lang.code}
               onClick={() => handleLanguageChange(lang.code)}
               className={`
                 w-full text-left
-                ${isMobile 
-                  ? 'px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md' 
-                  : 'px-4 py-2 text-gray-700 hover:bg-gray-100'
+                ${
+                  isMobile
+                    ? "px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                    : "px-4 py-2 text-gray-700 hover:bg-gray-100"
                 }
               `}
             >
@@ -321,22 +369,24 @@ const NavigationBar = () => {
 
   const renderProfileDropdown = () => (
     <div className="relative dropdown-container">
-      <button 
-        onClick={handleProfileToggle} 
+      <button
+        onClick={handleProfileToggle}
         className="flex items-center p-2 hover:bg-gray-100 rounded-md transition-colors"
       >
         <User className="h-5 w-5 text-gray-600" />
-        <ChevronDown 
+        <ChevronDown
           className={`h-4 w-4 ml-1 transform transition-transform duration-200 ${
-            isProfileOpen ? 'rotate-180' : ''
-          }`} 
+            isProfileOpen ? "rotate-180" : ""
+          }`}
         />
       </button>
       {isProfileOpen && (
         <div className="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg z-50">
           {/* User Info */}
           <div className="p-4 border-b">
-            <p className="font-semibold text-gray-900">{user?.displayName || 'User'}</p>
+            <p className="font-semibold text-gray-900">
+              {user?.displayName || "User"}
+            </p>
             <p className="text-gray-500 text-xs">{user?.email}</p>
           </div>
 
@@ -345,7 +395,7 @@ const NavigationBar = () => {
             {roles?.map((role, index) => (
               <a
                 key={index}
-                href={`/${role.toLowerCase().replace(/\s+/g, '-')}-dashboard`}
+                href={`/${role.toLowerCase().replace(/\s+/g, "-")}-dashboard`}
                 className="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors"
               >
                 {role} Dashboard
@@ -359,7 +409,7 @@ const NavigationBar = () => {
             className="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 transition-colors border-t"
           >
             <LogOut className="h-4 w-4 mr-2 inline" />
-            {t('nav.logout')}
+            {t("nav.logout")}
           </button>
         </div>
       )}
@@ -373,7 +423,7 @@ const NavigationBar = () => {
         <div className="flex items-center flex-shrink-0">
           <img src="/favicon-32x32.png" alt="Logo" className="h-10 w-10" />
           <span className="ml-2 text-lg font-bold text-black">
-            {t('InfoUnity Response')}
+            {t("InfoUnity Response")}
           </span>
         </div>
 
@@ -388,15 +438,17 @@ const NavigationBar = () => {
 
           <button className="px-1 py-1 text-red-600 font-medium rounded-md border-2 border-red-600 hover:bg-red-50 flex items-center transition-colors">
             <AlertTriangle className="h-4 w-4 mr-1" />
-            <span className="hidden sm:inline">{t('nav.sos')}</span>
+            <span className="hidden sm:inline">{t("nav.sos")}</span>
           </button>
 
-          {user ? renderProfileDropdown() : (
+          {user ? (
+            renderProfileDropdown()
+          ) : (
             <button
-              onClick={() => window.location.href = '/login'}
+              onClick={() => (window.location.href = "/login")}
               className="px-4 py-2 bg-blue-900 text-white rounded-md hover:bg-blue-800 transition-colors"
             >
-              {t('nav.login')}
+              {t("nav.login")}
             </button>
           )}
         </div>

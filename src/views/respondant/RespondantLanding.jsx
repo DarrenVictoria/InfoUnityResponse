@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import LatestUpdates from '../../utils/LatestUpdates';
 import { Link } from 'react-router-dom';
 
+
 import mainLogo from '../../assets/Logo.png';
 import redCrossLogo from '../../assets/RedCross.png';
 import dmcLogo from '../../assets/DMC.png';
@@ -30,6 +31,7 @@ const RespondantLanding = () => {
       <LatestUpdates />
       <WhoAreWe />
       <EmergencyResponseGrid />
+     
     </div>
   );
 };

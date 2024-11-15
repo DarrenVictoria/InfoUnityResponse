@@ -1,121 +1,132 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { createUserWithEmailAndPassword, getAuth } from 'firebase/auth';
-import { getFirestore, doc, setDoc, query, where, getDocs, collection } from 'firebase/firestore';
-import background from '../../assets/hero-background.jpg';
-import logo from '../../assets/logo-small.png';
-import LocationSelector from '../../components/LocationSelector'; // Import LocationSelector
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { createUserWithEmailAndPassword, getAuth } from "firebase/auth";
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  query,
+  where,
+  getDocs,
+  collection,
+} from "firebase/firestore";
+import background from "../../assets/hero-background.jpg";
+import logo from "../../assets/logo-small.png";
+import LocationSelector from "../../components/LocationSelector";
+import { useTranslation } from "react-i18next"; // Import useTranslation hook
 
-// Helper function for NIC validation (1 to 13 alphanumeric characters)
+// Helper functions
 const validateNIC = (nic) => /^[A-Za-z0-9]{1,13}$/.test(nic);
-
-// Helper function for email validation
-const validateEmail = (email) => /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(email);
-
-// Helper function to validate mobile number (should have 9 digits after the +94 prefix)
-const validateMobileNumber = (mobileNumber) => /^\d{9}$/.test(mobileNumber); // Only validate 9 digits
+const validateEmail = (email) =>
+  /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(email);
+const validateMobileNumber = (mobileNumber) => /^\d{9}$/.test(mobileNumber);
 
 const VolunteerRegister = () => {
   const navigate = useNavigate();
-  const [nicNumber, setNicNumber] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [mobileNumber, setMobileNumber] = useState('');
-  const [email, setEmail] = useState('');
-  const [selectedDistrict, setSelectedDistrict] = useState('');
-  const [selectedDivision, setSelectedDivision] = useState('');
-  const [password, setPassword] = useState('');
-  const [isRedCrossVolunteer, setIsRedCrossVolunteer] = useState(false); // Checkbox state
-  const [errors, setErrors] = useState({}); // To store validation errors
+  const { t, i18n } = useTranslation(); // Use the translation hook
+  const [nicNumber, setNicNumber] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [mobileNumber, setMobileNumber] = useState("");
+  const [email, setEmail] = useState("");
+  const [selectedDistrict, setSelectedDistrict] = useState("");
+  const [selectedDivision, setSelectedDivision] = useState("");
+  const [password, setPassword] = useState("");
+  const [isRedCrossVolunteer, setIsRedCrossVolunteer] = useState(false);
+  const [errors, setErrors] = useState({});
 
-  // Handle registration
   const handleRegister = async () => {
-    // Clear previous errors
     setErrors({});
-
-    // Validate inputs
     if (!validateNIC(nicNumber)) {
-      setErrors((prev) => ({ ...prev, nic: 'NIC number must be alphanumeric and between 1 to 13 characters.' }));
+      setErrors((prev) => ({ ...prev, nic: t("nicValidationError") }));
       return;
     }
     if (!validateEmail(email)) {
-      setErrors((prev) => ({ ...prev, email: 'Invalid email format.' }));
+      setErrors((prev) => ({ ...prev, email: t("emailValidationError") }));
       return;
     }
     if (password.length < 6) {
-      setErrors((prev) => ({ ...prev, password: 'Password must be at least 6 characters long.' }));
+      setErrors((prev) => ({
+        ...prev,
+        password: t("passwordValidationError"),
+      }));
       return;
     }
     if (!selectedDistrict || !selectedDivision) {
-      setErrors((prev) => ({ ...prev, location: 'District and Division are required.' }));
+      setErrors((prev) => ({
+        ...prev,
+        location: t("locationValidationError"),
+      }));
       return;
     }
     if (!validateMobileNumber(mobileNumber)) {
-      setErrors((prev) => ({ ...prev, mobile: 'Mobile number must be exactly 9 digits.' }));
+      setErrors((prev) => ({ ...prev, mobile: t("mobileValidationError") }));
       return;
     }
 
     try {
       const db = getFirestore();
       const auth = getAuth();
-
-      // Check if the NIC number or email is already registered
-      const nicQuery = query(collection(db, 'users'), where('nicNumber', '==', nicNumber));
-      const emailQuery = query(collection(db, 'users'), where('email', '==', email));
+      const nicQuery = query(
+        collection(db, "users"),
+        where("nicNumber", "==", nicNumber)
+      );
+      const emailQuery = query(
+        collection(db, "users"),
+        where("email", "==", email)
+      );
 
       const nicSnapshot = await getDocs(nicQuery);
       const emailSnapshot = await getDocs(emailQuery);
 
       if (!nicSnapshot.empty || !emailSnapshot.empty) {
-        console.error('NIC number or Email already exists');
-        
-        // Get the existing user (if any)
-        const existingUser = nicSnapshot.empty ? emailSnapshot.docs[0] : nicSnapshot.docs[0];
+        const existingUser = nicSnapshot.empty
+          ? emailSnapshot.docs[0]
+          : nicSnapshot.docs[0];
         const userRoles = existingUser.data().roles || [];
 
-        // Check if 'Volunteer' role exists, if not, add it
-        if (!userRoles.includes('Volunteer')) {
-          await setDoc(doc(db, 'users', existingUser.id), {
+        if (!userRoles.includes("Volunteer")) {
+          await setDoc(doc(db, "users", existingUser.id), {
             ...existingUser.data(),
-            roles: [...userRoles, 'Volunteer'],
+            roles: [...userRoles, "Volunteer"],
           });
-          console.log('Volunteer role added to the user');
         }
-
-        // Redirect to login page
-        navigate('/login/volunteer');
+        navigate("/login/volunteer");
       } else {
-        // If NIC and email don't exist, create a new user in Firebase Authentication
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const userCredential = await createUserWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
         const userId = userCredential.user.uid;
-
-        // Add the +94 prefix to the mobile number
         const fullMobileNumber = `+94${mobileNumber}`;
 
-        // Create a new user document in Firestore with 'Volunteer' role
-        await setDoc(doc(db, 'users', userId), {
+        await setDoc(doc(db, "users", userId), {
           nicNumber,
           fullName,
-          mobileNumber: fullMobileNumber, // Store the full number with +94
+          mobileNumber: fullMobileNumber,
           email,
-          district: selectedDistrict, // Store the selected district
-          division: selectedDivision, // Store the selected division
-          roles: ['Volunteer'], // Initialize roles array with 'Volunteer'
+          district: selectedDistrict,
+          division: selectedDivision,
+          roles: ["Volunteer"],
           userId,
-          isRedCrossVolunteer, // Store the checkbox value
+          isRedCrossVolunteer,
         });
-
-        // Redirect to login page
-        navigate('/login/volunteer');
+        navigate("/login/volunteer");
       }
     } catch (error) {
-      console.error('Error registering user:', error);
+      console.error("Error registering user:", error);
     }
+  };
+
+  // Language toggle buttons
+  const handleLanguageChange = (language) => {
+    i18n.changeLanguage(language);
   };
 
   return (
     <div
       className="min-h-screen bg-cover bg-center"
-      style={{ backgroundImage: `url(${background})`, opacity: 0.90 }}
+      style={{ backgroundImage: `url(${background})`, opacity: 0.9 }}
     >
       <div className="max-w-md mx-auto p-6 bg-white bg-opacity-80 rounded-lg shadow-lg">
         {/* Logo */}
@@ -123,14 +134,38 @@ const VolunteerRegister = () => {
           <img src={logo} alt="Logo" className="h-16 w-16" />
         </div>
 
+        {/* Language Toggle */}
+        <div className="flex justify-end space-x-2 mb-4">
+          <button
+            onClick={() => handleLanguageChange("en")}
+            className="text-sm px-2 py-1 border border-gray-300 rounded"
+          >
+            English
+          </button>
+          <button
+            onClick={() => handleLanguageChange("si")}
+            className="text-sm px-2 py-1 border border-gray-300 rounded"
+          >
+            සිංහල
+          </button>
+          <button
+            onClick={() => handleLanguageChange("ta")}
+            className="text-sm px-2 py-1 border border-gray-300 rounded"
+          >
+            தமிழ்
+          </button>
+        </div>
+
         {/* Title */}
-        <h3 className="text-2xl font-semibold text-center mb-6">Register as a Volunteer</h3>
+        <h3 className="text-2xl font-semibold text-center mb-6">
+          {t("registerAsVolunteer")}
+        </h3>
 
         <div className="space-y-4">
           {/* NIC Number */}
           <input
             type="text"
-            placeholder="NIC Number"
+            placeholder={t("nicNumber")}
             value={nicNumber}
             onChange={(e) => setNicNumber(e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-lg"
@@ -140,7 +175,7 @@ const VolunteerRegister = () => {
           {/* Full Name */}
           <input
             type="text"
-            placeholder="Full Name"
+            placeholder={t("fullName")}
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-lg"
@@ -148,48 +183,59 @@ const VolunteerRegister = () => {
 
           {/* Mobile Number */}
           <div className="flex">
-            <span className="flex items-center bg-gray-200 text-gray-500 p-3">+94</span>
+            <span className="flex items-center bg-gray-200 text-gray-500 p-3">
+              +94
+            </span>
             <input
               type="text"
-              placeholder="Enter 9 digits"
+              placeholder={t("mobileNumber")}
               value={mobileNumber}
               onChange={(e) => {
-                // Allow only 9 digits to be typed
-                const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 9);
+                const value = e.target.value.replace(/[^0-9]/g, "").slice(0, 9);
                 setMobileNumber(value);
               }}
-              maxLength={9} // Ensure only 9 digits are entered
+              maxLength={9}
               className="w-full p-3 border border-gray-300 rounded-lg"
             />
           </div>
-          {errors.mobile && <p className="text-red-500 text-sm">{errors.mobile}</p>}
+          {errors.mobile && (
+            <p className="text-red-500 text-sm">{errors.mobile}</p>
+          )}
 
           {/* Email */}
           <input
             type="email"
-            placeholder="Email"
+            placeholder={t("email")}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-lg"
           />
-          {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
+          {errors.email && (
+            <p className="text-red-500 text-sm">{errors.email}</p>
+          )}
 
           {/* Location Selector */}
-          <LocationSelector onLocationChange={(district, division) => {
-            setSelectedDistrict(district);
-            setSelectedDivision(division);
-          }} />
-          {errors.location && <p className="text-red-500 text-sm">{errors.location}</p>}
+          <LocationSelector
+            onLocationChange={(district, division) => {
+              setSelectedDistrict(district);
+              setSelectedDivision(division);
+            }}
+          />
+          {errors.location && (
+            <p className="text-red-500 text-sm">{errors.location}</p>
+          )}
 
           {/* Password */}
           <input
             type="password"
-            placeholder="Password"
+            placeholder={t("password")}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-lg"
           />
-          {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
+          {errors.password && (
+            <p className="text-red-500 text-sm">{errors.password}</p>
+          )}
 
           {/* Red Cross Volunteer Checkbox */}
           <div className="flex items-center">
@@ -199,7 +245,7 @@ const VolunteerRegister = () => {
               onChange={(e) => setIsRedCrossVolunteer(e.target.checked)}
               className="mr-2"
             />
-            <label className="text-sm">Are you a Red Cross Volunteer?</label>
+            <label className="text-sm">{t("redCrossVolunteer")}</label>
           </div>
 
           {/* Register Button */}
@@ -207,16 +253,19 @@ const VolunteerRegister = () => {
             onClick={handleRegister}
             className="w-full p-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition duration-300"
           >
-            Register
+            {t("register")}
           </button>
         </div>
 
         {/* Login Link */}
         <div className="text-center mt-4">
           <p className="text-sm">
-            Already have an account?{' '}
-            <a href="/login/volunteer" className="text-blue-600 hover:underline">
-              Login
+            {t("alreadyHaveAccount")}{" "}
+            <a
+              href="/login/volunteer"
+              className="text-blue-600 hover:underline"
+            >
+              {t("login")}
             </a>
           </p>
         </div>

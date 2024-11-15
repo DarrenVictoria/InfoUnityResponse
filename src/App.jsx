@@ -11,6 +11,7 @@ import LoadingPage from './components/Loading';
 
 // Role-based routing
 import RespondantLanding from './views/respondant/RespondantLanding';
+import DMCLanding from './views/dmc-official/DMCLanding';
 // import VolunteerDashboard from './views/volunteer/VolunteerDashboard';
 // import ManagerDashboard from './views/manager/ManagerDashboard';
 // import AdminDashboard from './views/admin/AdminDashboard';
@@ -87,6 +88,17 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['Respondent']}>
                 <RespondantLanding />
+              </ProtectedRoute>
+
+              
+            }
+          />
+
+          <Route
+            path="/dmchome"
+            element={
+              <ProtectedRoute allowedRoles={['Dmc system admin']}>
+                <DMCLanding />
               </ProtectedRoute>
             }
           />
