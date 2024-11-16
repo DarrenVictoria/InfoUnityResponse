@@ -417,7 +417,7 @@ const NavigationBar = () => {
   );
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md z-[9999]">
       <div className="max-w-[1920px] mx-auto px-4 lg:px-6 flex items-center justify-between h-16">
         {/* Logo */}
         <div className="flex items-center flex-shrink-0">
