@@ -102,24 +102,42 @@ const EditProfileModal = ({ isOpen, onClose, userData, onUpdate }) => {
 const DisasterTable = ({ disasters }) => {
   const navigate = useNavigate();
 
-  // Function to format date
-  const formatDate = (dateString) => {
+  // Updated function to handle Firestore timestamp
+  const formatDate = (timestamp) => {
     try {
-      const date = new Date(dateString);
-      return date.toLocaleString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      });
+      // Check if the timestamp is a Firestore timestamp
+      if (timestamp && timestamp.seconds) {
+        // Convert Firestore timestamp to JavaScript Date
+        const date = new Date(timestamp.seconds * 1000);
+        return date.toLocaleString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+      }
+      
+      // If it's already a Date object or string
+      const date = new Date(timestamp);
+      if (!isNaN(date.getTime())) {
+        return date.toLocaleString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+      }
+      
+      return 'Invalid Date';
     } catch (error) {
       console.error('Error formatting date:', error);
       return 'Invalid Date';
     }
   };
 
-  // Function to format resources required
+  // Rest of the component remains the same...
   const formatResources = (resources) => {
     if (!resources) return 'None specified';
     if (Array.isArray(resources)) {
