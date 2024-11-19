@@ -22,6 +22,7 @@ import DynamicLogin from './auth/DynamicLogin';
 import RespondentRegister from './auth/Register/RespondantRegister';
 import VolunteerRegister from './auth/Register/VolunteerRegister';
 import HomePage from './views/deployment-landing/Homepage';
+import DisasterAddStepper from './views/dmc-official/AddDisaster';
 
 function App() {
   const [userRoles, setUserRoles] = useState([]); // Array of roles
@@ -95,13 +96,22 @@ function App() {
           />
 
           <Route
-            path="/dmchome"
+            path="/dmc/home"
             element={
               <ProtectedRoute allowedRoles={['Dmc system admin']}>
                 <DMCLanding />
               </ProtectedRoute>
             }
-          />
+          /><Route
+          path="/dmc/AddDisaster"
+          element={
+            <ProtectedRoute allowedRoles={['Dmc system admin']}>
+              <DisasterAddStepper />
+            </ProtectedRoute>
+          }
+        />
+
+
 
           {/* Fallback route */}
           <Route path="*" element={<div>404 - Page not found</div>} />

@@ -51,7 +51,7 @@ const DynamicLogin = ({ title, path }) => {
                 navigate("/home/red-cross-manager");
                 break;
               case "Dmc system admin":
-                navigate("/dmchome");
+                navigate("/dmc/home");
                 break;
               default:
                 break;

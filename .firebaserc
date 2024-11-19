@@ -1,5 +1,8 @@
 {
   "projects": {
     "default": "infounity-response"
+  },
+  "functions": {
+    "predeploy": []
   }
 }

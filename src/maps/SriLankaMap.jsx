@@ -30,7 +30,7 @@ const disasterIcons = {
 };
 
 const PulsatingCircleMarker = ({ center, disaster, onMouseOver, onMouseOut }) => {
-  const [radius, setRadius] = useState(20);
+  const [radius, setRadius] = useState(10);
   const IconComponent = disasterIcons[disaster.disasterType];
 
   React.useEffect(() => {
@@ -38,7 +38,7 @@ const PulsatingCircleMarker = ({ center, disaster, onMouseOver, onMouseOut }) =>
     let phase = 0;
     
     const animate = () => {
-      const newRadius = 20 + Math.sin(phase) * 5;
+      const newRadius = 20 + Math.sin(phase) * 2.5;
       setRadius(newRadius);
       phase += 0.1;
       frame = requestAnimationFrame(animate);
@@ -63,7 +63,7 @@ const PulsatingCircleMarker = ({ center, disaster, onMouseOver, onMouseOut }) =>
       
       <CircleMarker
         center={center}
-        radius={18}
+        radius={9}
         pathOptions={{
           fillColor: '#ff0000',
           fillOpacity: 0.7,
@@ -88,7 +88,7 @@ const PulsatingCircleMarker = ({ center, disaster, onMouseOver, onMouseOut }) =>
 const CrowdsourcedMarker = ({ center, disaster, onMouseOver, onMouseOut }) => (
   <CircleMarker
     center={center}
-    radius={6}
+    radius={2}
     pathOptions={{
       fillColor: '#000',
       fillOpacity: 0.6,

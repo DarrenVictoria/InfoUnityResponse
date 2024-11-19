@@ -437,7 +437,7 @@ const DMCLanding = () => {
 
         <div 
           className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow cursor-pointer"
-          onClick={() => navigateToSection('/disaster-entry')}
+          onClick={() => navigateToSection('/dmc/AddDisaster')}
         >
           <h2 className="text-xl font-bold mb-2">Disaster Entry</h2>
           <p className="text-gray-600">Add In A Disaster In Order To Act On Response</p>
