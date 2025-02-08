@@ -116,19 +116,35 @@ const SriLankaMap = () => {
         // Fetch verified disasters
         const verifiedDisastersRef = collection(db, 'verifiedDisasters');
         const verifiedSnapshot = await getDocs(verifiedDisastersRef);
-        const verifiedData = verifiedSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
+        const verifiedData = verifiedSnapshot.docs
+          .map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }))
+          .filter(disaster => {
+            // Validate latitude and longitude
+            const lat = parseFloat(disaster.latitude);
+            const lon = parseFloat(disaster.longitude);
+            return !isNaN(lat) && !isNaN(lon);
+          });
+
         setVerifiedDisasters(verifiedData);
 
         // Fetch crowdsourced reports
         const crowdsourcedReportsRef = collection(db, 'crowdsourcedReports');
         const crowdsourcedSnapshot = await getDocs(crowdsourcedReportsRef);
-        const crowdsourcedData = crowdsourcedSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
+        const crowdsourcedData = crowdsourcedSnapshot.docs
+          .map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }))
+          .filter(report => {
+            // Validate latitude and longitude
+            const lat = parseFloat(report.latitude);
+            const lon = parseFloat(report.longitude);
+            return !isNaN(lat) && !isNaN(lon);
+          });
+
         setCrowdsourcedReports(crowdsourcedData);
 
         setLoading(false);

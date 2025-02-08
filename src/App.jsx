@@ -23,6 +23,8 @@ import RespondentRegister from './auth/Register/RespondantRegister';
 import VolunteerRegister from './auth/Register/VolunteerRegister';
 import HomePage from './views/deployment-landing/Homepage';
 import DisasterAddStepper from './views/dmc-official/AddDisaster';
+import PublicDisasterReport from './views/respondant/PublicDisasterReport';
+import DisasterReportManagement from './views/dmc-official/DisasterReportManagement';
 
 function App() {
   const [userRoles, setUserRoles] = useState([]); // Array of roles
@@ -95,6 +97,17 @@ function App() {
             }
           />
 
+            <Route
+            path="/addreport"
+            element={
+              <ProtectedRoute allowedRoles={['Respondent']}>
+                <PublicDisasterReport />
+              </ProtectedRoute>
+
+              
+            }
+          />
+
           <Route
             path="/dmc/home"
             element={
@@ -107,6 +120,15 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['Dmc system admin']}>
               <DisasterAddStepper />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/dmc/ManageDisasters"
+          element={
+            <ProtectedRoute allowedRoles={['Dmc system admin']}>
+              <DisasterReportManagement />
             </ProtectedRoute>
           }
         />

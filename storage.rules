@@ -1,0 +1,12 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Match all paths in the storage bucket
+    match /{userId}/{allPaths=**} {
+      
+      // Allow read/write only if the user is authenticated and accessing their own folder
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
