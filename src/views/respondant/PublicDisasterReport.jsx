@@ -1,22 +1,16 @@
 import React, { useState } from 'react';
-import { MapPin, Upload, AlertCircle, Loader  } from 'lucide-react';
+import { MapPin, Upload, AlertCircle, Loader, PlusCircle, XCircle } from 'lucide-react';
 import { db, storage } from '../../../firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useAuth } from '../../hooks/useAuth';
 import LocationSelectorPin from '../../components/LocationSelectorPin';
+import LocationSelector from '../../components/LocationSelector';
 
 const DISASTER_TYPES = [
-  "Flood",
-  "Landslide",
-  "Drought",
-  "Cyclone",
-  "Tsunami",
-  "Coastal Erosion",
-  "Lightning Strike",
-  "Forest Fire",
-  "Industrial Accident",
-  "Epidemic"
+  "Flood", "Landslide", "Drought", "Cyclone", "Tsunami",
+  "Coastal Erosion", "Lightning Strike", "Forest Fire",
+  "Industrial Accident", "Epidemic"
 ];
 
 export default function PublicDisasterReport() {
@@ -27,63 +21,100 @@ export default function PublicDisasterReport() {
     dsDivision: '',
     description: '',
     images: [],
-    location: {
-      latitude: null,
-      longitude: null,
-      name: ''
-    }
+    latitude: null,
+    longitude: null,
+    locationName: '',
+    reportType: 'single', // 'single' or 'multiple'
+    beneficiaries: [], // [{name: '', idNumber: ''}]
+    reporterName: '',
+    reporterIdNumber: ''
   });
 
   const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
   const handleImageUpload = async (files) => {
-    if (!files.length) {
-      setError('Please select at least one image.');
+    if (!user) {
+      setError("You must be logged in to upload images.");
       return;
     }
-
+  
     setUploading(true);
-    setUploadProgress(0);
-    setError('');
-
-    const uploadPromises = files.map(async (file) => {
-      if (file.size > 5 * 1024 * 1024) {
-        setError('File size must be under 5MB.');
-        throw new Error('File size exceeds limit');
-      }
-
-      const uniqueFileName = `${crypto.randomUUID()}_${file.name}`;
-      const storagePath = `disaster-evidence/${user.uid}/${uniqueFileName}`;
-      const storageRef = ref(storage, storagePath);
-
-      try {
-        const snapshot = await uploadBytes(storageRef, file);
-        return getDownloadURL(snapshot.ref);
-      } catch (error) {
-        console.error('Upload error:', error);
-        throw error;
-      }
-    });
-
+    const uploadPromises = [];
+  
+    for (const file of files) {
+      const uniqueFileName = `${Date.now()}_${file.name}`;
+      const storageRef = ref(storage, `disaster-evidence/${user.uid}/${uniqueFileName}`);
+  
+      const uploadTask = uploadBytes(storageRef, file)
+        .then((snapshot) => getDownloadURL(snapshot.ref))
+        .catch((error) => {
+          console.error("Upload error:", error);
+          throw error;
+        });
+  
+      uploadPromises.push(uploadTask);
+    }
+  
     try {
       const urls = await Promise.all(uploadPromises);
       setFormData(prev => ({ ...prev, images: [...prev.images, ...urls] }));
-      setSuccessMessage('Images uploaded successfully!');
     } catch (err) {
-      setError('Failed to upload images. Please try again.');
+      console.error("Upload error:", err);
+      setError("Failed to upload images. Please try again.");
     } finally {
       setUploading(false);
     }
   };
 
+  const addBeneficiary = () => {
+    setFormData(prev => ({
+      ...prev,
+      beneficiaries: [...prev.beneficiaries, { name: '', idNumber: '' }]
+    }));
+  };
+
+  const removeBeneficiary = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      beneficiaries: prev.beneficiaries.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateBeneficiary = (index, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      beneficiaries: prev.beneficiaries.map((ben, i) => 
+        i === index ? { ...ben, [field]: value } : ben
+      )
+    }));
+  };
+
+  const handleLocationSelect = (location) => {
+    setFormData(prev => ({
+      ...prev,
+      latitude: location.latitude,
+      longitude: location.longitude,
+      locationName: location.name
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.disasterType || !formData.district || !formData.dsDivision || !formData.location.latitude) {
+    if (!formData.disasterType || !formData.district || !formData.dsDivision || !formData.latitude) {
       setError('Please fill all required fields.');
+      return;
+    }
+
+    if (formData.reportType === 'single' && (!formData.reporterName || !formData.reporterIdNumber)) {
+      setError('Please provide reporter details.');
+      return;
+    }
+
+    if (formData.reportType === 'multiple' && formData.beneficiaries.length === 0) {
+      setError('Please add at least one beneficiary.');
       return;
     }
 
@@ -95,21 +126,27 @@ export default function PublicDisasterReport() {
       const reportData = {
         ...formData,
         timestamp: new Date(),
-        userId: user.uid, // Attach user ID
-        status: 'pending' // Default status for public reports
+        userId: user?.uid || 'anonymous',
+        status: 'pending'
       };
 
-      await addDoc(collection(db, 'publicDisasterReports'), reportData);
+      await addDoc(collection(db, 'crowdsourcedReports'), reportData);
       setSuccessMessage('Report submitted successfully!');
       
-      // Reset form after submission
+      // Reset form
       setFormData({
         disasterType: '',
         district: '',
         dsDivision: '',
         description: '',
         images: [],
-        location: { latitude: null, longitude: null, name: '' }
+        latitude: null,
+        longitude: null,
+        locationName: '',
+        reportType: 'single',
+        beneficiaries: [],
+        reporterName: '',
+        reporterIdNumber: ''
       });
 
     } catch (err) {
@@ -138,7 +175,7 @@ export default function PublicDisasterReport() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label className="block text-sm font-medium mb-1">Disaster Type</label>
+          <label className="block text-sm font-medium mb-1">Disaster Type *</label>
           <select
             className="w-full px-4 py-2 border rounded-lg"
             value={formData.disasterType}
@@ -152,20 +189,101 @@ export default function PublicDisasterReport() {
           </select>
         </div>
 
-        <LocationSelectorPin
-          onLocationSelect={(location) => {
-            setFormData(prev => ({
-              ...prev,
-              location: {
-                latitude: location.latitude,
-                longitude: location.longitude,
-                name: location.name
-              },
-              district: location.district,
-              dsDivision: location.dsDivision
-            }));
-          }}
-        />
+        <div>
+          <label className="block text-sm font-medium mb-1">Location *</label>
+          <LocationSelector 
+            onLocationChange={(district, division) => {
+              setFormData(prev => ({
+                ...prev,
+                district,
+                dsDivision: division
+              }));
+            }}
+          />
+        </div>
+
+        <LocationSelectorPin onLocationSelect={handleLocationSelect} />
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Report Type *</label>
+          <select
+            className="w-full px-4 py-2 border rounded-lg"
+            value={formData.reportType}
+            onChange={(e) => setFormData(prev => ({ ...prev, reportType: e.target.value }))}
+            required
+          >
+            <option value="single">Single Person</option>
+            <option value="multiple">Multiple People</option>
+          </select>
+        </div>
+
+        {formData.reportType === 'single' ? (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Reporter Name *</label>
+              <input
+                type="text"
+                className="w-full px-4 py-2 border rounded-lg"
+                value={formData.reporterName}
+                onChange={(e) => setFormData(prev => ({ ...prev, reporterName: e.target.value }))}
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Reporter ID Number *</label>
+              <input
+                type="text"
+                className="w-full px-4 py-2 border rounded-lg"
+                value={formData.reporterIdNumber}
+                onChange={(e) => setFormData(prev => ({ ...prev, reporterIdNumber: e.target.value }))}
+                required
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <label className="block text-sm font-medium">Beneficiaries *</label>
+              <button
+                type="button"
+                onClick={addBeneficiary}
+                className="flex items-center gap-1 text-blue-500 hover:text-blue-600"
+              >
+                <PlusCircle className="w-4 h-4" />
+                Add Beneficiary
+              </button>
+            </div>
+            {formData.beneficiaries.map((ben, index) => (
+              <div key={index} className="flex gap-4 items-start">
+                <div className="flex-1">
+                  <input
+                    type="text"
+                    placeholder="Name"
+                    className="w-full px-4 py-2 border rounded-lg mb-2"
+                    value={ben.name}
+                    onChange={(e) => updateBeneficiary(index, 'name', e.target.value)}
+                    required
+                  />
+                  <input
+                    type="text"
+                    placeholder="ID Number"
+                    className="w-full px-4 py-2 border rounded-lg"
+                    value={ben.idNumber}
+                    onChange={(e) => updateBeneficiary(index, 'idNumber', e.target.value)}
+                    required
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeBeneficiary(index)}
+                  className="text-red-500 hover:text-red-600"
+                >
+                  <XCircle className="w-5 h-5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
 
         <div>
           <label className="block text-sm font-medium mb-1">Description</label>
@@ -174,6 +292,7 @@ export default function PublicDisasterReport() {
             placeholder="Provide a detailed description..."
             value={formData.description}
             onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+            rows={4}
           />
         </div>
 
@@ -190,8 +309,12 @@ export default function PublicDisasterReport() {
           {uploading && <p className="text-sm text-gray-600 mt-2">Uploading...</p>}
         </div>
 
-        <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded-lg disabled:opacity-50" disabled={uploading}>
-          {uploading ? <Loader className="animate-spin w-5 h-5" /> : "Submit Report"}
+        <button
+          type="submit"
+          className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg disabled:opacity-50 hover:bg-blue-600"
+          disabled={uploading}
+        >
+          {uploading ? <Loader className="animate-spin w-5 h-5 mx-auto" /> : "Submit Report"}
         </button>
       </form>
     </div>

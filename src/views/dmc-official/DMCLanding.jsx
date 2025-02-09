@@ -201,7 +201,7 @@ const DisasterTable = ({ disasters }) => {
                     {disaster.district || 'N/A'}
                   </div>
                   <div className="text-sm text-gray-500">
-                    {disaster.division && `${disaster.division}, `}{disaster.province || 'N/A'}
+                    {disaster.division && `${disaster.dsDivision}, `}{disaster.district || 'N/A'}
                   </div>
                   {disaster.Location && (
                     <div className="text-xs text-gray-400">
