@@ -119,9 +119,12 @@ exports.sendWarningNotification = functions
             body: warning.warningMessage,
           },
           data: {
-            warningId: warning.messageId,
             type: warning.type,
             severity: warning.severity,
+            validFrom: warning.validFrom.toISOString(),
+            validUntil: warning.validUntil.toISOString(),
+            district: warning.district,
+            dsDivision: warning.dsDivision,
           },
           tokens: tokens,
         };

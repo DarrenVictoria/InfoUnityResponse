@@ -6,6 +6,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { db, auth } from '../firebase';
 import { NotificationService } from './services/notificationService';
 import { WarningService } from './services/warningService';
+import WarningPopup from './components/WarningPopup';
 
 import UpdateNotification from './components/UpdateNotification';
 import Layout from './components/Layout';
@@ -35,11 +36,18 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
   const navigate = useNavigate();
+  const [currentWarning, setCurrentWarning] = useState(null);
 
   const notificationService = new NotificationService();
   const warningService = new WarningService();
 
+  const showNotification = (warning) => {
+    setCurrentWarning(warning);
+  };
 
+  const handleCloseWarning = () => {
+    setCurrentWarning(null);
+  };
 
     useEffect(() => {
     const checkAuthAndFetchRoles = () => {
@@ -106,11 +114,7 @@ function App() {
     }
   };
 
-  const showNotification = ({ title, body }) => {
-    // Implement your notification UI here
-    // You can use NextUI's toast or your custom component
-    console.log('Notification:', title, body);
-  };
+
 
 
   if (loading) {
@@ -209,6 +213,9 @@ function App() {
           {/* Fallback route */}
           <Route path="*" element={<div>404 - Page not found</div>} />
         </Routes>
+        {currentWarning && (
+          <WarningPopup warning={currentWarning} onClose={handleCloseWarning} />
+        )}
         <UpdateNotification />
       </Layout>
     </NextUIProvider>

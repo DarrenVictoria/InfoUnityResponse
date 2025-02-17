@@ -1,6 +1,7 @@
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
+import { WarningPopup } from '../components/WarningPopup';
 
 export class NotificationService {
     constructor() {
@@ -50,7 +51,19 @@ export class NotificationService {
 
     setupMessageListener(callback) {
         onMessage(this.messaging, (payload) => {
-            callback(payload);
+            const { title, body, data } = payload.notification;
+            const warning = {
+                type: data.type,
+                severity: data.severity,
+                warningMessage: body,
+                validFrom: data.validFrom,
+                validUntil: data.validUntil,
+                district: data.district,
+                dsDivision: data.dsDivision,
+            };
+
+            // Trigger the full-screen warning popup
+            callback(warning);
         });
     }
 }
