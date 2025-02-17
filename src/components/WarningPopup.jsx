@@ -1,6 +1,6 @@
 // components/WarningPopup.jsx
 import React, { useEffect } from 'react';
-import { Modal, Text, Button, Spacer } from '@nextui-org/react';
+import { Modal, Button, Spacer } from '@nextui-org/react';
 import warningSound from '../assets/warning-sound.mp3'; // Add a warning sound file in the assets folder
 
 const WarningPopup = ({ warning, onClose }) => {
@@ -33,7 +33,7 @@ const WarningPopup = ({ warning, onClose }) => {
 
   return (
     <Modal
-      open={true}
+      isOpen={true}
       onClose={onClose}
       fullScreen
       css={{
@@ -44,24 +44,22 @@ const WarningPopup = ({ warning, onClose }) => {
       }}
     >
       <Modal.Header>
-        <Text h3 css={{ color: 'white' }}>
+        <h3 style={{ color: 'white' }}>
           {type} Warning - {severity}
-        </Text>
+        </h3>
       </Modal.Header>
       <Modal.Body>
-        <Text h4 css={{ color: 'white' }}>
-          {warningMessage}
-        </Text>
+        <h4 style={{ color: 'white' }}>{warningMessage}</h4>
         <Spacer y={1} />
-        <Text css={{ color: 'white' }}>
+        <p style={{ color: 'white' }}>
           <strong>Location:</strong> {district} - {dsDivision}
-        </Text>
-        <Text css={{ color: 'white' }}>
+        </p>
+        <p style={{ color: 'white' }}>
           <strong>Valid From:</strong> {new Date(validFrom).toLocaleString()}
-        </Text>
-        <Text css={{ color: 'white' }}>
+        </p>
+        <p style={{ color: 'white' }}>
           <strong>Valid Until:</strong> {new Date(validUntil).toLocaleString()}
-        </Text>
+        </p>
       </Modal.Body>
       <Modal.Footer>
         <Button auto flat color="error" onClick={onClose}>

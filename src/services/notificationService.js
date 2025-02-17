@@ -1,7 +1,7 @@
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
-import { WarningPopup } from '../components/WarningPopup';
+import WarningPopup from '../components/WarningPopup';
 
 export class NotificationService {
     constructor() {
