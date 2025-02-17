@@ -102,7 +102,7 @@ const CrowdsourcedMarker = ({ center, disaster, onMouseOver, onMouseOut }) => (
   />
 );
 
-const SriLankaMap = () => {
+const SriLankaMap = ({ selectedCluster = [], selectedReports = [] }) => {
   const [verifiedDisasters, setVerifiedDisasters] = useState([]);
   const [crowdsourcedReports, setCrowdsourcedReports] = useState([]);
   const [hoveredDisaster, setHoveredDisaster] = useState(null);
@@ -178,7 +178,7 @@ const SriLankaMap = () => {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
         
-        {crowdsourcedReports.map((disaster) => (
+        {crowdsourcedReports && crowdsourcedReports.map((disaster) => (
           <CrowdsourcedMarker
             key={disaster.id}
             center={[disaster.latitude, disaster.longitude]}

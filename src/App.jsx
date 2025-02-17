@@ -4,6 +4,8 @@ import { NextUIProvider } from '@nextui-org/react';
 import { getDoc, doc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { db, auth } from '../firebase';
+import { NotificationService } from './services/notificationService';
+import { WarningService } from './services/warningService';
 
 import UpdateNotification from './components/UpdateNotification';
 import Layout from './components/Layout';
@@ -12,6 +14,7 @@ import LoadingPage from './components/Loading';
 // Role-based routing
 import RespondantLanding from './views/respondant/RespondantLanding';
 import DMCLanding from './views/dmc-official/DMCLanding';
+import DisasterDetails from './views/dmc-official/DisasterDetails'; 
 // import VolunteerDashboard from './views/volunteer/VolunteerDashboard';
 // import ManagerDashboard from './views/manager/ManagerDashboard';
 // import AdminDashboard from './views/admin/AdminDashboard';
@@ -25,13 +28,20 @@ import HomePage from './views/deployment-landing/Homepage';
 import DisasterAddStepper from './views/dmc-official/AddDisaster';
 import PublicDisasterReport from './views/respondant/PublicDisasterReport';
 import DisasterReportManagement from './views/dmc-official/DisasterReportManagement';
+import WarningForm from './views/dmc-official/WarningForm';
 
 function App() {
   const [userRoles, setUserRoles] = useState([]); // Array of roles
   const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
+  const notificationService = new NotificationService();
+  const warningService = new WarningService();
+
+
+
+    useEffect(() => {
     const checkAuthAndFetchRoles = () => {
       onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -39,8 +49,15 @@ function App() {
           try {
             const userDoc = await getDoc(doc(db, 'users', userId));
             if (userDoc.exists()) {
-              const roles = userDoc.data().roles || [];
+              const userData = userDoc.data();
+              const roles = userData.roles || [];
               setUserRoles(roles);
+              setCurrentUser({ ...userData, uid: userId });
+              
+              // Setup notifications if user has required data
+              if (userData.division) {
+                setupNotifications(userId, userData.division);
+              }
             } else {
               navigate('/role-selection');
             }
@@ -49,14 +66,52 @@ function App() {
             navigate('/role-selection');
           }
         } else {
-          setUserRoles([]); // No user logged in
+          setUserRoles([]);
+          setCurrentUser(null);
         }
-        setLoading(false); // End loading regardless of auth state
+        setLoading(false);
       });
     };
 
     checkAuthAndFetchRoles();
   }, [navigate]);
+
+  const setupNotifications = async (userId, division) => {
+    try {
+      // Request notification permission
+      await notificationService.requestPermission(userId);
+      
+      // Setup foreground message handler
+      notificationService.setupMessageListener((payload) => {
+        // You can use NextUI's toast or your custom notification component here
+        showNotification(payload.notification);
+      });
+
+      // Subscribe to warnings for user's division
+      const unsubscribe = warningService.subscribeToWarnings(
+        userId,
+        division,
+        (warning) => {
+          showNotification({
+            title: `${warning.type} Warning`,
+            body: warning.warningMessage
+          });
+        }
+      );
+
+      // Cleanup subscription on unmount
+      return () => unsubscribe();
+    } catch (error) {
+      console.error('Error setting up notifications:', error);
+    }
+  };
+
+  const showNotification = ({ title, body }) => {
+    // Implement your notification UI here
+    // You can use NextUI's toast or your custom component
+    console.log('Notification:', title, body);
+  };
+
 
   if (loading) {
     return <LoadingPage />;
@@ -92,8 +147,6 @@ function App() {
               <ProtectedRoute allowedRoles={['Respondent']}>
                 <RespondantLanding />
               </ProtectedRoute>
-
-              
             }
           />
 
@@ -103,8 +156,6 @@ function App() {
               <ProtectedRoute allowedRoles={['Respondent']}>
                 <PublicDisasterReport />
               </ProtectedRoute>
-
-              
             }
           />
 
@@ -115,8 +166,10 @@ function App() {
                 <DMCLanding />
               </ProtectedRoute>
             }
-          /><Route
-          path="/dmc/AddDisaster"
+          />
+
+        <Route
+          path="/dmc/adddisaster"
           element={
             <ProtectedRoute allowedRoles={['Dmc system admin']}>
               <DisasterAddStepper />
@@ -125,10 +178,28 @@ function App() {
         />
 
         <Route
-          path="/dmc/ManageDisasters"
+            path="/disaster/:id"
+            element={
+              <ProtectedRoute allowedRoles={['Dmc system admin']}>
+                <DisasterDetails />
+              </ProtectedRoute>
+            }
+          />
+
+        <Route
+          path="/dmc/managedisasters"
           element={
             <ProtectedRoute allowedRoles={['Dmc system admin']}>
               <DisasterReportManagement />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/dmc/warningform"
+          element={
+            <ProtectedRoute allowedRoles={['Dmc system admin']}>
+              <WarningForm />
             </ProtectedRoute>
           }
         />
@@ -145,3 +216,4 @@ function App() {
 }
 
 export default App;
+

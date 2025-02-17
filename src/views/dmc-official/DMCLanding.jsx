@@ -99,15 +99,22 @@ const EditProfileModal = ({ isOpen, onClose, userData, onUpdate }) => {
   );
 };
 
-const DisasterTable = ({ disasters }) => {
+const DisasterTable = ({ disasters, tableType }) => {
   const navigate = useNavigate();
 
-  // Updated function to handle Firestore timestamp
+  // Filter disasters based on status
+  const filteredDisasters = disasters.filter(disaster => {
+    if (tableType === 'ongoing') {
+      return disaster.status !== 'Ended';
+    } else {
+      return disaster.status === 'Ended';
+    }
+  });
+
+  // Format date function remains the same
   const formatDate = (timestamp) => {
     try {
-      // Check if the timestamp is a Firestore timestamp
       if (timestamp && timestamp.seconds) {
-        // Convert Firestore timestamp to JavaScript Date
         const date = new Date(timestamp.seconds * 1000);
         return date.toLocaleString('en-US', {
           year: 'numeric',
@@ -118,7 +125,6 @@ const DisasterTable = ({ disasters }) => {
         });
       }
       
-      // If it's already a Date object or string
       const date = new Date(timestamp);
       if (!isNaN(date.getTime())) {
         return date.toLocaleString('en-US', {
@@ -137,7 +143,6 @@ const DisasterTable = ({ disasters }) => {
     }
   };
 
-  // Rest of the component remains the same...
   const formatResources = (resources) => {
     if (!resources) return 'None specified';
     if (Array.isArray(resources)) {
@@ -158,11 +163,11 @@ const DisasterTable = ({ disasters }) => {
   };
 
   return (
-    <div className="bg-white shadow-md rounded-lg overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-        <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-          <AlertCircle className="h-5 w-5 text-red-500" />
-          Verified Disasters
+    <div className="bg-white shadow-md rounded-lg overflow-hidden mb-8">
+      <div className={`px-6 py-4 border-b border-gray-200 ${tableType === 'ongoing' ? 'bg-red-50' : 'bg-gray-50'}`}>
+        <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2 justify-center">
+          <AlertCircle className={`h-5 w-5 ${tableType === 'ongoing' ? 'text-red-500' : 'text-gray-500'}`} />
+          {tableType === 'ongoing' ? 'Ongoing Verified Disasters' : 'Closed Verified Disasters'}
         </h2>
       </div>
       
@@ -170,33 +175,31 @@ const DisasterTable = ({ disasters }) => {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Date and Time
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Location Details
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Disaster Info
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Required Support
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              
+              <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Actions
               </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {disasters.map((disaster) => (
+            {filteredDisasters.map((disaster) => (
               <tr key={disaster.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-6 py-4 whitespace-nowrap text-center">
                   <div className="text-sm text-gray-900">
                     {formatDate(disaster.datetime)}
                   </div>
                 </td>
                 
-                <td className="px-6 py-4">
+                <td className="px-6 py-4 text-center">
                   <div className="text-sm text-gray-900 font-medium">
                     {disaster.district || 'N/A'}
                   </div>
@@ -210,7 +213,7 @@ const DisasterTable = ({ disasters }) => {
                   )}
                 </td>
                 
-                <td className="px-6 py-4">
+                <td className="px-6 py-4 text-center">
                   <div className="text-sm font-medium text-gray-900">
                     {disaster.disasterType}
                   </div>
@@ -221,24 +224,9 @@ const DisasterTable = ({ disasters }) => {
                   )}
                 </td>
                 
-                <td className="px-6 py-4">
-                  <div className="flex flex-col gap-2">
-                    {disaster.volunteerRequired > 0 && (
-                      <div className="flex items-center gap-1 text-sm text-blue-600">
-                        <Users className="h-4 w-4" />
-                        {disaster.volunteerRequired} volunteers needed
-                      </div>
-                    )}
-                    {disaster.resourcesRequired && disaster.resourcesRequired.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        <Package className="h-4 w-4 text-gray-500" />
-                        {formatResources(disaster.resourcesRequired)}
-                      </div>
-                    )}
-                  </div>
-                </td>
                 
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                
+                <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                   <button
                     onClick={() => navigate(`/disaster/${disaster.id}`)}
                     className="text-blue-600 hover:text-blue-900 bg-blue-50 px-4 py-2 rounded-md transition-colors"
@@ -252,11 +240,20 @@ const DisasterTable = ({ disasters }) => {
         </table>
       </div>
       
-      {disasters.length === 0 && (
+      {filteredDisasters.length === 0 && (
         <div className="text-center py-8 text-gray-500">
-          No verified disasters found
+          No {tableType === 'ongoing' ? 'ongoing' : 'closed'} disasters found
         </div>
       )}
+    </div>
+  );
+};
+
+const DisasterTables = ({ disasters }) => {
+  return (
+    <div>
+      <DisasterTable disasters={disasters} tableType="ongoing" />
+      <DisasterTable disasters={disasters} tableType="closed" />
     </div>
   );
 };
@@ -268,6 +265,9 @@ const DMCLanding = () => {
   const [verifiedDisasters, setVerifiedDisasters] = useState([]);
   const [crowdsourcedReports, setCrowdsourcedReports] = useState([]);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(7); // Number of items per page
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -421,7 +421,7 @@ const DMCLanding = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <div 
           className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow cursor-pointer"
-          onClick={() => navigateToSection('/verify-disaster')}
+          onClick={() => navigateToSection('/dmc/managedisasters')}
         >
           <h2 className="text-xl font-bold mb-2">Verify Disaster</h2>
           <p className="text-gray-600">Validate Crowdsourced Information</p>
@@ -429,7 +429,7 @@ const DMCLanding = () => {
 
         <div 
           className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow cursor-pointer"
-          onClick={() => navigateToSection('/send-warning')}
+          onClick={() => navigateToSection('dmc/warningform')}
         >
           <h2 className="text-xl font-bold mb-2">Send Warning</h2>
           <p className="text-gray-600">Update Population On A Disaster</p>
@@ -437,7 +437,7 @@ const DMCLanding = () => {
 
         <div 
           className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow cursor-pointer"
-          onClick={() => navigateToSection('/dmc/AddDisaster')}
+          onClick={() => navigateToSection('/dmc/adddisaster')}
         >
           <h2 className="text-xl font-bold mb-2">Disaster Entry</h2>
           <p className="text-gray-600">Add In A Disaster In Order To Act On Response</p>
@@ -451,7 +451,7 @@ const DMCLanding = () => {
 
       {/* Updated Disaster Table */}
       <div className="mb-8">
-        <DisasterTable disasters={verifiedDisasters} />
+        <DisasterTables disasters={verifiedDisasters} />
       </div>
 
       {/* Bottom Cards */}

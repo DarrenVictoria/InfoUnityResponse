@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ChevronRight, ChevronLeft, Save, MapPin, Trash2  } from 'lucide-react';
 import LocationSelector from "../../components/LocationSelector";
 import { db } from '../../../firebase';
-import { collection, addDoc, doc, setDoc, updateDoc } from "firebase/firestore";
+import { collection, addDoc, doc, setDoc, updateDoc ,getDoc} from "firebase/firestore";
 import LocationSelectorPin from '../../components/LocationSelectorPin';
 
 // Common disaster types in Sri Lanka
@@ -113,9 +113,9 @@ export default function DisasterReportingStepper() {
       case 3:
         return true; // Basic infrastructure data is optional
       case 4:
-        return formData.safeLocations.length > 0;
+        return true;
       case 5:
-        return formData.resourceRequests.length > 0;
+        return true;
       case 6:
         return formData.volunteerNeeded ? Object.keys(formData.volunteerRequests).length > 0 : true;
       case 7:
@@ -291,7 +291,7 @@ export default function DisasterReportingStepper() {
               <p className="text-red-500 text-sm mt-1">{dateErrors.dateCommenced}</p>
             )}
           </div>
-          <div>
+          {/* <div>
             <label className="block text-sm font-medium mb-1">Date Ended</label>
             <input
               type="datetime-local"
@@ -302,7 +302,7 @@ export default function DisasterReportingStepper() {
             {dateErrors.dateEnded && (
               <p className="text-red-500 text-sm mt-1">{dateErrors.dateEnded}</p>
             )}
-          </div>
+          </div> */}
         </div>
   
         <div>
@@ -852,7 +852,7 @@ export default function DisasterReportingStepper() {
             </div>
           </div>
         </div>
-
+  
         {/* Human Effect Summary */}
         <div className="border rounded-lg p-4">
           <h3 className="font-medium mb-3 text-blue-600">Human Effect</h3>
@@ -865,7 +865,7 @@ export default function DisasterReportingStepper() {
             ))}
           </div>
         </div>
-
+  
         {/* Infrastructure Summary */}
         <div className="border rounded-lg p-4">
           <h3 className="font-medium mb-3 text-blue-600">Infrastructure Damage</h3>
@@ -890,54 +890,58 @@ export default function DisasterReportingStepper() {
             )}
           </div>
         </div>
-
+  
         {/* Safe Locations Summary */}
-        <div className="border rounded-lg p-4">
-          <h3 className="font-medium mb-3 text-blue-600">Safe Locations</h3>
-          <div className="space-y-2">
-            {formData.safeLocations.map((location, index) => (
-              <div key={index} className="bg-gray-50 p-2 rounded">
-                <p className="font-medium">{location.name}</p>
-                <p className="text-sm text-gray-600">
-                  Capacity: {location.currentHeadcount}/{location.capacity}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Resource Requests Summary */}
-        <div className="border rounded-lg p-4">
-          <h3 className="font-medium mb-3 text-blue-600">Resource Requests</h3>
-          <div className="space-y-2">
-            {formData.resourceRequests.map((request, index) => (
-              <div key={index} className="bg-gray-50 p-2 rounded">
-                <p className="font-medium">{request.type}</p>
-                <div className="text-sm text-gray-600">
-                  <p>Status: {request.status}</p>
-                  <p>Contact: {request.contactDetails.contactPersonName}</p>
+        {formData.safeLocations.length > 0 && (
+          <div className="border rounded-lg p-4">
+            <h3 className="font-medium mb-3 text-blue-600">Safe Locations</h3>
+            <div className="space-y-2">
+              {formData.safeLocations.map((location, index) => (
+                <div key={index} className="bg-gray-50 p-2 rounded">
+                  <p className="font-medium">{location.name}</p>
+                  <p className="text-sm text-gray-600">
+                    Capacity: {location.currentHeadcount}/{location.capacity}
+                  </p>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-
-          {/* Volunteer Requests Summary */}
-      {formData.volunteerNeeded && (
-        <div className="border rounded-lg p-4">
-          <h3 className="font-medium mb-3 text-blue-600">Volunteer Requests</h3>
-          <div className="space-y-2">
-            {Object.entries(formData.volunteerRequests).map(([type, count]) => (
-              <div key={type} className="bg-gray-50 p-2 rounded">
-                <p className="font-medium">{type}</p>
-                <p className="text-sm text-gray-600">{count} volunteers needed</p>
-              </div>
-            ))}
+        )}
+  
+        {/* Resource Requests Summary */}
+        {formData.resourceRequests.length > 0 && (
+          <div className="border rounded-lg p-4">
+            <h3 className="font-medium mb-3 text-blue-600">Resource Requests</h3>
+            <div className="space-y-2">
+              {formData.resourceRequests.map((request, index) => (
+                <div key={index} className="bg-gray-50 p-2 rounded">
+                  <p className="font-medium">{request.type}</p>
+                  <div className="text-sm text-gray-600">
+                    <p>Status: {request.status}</p>
+                    <p>Contact: {request.contactDetails.contactPersonName}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+  
+        {/* Volunteer Requests Summary */}
+        {formData.volunteerNeeded && (
+          <div className="border rounded-lg p-4">
+            <h3 className="font-medium mb-3 text-blue-600">Volunteer Requests</h3>
+            <div className="space-y-2">
+              {Object.entries(formData.volunteerRequests).map(([type, count]) => (
+                <div key={type} className="bg-gray-50 p-2 rounded">
+                  <p className="font-medium">{type}</p>
+                  <p className="text-sm text-gray-600">{count} volunteers needed</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
-  </div>
   );
 
   const renderSafeLocationsReadOnly = () => (
@@ -1099,6 +1103,29 @@ export default function DisasterReportingStepper() {
       await updateDoc(disasterRef, {
         disasterId: disasterRef.id
       });
+
+      const locationStatusRef = doc(db, 'Location_Status', 'divisionalSecretariats');
+      const locationStatusDoc = await getDoc(locationStatusRef);
+
+        if (locationStatusDoc.exists()) {
+          const data = locationStatusDoc.data();
+          const updatedData = { ...data };
+
+          // Update the specific DS Division
+          if (!updatedData[cleanFormData.dsDivision]) {
+            updatedData[cleanFormData.dsDivision] = {
+              Safety: false,
+              VolunteerNeed: false,
+              WarningStatus: 'High'
+            };
+          } else {
+            updatedData[cleanFormData.dsDivision].Safety = false;
+            updatedData[cleanFormData.dsDivision].VolunteerNeed = false;
+            updatedData[cleanFormData.dsDivision].WarningStatus = 'High';
+          }
+
+          await setDoc(locationStatusRef, updatedData);
+        }
       
       console.log('Report saved successfully with ID: ', disasterRef.id);
       alert('Report submitted successfully!');
@@ -1111,6 +1138,8 @@ export default function DisasterReportingStepper() {
       alert(`Failed to submit report: ${error.message}`);
       throw error;
     }
+
+    
   };
   
   // Helper function to validate coordinates
@@ -1138,6 +1167,8 @@ export default function DisasterReportingStepper() {
           ...prev,
           disasterId: newDisasterId
         }));
+
+        
       } else {
         // Update existing document
         const disasterRef = doc(db, 'verifiedDisasters', formData.disasterId);
@@ -1146,6 +1177,8 @@ export default function DisasterReportingStepper() {
           ...currentStepData
         });
       }
+
+
     } catch (error) {
       console.error('Error updating disaster document:', error);
       // Handle error appropriately

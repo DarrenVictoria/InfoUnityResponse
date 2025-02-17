@@ -100,6 +100,8 @@ export default function PublicDisasterReport() {
     }));
   };
 
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -158,6 +160,7 @@ export default function PublicDisasterReport() {
   };
 
   return (
+    
     <div className="max-w-4xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">Report a Disaster</h1>
 
@@ -319,4 +322,7 @@ export default function PublicDisasterReport() {
       </form>
     </div>
   );
+
+  // Function to generate random data for crowd-sourced reports
+
 }
