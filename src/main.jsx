@@ -26,6 +26,16 @@ if ('serviceWorker' in navigator) {
   })
 }
 
+// Register dev service worker in development
+if (import.meta.env.DEV) {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/dev-sw.js?dev-sw', { 
+      scope: '/', 
+      type: 'classic'
+    });
+  }
+}
+
 // Handle foreground messages
 if (messaging) {
   onMessage(messaging, (payload) => {
