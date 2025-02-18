@@ -35,27 +35,28 @@ const messaging = getMessaging(app);
 //   });
 
 
-// Register Firebase messaging service worker before requesting token
+// Modify the Firebase service worker registration
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/firebase-messaging-sw.js')
-    .then((registration) => {
-      console.log('Firebase Service Worker registered:', registration);
+  navigator.serviceWorker.ready.then(registration => {
+    // Check if there's already an active service worker
+    if (registration.active) {
+      return registration;
+    }
+  }).then(() => {
+    // Only register if no active service worker exists
+    return navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+      scope: 'firebase-cloud-messaging-push-scope'
+    });
+  }).then((registration) => {
+    console.log('Firebase Service Worker registered:', registration);
 
-      // Now get the FCM token
-      return getToken(messaging, {
-        vapidKey: "BG5ZJKYHQwGAGEOZ2aQH47UQFHM1o1Zp9CEP7cG1mbFBavtezzUj1rC_S4L4VmQAaCqYi2mpgRfWyU-TuN6zc84",
-        serviceWorkerRegistration: registration,
-      });
-    })
-    .then((currentToken) => {
-      if (currentToken) {
-        console.log('Token retrieved successfully:', currentToken);
-      } else {
-        console.log('No registration token available. Request permission to generate one.');
-      }
-    })
+    return getToken(messaging, {
+      vapidKey: "BG5ZJKYHQwGAGEOZ2aQH47UQFHM1o1Zp9CEP7cG1mbFBavtezzUj1rC_S4L4VmQAaCqYi2mpgRfWyU-TuN6zc84",
+      serviceWorkerRegistration: registration,
+    });
+  })
     .catch((err) => {
-      console.log('An error occurred while retrieving token:', err);
+      console.error('Service Worker registration failed:', err);
     });
 }
 
