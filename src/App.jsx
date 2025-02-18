@@ -6,7 +6,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { db, auth } from '../firebase';
 import { NotificationService } from './services/notificationService';
 import { WarningService } from './services/warningService';
-import WarningPopup from './components/WarningPopup';
+import { WarningPopup } from './components/WarningPopup';
 
 import UpdateNotification from './components/UpdateNotification';
 import Layout from './components/Layout';
