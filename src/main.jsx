@@ -5,7 +5,7 @@ import App from './App'
 import './index.css'
 import './i18n'
 import { messaging } from '../firebase'
-import { onMessage } from '@firebase/messaging'
+// import { onMessage } from '@firebase/messaging'
 
 // Register PWA Service Worker
 if ('serviceWorker' in navigator) {
@@ -27,18 +27,18 @@ if ('serviceWorker' in navigator) {
 }
 
 // Handle foreground messages
-if (messaging) {
-  onMessage(messaging, (payload) => {
-    console.log('Message received in foreground:', payload);
-    if (Notification.permission === 'granted') {
-      const { title, body } = payload.notification;
-      new Notification(title, {
-        body,
-        icon: '/logo192.png',
-      });
-    }
-  });
-}
+// if (messaging) {
+//   onMessage(messaging, (payload) => {
+//     console.log('Message received in foreground:', payload);
+//     if (Notification.permission === 'granted') {
+//       const { title, body } = payload.notification;
+//       new Notification(title, {
+//         body,
+//         icon: '/logo192.png',
+//       });
+//     }
+//   });
+// }
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

@@ -122,6 +122,8 @@ exports.sendWarningNotification = functions
             warningId: warning.messageId,
             type: warning.type,
             severity: warning.severity,
+            borderColor: getBorderColor(warning.type), // Add border color based on disaster type
+            sound: 'warning_sound.mp3' // Add sound file name
           },
           tokens: tokens,
         };
@@ -158,6 +160,34 @@ exports.sendWarningNotification = functions
       throw new functions.https.HttpsError('internal', 'Error sending notifications');
     }
   });
+
+// Helper function to get border color based on disaster type
+function getBorderColor(disasterType) {
+  switch (disasterType) {
+    case 'Flood':
+      return 'blue';
+    case 'Landslide':
+      return 'brown';
+    case 'Drought':
+      return 'orange';
+    case 'Cyclone':
+      return 'yellow';
+    case 'Tsunami':
+      return 'teal';
+    case 'Coastal Erosion':
+      return 'cyan';
+    case 'Lightning Strike':
+      return 'purple';
+    case 'Forest Fire':
+      return 'red';
+    case 'Industrial Accident':
+      return 'gray';
+    case 'Epidemic':
+      return 'pink';
+    default:
+      return 'black';
+  }
+}
 
 // Trigger notification on new warning
 exports.onNewWarning = functions

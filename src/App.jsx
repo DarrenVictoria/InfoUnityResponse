@@ -10,6 +10,9 @@ import { WarningService } from './services/warningService';
 import UpdateNotification from './components/UpdateNotification';
 import Layout from './components/Layout';
 import LoadingPage from './components/Loading';
+import { NotificationProvider } from './context/NotificationContext';
+import WarningPopup from './components/WarningPopup';
+import NotificationPanel from './components/NotificationPanel';
 
 // Role-based routing
 import RespondantLanding from './views/respondant/RespondantLanding';
@@ -34,6 +37,7 @@ function App() {
   const [userRoles, setUserRoles] = useState([]); // Array of roles
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
+  const [notifications, setNotifications] = useState([]);
   const navigate = useNavigate();
 
   const notificationService = new NotificationService();
@@ -41,7 +45,7 @@ function App() {
 
 
 
-    useEffect(() => {
+  useEffect(() => {
     const checkAuthAndFetchRoles = () => {
       onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -53,8 +57,7 @@ function App() {
               const roles = userData.roles || [];
               setUserRoles(roles);
               setCurrentUser({ ...userData, uid: userId });
-              
-              // Setup notifications if user has required data
+
               if (userData.division) {
                 setupNotifications(userId, userData.division);
               }
@@ -76,40 +79,47 @@ function App() {
     checkAuthAndFetchRoles();
   }, [navigate]);
 
+  
+
+
   const setupNotifications = async (userId, division) => {
     try {
-      // Request notification permission
       await notificationService.requestPermission(userId);
-      
-      // Setup foreground message handler
+
       notificationService.setupMessageListener((payload) => {
-        // You can use NextUI's toast or your custom notification component here
-        showNotification(payload.notification);
+        const { title, body } = payload.notification;
+        addNotification({ title, body });
       });
 
-      // Subscribe to warnings for user's division
       const unsubscribe = warningService.subscribeToWarnings(
         userId,
         division,
         (warning) => {
-          showNotification({
+          addNotification({
             title: `${warning.type} Warning`,
             body: warning.warningMessage
           });
         }
       );
 
-      // Cleanup subscription on unmount
       return () => unsubscribe();
     } catch (error) {
       console.error('Error setting up notifications:', error);
     }
   };
 
-  const showNotification = ({ title, body }) => {
-    // Implement your notification UI here
-    // You can use NextUI's toast or your custom component
-    console.log('Notification:', title, body);
+  const addNotification = (notification) => {
+    setNotifications((prev) => [notification, ...prev]);
+    playNotificationSound();
+  };
+
+  const playNotificationSound = () => {
+    const audio = new Audio('/sounds/warning_sound.mp3');
+    audio.play();
+  };
+
+  const dismissNotification = (index) => {
+    setNotifications((prev) => prev.filter((_, i) => i !== index));
   };
 
 
@@ -129,6 +139,7 @@ function App() {
   };
 
   return (
+    <NotificationProvider>
     <NextUIProvider>
       <Layout>
         <Routes>
@@ -210,8 +221,11 @@ function App() {
           <Route path="*" element={<div>404 - Page not found</div>} />
         </Routes>
         <UpdateNotification />
+        <WarningPopup />
+        <NotificationPanel notifications={notifications} onDismiss={dismissNotification} />
       </Layout>
     </NextUIProvider>
+    </NotificationProvider>
   );
 }
 

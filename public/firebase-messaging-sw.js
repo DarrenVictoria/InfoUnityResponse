@@ -12,13 +12,21 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+const seenMessages = new Set();
+
 messaging.onBackgroundMessage((payload) => {
-    const { title, body, data } = payload.notification;
+    const { messageId, notification } = payload;
+    if (seenMessages.has(messageId)) {
+        return; // Skip duplicate messages
+    }
+    seenMessages.add(messageId);
+
+    const { title, body } = notification;
     self.registration.showNotification(title, {
         body,
-        data,
         icon: '/logo192.png',
         badge: '/badge.png',
-        vibrate: [200, 100, 200]
+        vibrate: [200, 100, 200],
+        sound: '/sounds/warning_sound.mp3',
     });
 });

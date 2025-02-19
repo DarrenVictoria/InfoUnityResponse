@@ -1,6 +1,7 @@
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
+import { useNotification } from '../context/NotificationContext';
 
 export class NotificationService {
     constructor() {
@@ -50,6 +51,13 @@ export class NotificationService {
 
     setupMessageListener(callback) {
         onMessage(this.messaging, (payload) => {
+            const { title, body, data } = payload.notification;
+            const { showWarning } = useNotification();
+            showWarning({
+                title,
+                body,
+                borderColor: data.borderColor
+            });
             callback(payload);
         });
     }
