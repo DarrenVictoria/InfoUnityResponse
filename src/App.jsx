@@ -11,7 +11,6 @@ import UpdateNotification from './components/UpdateNotification';
 import Layout from './components/Layout';
 import LoadingPage from './components/Loading';
 import { NotificationProvider } from './context/NotificationContext';
-import WarningPopup from './components/WarningPopup';
 import NotificationPanel from './components/NotificationPanel';
 
 // Role-based routing
@@ -221,7 +220,6 @@ function App() {
           <Route path="*" element={<div>404 - Page not found</div>} />
         </Routes>
         <UpdateNotification />
-        <WarningPopup />
         <NotificationPanel notifications={notifications} onDismiss={dismissNotification} />
       </Layout>
     </NextUIProvider>
