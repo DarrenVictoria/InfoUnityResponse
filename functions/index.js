@@ -30,29 +30,51 @@ const VALID_DISASTER_TYPES = [
 
 // AI response function
 async function getModelResponse(prompt, language = 'english') {
-  const model = genAI.getGenerativeModel({ model: "IURChatbot" });
+  try {
+    const model = genAI.getGenerativeModel({ model: "IURChatbot" });
 
-  const systemPrompts = {
-    english: `You are a disaster response expert focusing on ${VALID_DISASTER_TYPES.join(', ')}. 
-              Provide clear, actionable advice. Include specific safety measures and mitigation strategies.`,
-    sinhala: `ඔබ ${VALID_DISASTER_TYPES.join(', ')} පිළිබඳ ආපදා ප්‍රතිචාර විශේෂඥයෙකි. 
-              පැහැදිලි, ක්‍රියාත්මක කළ හැකි උපදෙස් ලබා දෙන්න. විශේෂිත ආරක්ෂණ පියවර සහ අවම කිරීමේ උපාය මාර්ග ඇතුළත් කරන්න.`,
-    tamil: `நீங்கள் ${VALID_DISASTER_TYPES.join(', ')} பற்றிய பேரழிவு மீட்பு நிபுணர். 
-           தெளிவான, செயல்படுத்தக்கூடிய ஆலோசனையை வழங்குங்கள். குறிப்பிட்ட பாதுகாப்பு நடவடிக்கைகள் மற்றும் தணிப்பு உத்திகளை சேர்க்கவும்.`
-  };
+    const systemPrompts = {
+      english: `You are a disaster response expert focusing on ${VALID_DISASTER_TYPES.join(', ')}. 
+                Provide clear, actionable advice. Include specific safety measures and mitigation strategies.`,
+      sinhala: `ඔබ ${VALID_DISASTER_TYPES.join(', ')} පිළිබඳ ආපදා ප්‍රතිචාර විශේෂඥයෙකි. 
+                පැහැදිලි, ක්‍රියාත්මක කළ හැකි උපදෙස් ලබා දෙන්න. විශේෂිත ආරක්ෂණ පියවර සහ අවම කිරීමේ උපාය මාර්ග ඇතුළත් කරන්න.`,
+      tamil: `நீங்கள் ${VALID_DISASTER_TYPES.join(', ')} பற்றிய பேரழிவு மீட்பு நிபுணர். 
+             தெளிவான, செயல்படுத்தக்கூடிய ஆலோசனையை வழங்குங்கள். குறிப்பிட்ட பாதுகாப்பு நடவடிக்கைகள் மற்றும் தணிப்பு உத்திகளை சேர்க்கவும்.`
+    };
 
-  const chat = model.startChat({
-    history: [{ role: "user", parts: [systemPrompts[language]] }],
-    generationConfig: {
-      temperature: 0.7,
-      topK: 40,
-      topP: 0.8,
-      maxOutputTokens: 2048,
-    },
-  });
+    const chat = model.startChat({
+      history: [
+        {
+          role: "user",
+          parts: [{ text: systemPrompts[language] }]
+        }
+      ],
+      generationConfig: {
+        temperature: 0.7,
+        topK: 40,
+        topP: 0.8,
+        maxOutputTokens: 2048,
+      },
+    });
 
-  const result = await chat.sendMessage(prompt);
-  return result.response.text();
+    const result = await chat.sendMessage([{ text: prompt }]);
+    const response = await result.response;
+
+    // Check if response has candidates and extract the text from the first candidate
+    if (response.candidates && response.candidates.length > 0) {
+      return response.candidates[0].content.parts[0].text;
+    }
+
+    // Fallback if the response structure is different
+    if (response.text) {
+      return response.text;
+    }
+
+    throw new Error('Unexpected response format from AI model');
+  } catch (error) {
+    console.error('Error in getModelResponse:', error);
+    throw new Error(`Failed to get AI response: ${error.message}`);
+  }
 }
 
 // Helper function for border colors
@@ -136,7 +158,11 @@ exports.getDisasterResponse = functions
       return { success: true, response };
     } catch (error) {
       console.error('Error getting AI response:', error);
-      throw new functions.https.HttpsError('internal', error.message);
+      throw new functions.https.HttpsError(
+        'internal',
+        'Failed to get AI response',
+        { originalError: error.message }
+      );
     }
   });
 
