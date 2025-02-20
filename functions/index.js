@@ -28,11 +28,6 @@ const VALID_DISASTER_TYPES = [
   "Industrial Accident", "Epidemic"
 ];
 
-// Helper function to validate disaster type
-function isValidDisasterType(type) {
-  return VALID_DISASTER_TYPES.includes(type);
-}
-
 // AI response function
 async function getModelResponse(prompt, language = 'english') {
   const model = genAI.getGenerativeModel({ model: "IURChatbot" });
@@ -132,29 +127,12 @@ app.post('/', async (req, res) => {
 exports.getDisasterResponse = functions
   .region('asia-southeast1')
   .https.onCall(async (data, context) => {
-    // Add CORS headers
-    const corsHandler = cors({ origin: true });
-
     try {
-      await admin.firestore().collection('aiQueries').add({
-        prompt: data.prompt,
-        language: data.language,
-        model: 'IURChatbot',
-        timestamp: admin.firestore.FieldValue.serverTimestamp(),
-        userId: context.auth?.uid || 'anonymous'
-      });
+      if (!data.prompt || !data.language) {
+        throw new functions.https.HttpsError('invalid-argument', 'Missing prompt or language');
+      }
 
       const response = await getModelResponse(data.prompt, data.language);
-
-      await admin.firestore().collection('aiResponses').add({
-        prompt: data.prompt,
-        response,
-        language: data.language,
-        model: 'IURChatbot',
-        timestamp: admin.firestore.FieldValue.serverTimestamp(),
-        userId: context.auth?.uid || 'anonymous'
-      });
-
       return { success: true, response };
     } catch (error) {
       console.error('Error getting AI response:', error);

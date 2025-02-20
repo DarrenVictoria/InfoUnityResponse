@@ -1,4 +1,3 @@
-// src/services/getDisasterResponseService.js
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../firebase';
 

@@ -37,14 +37,14 @@ const DisasterAI = () => {
 
     try {
       const result = await getDisasterResponse(userMessage, language);
-      if (result.success) {
+      if (result && result.success) {
         setMessages(prev => [...prev, { 
           type: 'ai', 
           content: result.response,
           timestamp: new Date().toISOString()
         }]);
       } else {
-        throw new Error(result.error || 'Failed to get response');
+        throw new Error(result?.error || 'Failed to get response');
       }
     } catch (error) {
       console.error('Error:', error);

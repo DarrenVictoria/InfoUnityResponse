@@ -37,7 +37,7 @@ const functions = getFunctions(app, 'asia-southeast1');
 //   });
 
 if (process.env.NODE_ENV === 'development') {
-  connectFunctionsEmulator(functions, 'localhost', 5001);
+  connectFunctionsEmulator(functions, 'localhost', 8540);
 }
 
 // Register Firebase messaging service worker before requesting token
