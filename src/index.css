@@ -82,3 +82,23 @@ body {
     @apply bg-background text-foreground;
     }
 }
+
+.message {
+  @apply p-4 rounded-lg mb-4 max-w-[80%];
+}
+
+.user-message {
+  @apply bg-blue-100 ml-auto;
+}
+
+.ai-message {
+  @apply bg-gray-100;
+}
+
+.typing-indicator {
+  @apply flex space-x-1 items-center;
+}
+
+.typing-dot {
+  @apply w-2 h-2 bg-gray-400 rounded-full animate-bounce;
+}

@@ -1,0 +1,614 @@
+[
+    {
+        "prompt": "What should I do during an earthquake?",
+        "response": "Drop to the ground, take cover under sturdy furniture, and hold on until the shaking stops."
+    },
+    {
+        "prompt": "භූමිකම්පාවක් ඇතිවූ විට මා කළ යුත්තේ කුමක්ද?",
+        "response": "බිමට පතිත වී, බලවත් ගෘහස්ථ භාණ්ඩ යට සැඟවී, කම්පනය නැවතී යන තුරු රැඳී සිටින්න."
+    },
+    {
+        "prompt": "பூகம்பம் ஏற்பட்டால் நான் என்ன செய்ய வேண்டும்?",
+        "response": "தரையில் விழுந்து, உறுதியான தளபாடங்களின் கீழ் மறைந்து, நடுக்கம் நிற்கும் வரை பிடித்துக் கொள்ளுங்கள்."
+    },
+    {
+        "prompt": "How can I prepare for a flood?",
+        "response": "Create an emergency kit, know evacuation routes, and avoid building in flood-prone areas."
+    },
+    {
+        "prompt": "ගංවතුර සඳහා මා කළ යුත්තේ කුමක්ද?",
+        "response": "හදිසි උපකරණ පැකට්ටුවක් සෑදීම, ඉවත්වීමේ මාර්ග දැන ගැනීම, සහ ගංවතුර ප්රදේශවල ගොඩනැගීමෙන් වලකින්න."
+    },
+    {
+        "prompt": "வெள்ளத்திற்கு நான் எப்படி தயாராகலாம்?",
+        "response": "அவசரகால கிட் ஒன்றை உருவாக்குதல், வெளியேறும் பாதைகளை அறிந்திருப்பது, மற்றும் வெள்ளப்பாதிப்பு பகுதிகளில் கட்டிடம் கட்டுவதைத் தவிர்த்தல்."
+    },
+    {
+        "prompt": "What are the safety measures during a tsunami?",
+        "response": "Move to higher ground immediately, stay away from the coast, and follow official warnings."
+    },
+    {
+        "prompt": "සුනාමි එකකදී ආරක්ෂිතව සිටීමේ ක්රම මොනවාද?",
+        "response": "කෙටි නොකොට ඉහළ ප්රදේශවලට ගමන් කරන්න, වෙරළෙන් දුරස්ව සිටින්න, සහ නිල අනතුරු ඇඟවීම් පිළිපන්න."
+    },
+    {
+        "prompt": "சுனாமி ஏற்பட்டால் பாதுகாப்பு நடவடிக்கைகள் என்ன?",
+        "response": "உடனடியாக உயர்ந்த இடத்திற்குச் செல்லுங்கள், கடற்கரையில் இருந்து விலகி இருங்கள், மற்றும் அதிகாரப்பூர்வ எச்சரிக்கைகளைப் பின்பற்றுங்கள்."
+    },
+    {
+        "prompt": "How can I protect myself during a cyclone?",
+        "response": "Stay indoors, secure loose objects, and listen to weather updates."
+    },
+    {
+        "prompt": "සුළි කුණාටුවකදී මා ආරක්ෂා වීමට කළ හැක්කේ කුමක්ද?",
+        "response": "ගෙදර ඇතුළත රැඳී සිටින්න, ලිහිල් වස්තු ආරක්ෂිත කරන්න, සහ කාලගුණ යාවත්කාලීන කිරීම් අසන්න."
+    },
+    {
+        "prompt": "சூறாவளி ஏற்பட்டால் நான் எப்படி பாதுகாப்பாக இருக்க முடியும்?",
+        "response": "வீட்டுக்குள் இருங்கள், தளர்வான பொருட்களை பாதுகாப்பாக வைத்து, வானிலை புதுப்பிப்புகளை கேளுங்கள்."
+    },
+    {
+        "prompt": "What should I include in an emergency kit?",
+        "response": "Include water, non-perishable food, a flashlight, batteries, a first-aid kit, and important documents."
+    },
+    {
+        "prompt": "හදිසි උපකරණ පැකට්ටුවක ඇතුළත් කළ යුත්තේ කුමක්ද?",
+        "response": "ජලය, නොනැසෙන ආහාර, ටෝච් එක, බැටරි, ප්රථමාධාර කට්ටලය, සහ වැදගත් ලියකියවිලි ඇතුළත් කරන්න."
+    },
+    {
+        "prompt": "அவசரகால கிட் ஒன்றில் என்ன சேர்க்க வேண்டும்?",
+        "response": "தண்ணீர், நீண்டகாலம் கெட்டுப்போகாத உணவு, ஒரு டார்ச், பேட்டரிகள், முதல் உதவி கிட், மற்றும் முக்கியமான ஆவணங்கள் சேர்க்கவும்."
+    },
+    {
+        "prompt": "How do I stay safe during a wildfire?",
+        "response": "Evacuate immediately if advised, wear protective clothing, and avoid areas with heavy smoke."
+    },
+    {
+        "prompt": "වන ගිනි ගැනීමකදී ආරක්ෂිතව සිටීමට මා කළ යුත්තේ කුමක්ද?",
+        "response": "උපදෙස් ලැබුණහොත් කෙටි නොකොට ඉවත් වන්න, ආරක්ෂිත ඇඳුම් පැළඳීම, සහ දුමාරය ගහන ප්රදේශ වලින් වලකින්න."
+    },
+    {
+        "prompt": "காட்டுத்தீ ஏற்பட்டால் நான் எப்படி பாதுகாப்பாக இருக்க முடியும்?",
+        "response": "அறிவுறுத்தப்பட்டால் உடனடியாக வெளியேறுங்கள், பாதுகாப்பு ஆடைகளை அணியுங்கள், மற்றும் புகை நிறைந்த பகுதிகளைத் தவிர்க்கவும்."
+    },
+    {
+        "prompt": "What should I do if I am caught in a landslide?",
+        "response": "Move to higher ground, avoid river valleys, and listen for emergency alerts."
+    },
+    {
+        "prompt": "මා භූමික්ෂේපයකට හසු වුවහොත් මා කළ යුත්තේ කුමක්ද?",
+        "response": "ඉහළ ප්රදේශවලට ගමන් කරන්න, ගංගා නිම්න වලින් වලකින්න, සහ හදිසි ඇඟවීම් අසන්න."
+    },
+    {
+        "prompt": "நிலச்சரிவில் சிக்கினால் நான் என்ன செய்ய வேண்டும்?",
+        "response": "உயர்ந்த இடத்திற்குச் செல்லுங்கள், ஆற்றுப் பள்ளத்தாக்குகளைத் தவிர்க்கவும், அவசர எச்சரிக்கைகளைக் கேளுங்கள்."
+    },
+    {
+        "prompt": "How can I prepare for a hurricane?",
+        "response": "Secure your home, stock up on supplies, and follow evacuation orders if necessary."
+    },
+    {
+        "prompt": "ටයිෆූන් එකකට මා කළ යුත්තේ කුමක්ද?",
+        "response": "ඔබේ නිවස ආරක්ෂිත කරන්න, අවශ්යතා සඳහා ගබඩා කරන්න, සහ අවශ්ය නම් ඉවත්වීමේ නියෝග පිළිපන්න."
+    },
+    {
+        "prompt": "சூறாவளிக்கு நான் எப்படி தயாராகலாம்?",
+        "response": "உங்கள் வீட்டை பாதுகாப்பாக்குங்கள், பொருட்களை சேமிக்கவும், மற்றும் தேவைப்பட்டால் வெளியேறும் உத்தரவுகளைப் பின்பற்றவும்."
+    },
+    {
+        "prompt": "What should I do if I am trapped in a building during a disaster?",
+        "response": "Stay calm, use a whistle or phone to signal for help, and avoid using elevators."
+    },
+    {
+        "prompt": "ව්යසනයකදී ගොඩනැගිල්ලක අසුවී ගියහොත් මා කළ යුත්තේ කුමක්ද?",
+        "response": "සන්සුන් වන්න, උදව් ඉල්ලීමට විස්ලයක් හෝ දුරකථනයක් භාවිතා කරන්න, සහ ලිෆ්ට් භාවිතා කිරීමෙන් වලකින්න."
+    },
+    {
+        "prompt": "பேரிடர் ஏற்பட்டால் ஒரு கட்டிடத்தில் சிக்கினால் நான் என்ன செய்ய வேண்டும்?",
+        "response": "அமைதியாக இருங்கள், உதவிக்காக ஒரு விசில் அல்லது தொலைபேசியைப் பயன்படுத்துங்கள், மற்றும் லிஃப்ட்களைப் பயன்படுத்துவதைத் தவிர்க்கவும்."
+    },
+    {
+        "prompt": "How can I help others during a disaster?",
+        "response": "Stay informed, share accurate information, and assist those in need if it is safe to do so."
+    },
+    {
+        "prompt": "ව්යසනයකදී අන් අයට මා උදව් කළ හැක්කේ කෙසේද?",
+        "response": "තොරතුරු ලබා ගන්න, නිවැරදි තොරතුරු බෙදා ගන්න, සහ ආරක්ෂිත නම් අවශ්ය අයට උදව් කරන්න."
+    },
+    {
+        "prompt": "பேரிடர் ஏற்பட்டால் மற்றவர்களுக்கு நான் எப்படி உதவ முடியும்?",
+        "response": "தகவலறிந்திருங்கள், சரியான தகவல்களைப் பகிரவும், மற்றும் பாதுகாப்பாக இருந்தால் தேவைப்படுவோருக்கு உதவுங்கள்."
+    },
+    {
+        "prompt": "What should I do after a disaster?",
+        "response": "Check for injuries, avoid damaged areas, and follow official instructions for recovery."
+    },
+    {
+        "prompt": "ව්යසනයකට පසු මා කළ යුත්තේ කුමක්ද?",
+        "response": "ආබාධ පරීක්ෂා කරන්න, හානි සහිත ප්රදේශ වලින් වලකින්න, සහ නිල උපදෙස් පිළිපන්න."
+    },
+    {
+        "prompt": "பேரிடர் நிகழ்ந்த பிறகு நான் என்ன செய்ய வேண்டும்?",
+        "response": "காயங்களை சரிபார்க்கவும், சேதமடைந்த பகுதிகளைத் தவிர்க்கவும், மற்றும் மீட்புக்கான அதிகாரப்பூர்வ அறிவுறுத்தல்களைப் பின்பற்றவும்."
+    },
+    {
+        "prompt": "How can I protect my pets during a disaster?",
+        "response": "Include pets in your emergency plan, keep a pet emergency kit, and ensure they have identification tags."
+    },
+    {
+        "prompt": "ව්යසනයකදී මගෙ සතුන් ආරක්ෂා කරගන්නේ කෙසේද?",
+        "response": "ඔබේ හදිසි සැලැස්මේ සතුන් ඇතුළත් කරන්න, සතුන් සඳහා හදිසි උපකරණ පැකට්ටුවක් තබා ගන්න, සහ ඔවුන්ට හඳුනාගැනීමේ ටැග් ඇති බවට වග බලා ගන්න."
+    },
+    {
+        "prompt": "பேரிடர் ஏற்பட்டால் எனது செல்லப்பிராணிகளை எவ்வாறு பாதுகாப்பது?",
+        "response": "உங்கள் அவசர திட்டத்தில் செல்லப்பிராணிகளை சேர்க்கவும், ஒரு செல்லப்பிராணி அவசர கிட் வைத்து, அவை அடையாள டேக்குகளைக் கொண்டிருப்பதை உறுதிப்படுத்தவும்."
+    },
+    {
+        "prompt": "What should I do if I lose power during a storm?",
+        "response": "Use flashlights instead of candles, avoid opening the fridge, and unplug sensitive electronics."
+    },
+    {
+        "prompt": "කුණාටුවකදී විදුලිය නැතිවුණොත් මා කළ යුත්තේ කුමක්ද?",
+        "response": "මිනින්දෝරු වෙනුවට ටෝච් භාවිතා කරන්න, ෆ්රිජ් එක විවෘත කිරීමෙන් වලකින්න, සහ සංවේදී ඉලෙක්ට්රොනික උපකරණ වලින් ප්ලග් එක ගලවන්න."
+    },
+    {
+        "prompt": "புயல் ஏற்பட்டால் மின்சாரம் இழந்தால் நான் என்ன செய்ய வேண்டும்?",
+        "response": "மெழுகுவர்த்திகளுக்குப் பதிலாக டார்ச்களைப் பயன்படுத்தவும், ரெஃப்ரிஜரேட்டரைத் திறக்காமல் இருங்கள், மற்றும் உணர்திறன் மின்னணு சாதனங்களை அணைக்கவும்."
+    },
+    {
+        "prompt": "How can I stay informed during a disaster?",
+        "response": "Use a battery-powered radio, follow official social media accounts, and sign up for emergency alerts."
+    },
+    {
+        "prompt": "ව්යසනයකදී තොරතුරු ලබා ගන්නේ කෙසේද?",
+        "response": "බැටරි බලයෙන් ක්රියාත්මක වන රේඩියෝ එකක් භාවිතා කරන්න, නිල සමාජ මාධ්ය ගිණුම් අනුගමනය කරන්න, සහ හදිසි ඇඟවීම් සඳහා ලියාපදිංචි වන්න."
+    },
+    {
+        "prompt": "பேரிடர் ஏற்பட்டால் தகவல்களை எவ்வாறு பெறுவது?",
+        "response": "பேட்டரி இயக்க ரேடியோவைப் பயன்படுத்தவும், அதிகாரப்பூர்வ சமூக ஊடக கணக்குகளைப் பின்தொடரவும், மற்றும் அவசர எச்சரிக்கைகளுக்கு பதிவு செய்யவும்."
+    },
+    {
+        "prompt": "What should I do if I am stranded in a flood?",
+        "response": "Move to higher ground, call for help, and avoid walking through floodwaters."
+    },
+    {
+        "prompt": "ගංවතුරකදී මා කොටුවී ගියහොත් මා කළ යුත්තේ කුමක්ද?",
+        "response": "ඉහළ ප්රදේශවලට ගමන් කරන්න, උදව් ඉල්ලීමට අමතන්න, සහ ගංවතුරු ජලය හරහා ඇවිදීමෙන් වලකින්න."
+    },
+    {
+        "prompt": "வெள்ளத்தில் சிக்கினால் நான் என்ன செய்ய வேண்டும்?",
+        "response": "உயர்ந்த இடத்திற்குச் செல்லுங்கள், உதவிக்காக அழைக்கவும், மற்றும் வெள்ள நீரில் நடப்பதைத் தவிர்க்கவும்."
+    },
+    {
+        "prompt": "How can I prepare my home for a disaster?",
+        "response": "Secure heavy furniture, create an emergency plan, and stock up on essential supplies."
+    },
+    {
+        "prompt": "ව්යසනයකට මගේ නිවස සූදානම් කරගන්නේ කෙසේද?",
+        "response": "බර ගෘහස්ථ භාණ්ඩ ආරක්ෂිත කරන්න, හදිසි සැලැස්මක් සකස් කරන්න, සහ අත්යවශ්ය අවශ්යතා සඳහා ගබඩා කරන්න."
+    },
+    {
+        "prompt": "பேரிடருக்கு என் வீட்டை எவ்வாறு தயார் செய்வது?",
+        "response": "கனமான தளபாடங்களை பாதுகாப்பாக்குங்கள், ஒரு அவசர திட்டத்தை உருவாக்கவும், மற்றும் அத்தியாவசிய பொருட்களை சேமிக்கவும்."
+    },
+    {
+        "prompt": "What should I do if I smell gas after an earthquake?",
+        "response": "Evacuate immediately, avoid using electrical devices, and call emergency services."
+    },
+    {
+        "prompt": "භූමිකම්පාවකට පසු ගෑස් ගඳක් දැනුණොත් මා කළ යුත්තේ කුමක්ද?",
+        "response": "කෙටි නොකොට ඉවත් වන්න, විදුලි උපකරණ භාවිතා කිරීමෙන් වලකින්න, සහ හදිසි සේවා අමතන්න."
+    },
+    {
+        "prompt": "பூகம்பத்திற்குப் பிறகு எரிவாயு வாசனை வந்தால் நான் என்ன செய்ய வேண்டும்?",
+        "response": "உடனடியாக வெளியேறுங்கள், மின்சாதனங்களைப் பயன்படுத்துவதைத் தவிர்க்கவும், மற்றும் அவசர சேவைகளை அழைக்கவும்."
+    },
+    {
+        "prompt": "How can I help children cope during a disaster?",
+        "response": "Stay calm, provide reassurance, and explain what is happening in simple terms."
+    },
+    {
+        "prompt": "ව්යසනයකදී ළමයින්ට සහය වන්නේ කෙසේද?",
+        "response": "සන්සුන් වන්න, ආශ්වාසය ලබා දෙන්න, සහ සරල භාෂාවෙන් සිදුවන්නේ කුමක්දැයි පැහැදිලි කරන්න."
+    },
+    {
+        "prompt": "பேரிடர் ஏற்பட்டால் குழந்தைகளுக்கு எப்படி உதவுவது?",
+        "response": "அமைதியாக இருங்கள், உறுதிமொழி அளிக்கவும், மற்றும் எளிய வார்த்தைகளில் என்ன நடக்கிறது என்பதை விளக்குங்கள்."
+    },
+    {
+        "prompt": "What should I do if I am in a car during a flood?",
+        "response": "Abandon the car if water is rising, move to higher ground, and call for help."
+    },
+    {
+        "prompt": "ගංවතුරකදී මා රථයක සිටිනවා නම් මා කළ යුත්තේ කුමක්ද?",
+        "response": "ජලය ඉහළ යනවා නම් රථය හැර දමන්න, ඉහළ ප්රදේශවලට ගමන් කරන්න, සහ උදව් ඉල්ලීමට අමතන්න."
+    },
+    {
+        "prompt": "வெள்ளத்தில் நான் காரில் இருந்தால் என்ன செய்ய வேண்டும்?",
+        "response": "நீர் அளவு உயர்ந்து வந்தால் காரை விட்டு வெளியேறுங்கள், உயர்ந்த இடத்திற்குச் செல்லுங்கள், மற்றும் உதவிக்காக அழைக்கவும்."
+    },
+    {
+        "prompt": "How can I prevent fires during a heatwave?",
+        "response": "Avoid outdoor burning, keep flammable materials away from heat sources, and stay alert."
+    },
+    {
+        "prompt": "උණුසුම් තරංගයකදී ගින්න වළක්වා ගන්නේ කෙසේද?",
+        "response": "පිටත දහනයෙන් වලකින්න, දැවෙන ද්රව්ය උණුසුම් මූලාශ්රවලින් දුරින් තබන්න, සහ සැලකිලිමත් වන්න."
+    },
+    {
+        "prompt": "வெப்ப அலைகளின் போது தீயை எவ்வாறு தடுப்பது?",
+        "response": "வெளியில் எரிப்பதைத் தவிர்க்கவும், எரியக்கூடிய பொருட்களை வெப்ப மூலங்களிலிருந்து விலக்கி வைக்கவும், மற்றும் எச்சரிக்கையாக இருங்கள்."
+    },
+    {
+        "prompt": "What should I do if I am trapped under debris?",
+        "response": "Stay calm, tap on a pipe or wall to signal rescuers, and avoid shouting to conserve energy."
+    },
+    {
+        "prompt": "අපවිත්ර ද්රව්ය යට අසුවී ගියහොත් මා කළ යුත්තේ කුමක්ද?",
+        "response": "සන්සුන් වන්න, ගලවා ගන්නන්ට සංඥා කිරීමට නලයක් හෝ බිත්තියක් ගසන්න, සහ ශක්ති සංරක්ෂණය කිරීමට කෑගැසීමෙන් වලකින්න."
+    },
+    {
+        "prompt": "குப்பைகளுக்கு அடியில் சிக்கினால் நான் என்ன செய்ய வேண்டும்?",
+        "response": "அமைதியாக இருங்கள், மீட்புக்காரர்களுக்கு சமிக்ஞை அனுப்ப ஒரு குழாயை அல்லது சுவற்றை தட்டவும், மற்றும் ஆற்றலை சேமிக்க கத்துவதை தவிர்க்கவும்."
+    },
+    {
+        "prompt": "How can I purify water during a disaster?",
+        "response": "Boil water for at least one minute, use water purification tablets, or filter water through a clean cloth."
+    },
+    {
+        "prompt": "ව්යසනයකදී ජලය පිරිසිදු කරගන්නේ කෙසේද?",
+        "response": "ජලය අවම වශයෙන් මිනිත්තුවක් උතුරන්න, ජල පිරිසිදු කිරීමේ ගුඩි භාවිතා කරන්න, හෝ පිරිසිදු රෙදි කඩකින් ජලය පෙරන්න."
+    },
+    {
+        "prompt": "பேரிடர் ஏற்பட்டால் தண்ணீரை எப்படி சுத்திகரிப்பது?",
+        "response": "தண்ணீரை குறைந்தது ஒரு நிமிடம் கொதிக்க வைக்கவும், தண்ணீர் சுத்திகரிப்பு மாத்திரைகளை பயன்படுத்தவும், அல்லது சுத்தமான துணியால் தண்ணீரை வடிகட்டவும்."
+    },
+    {
+        "prompt": "What should I do if I am in a building during a fire?",
+        "response": "Stay low to avoid smoke, use stairs instead of elevators, and follow emergency exit signs."
+    },
+    {
+        "prompt": "ගින්නකදී ගොඩනැගිල්ලක සිටිනවා නම් මා කළ යුත්තේ කුමක්ද?",
+        "response": "දුමෙන් වලකින්න අඩුවෙන් ගමන් කරන්න, ලිෆ්ට් වෙනුවට පඩිපෙළ භාවිතා කරන්න, සහ හදිසි පිටවීම් සංඥා අනුගමනය කරන්න."
+    },
+    {
+        "prompt": "தீயின் போது ஒரு கட்டிடத்தில் இருந்தால் நான் என்ன செய்ய வேண்டும்?",
+        "response": "புகையைத் தவிர்க்க கீழே இருங்கள், லிஃப்ட்களுக்குப் பதிலாக படிக்கட்டுகளைப் பயன்படுத்தவும், மற்றும் அவசர வெளியேறும் அறிகுறிகளைப் பின்பற்றவும்."
+    },
+    {
+        "prompt": "How can I prepare for a volcanic eruption?",
+        "response": "Know evacuation routes, wear protective clothing, and stay informed about volcanic activity."
+    },
+    {
+        "prompt": "යමහල් පිපිරීමකට සූදානම් වන්නේ කෙසේද?",
+        "response": "ඉවත්වීමේ මාර්ග දැන ගන්න, ආරක්ෂිත ඇඳුම් පැළඳීම, සහ යමහල් ක්රියාකාරකම් පිළිබඳව දැනුවත් වන්න."
+    },
+    {
+        "prompt": "எரிமலை வெடிப்புக்கு எப்படி தயாராகலாம்?",
+        "response": "வெளியேறும் பாதைகளை அறிந்து கொள்ளுங்கள், பாதுகாப்பு ஆடைகளை அணியுங்கள், மற்றும் எரிமலை செயல்பாடுகளைப் பற்றி தகவலறிந்திருங்கள்."
+    },
+    {
+        "prompt": "What should I do if I am caught in a snowstorm?",
+        "response": "Find shelter, stay dry, and conserve body heat by covering exposed skin."
+    },
+    {
+        "prompt": "හිම කුණාටුවකට හසුවුණොත් මා කළ යුත්තේ කුමක්ද?",
+        "response": "රැකවරණයක් සොයන්න, වියලිව සිටින්න, සහ විවෘත සම ආවරණය කිරීමෙන් ශරීර තාපය සංරක්ෂණය කරන්න."
+    },
+    {
+        "prompt": "பனிப்புயலில் சிக்கினால் நான் என்ன செய்ய வேண்டும்?",
+        "response": "தங்குமிடம் கண்டுபிடிக்கவும், உலர்ந்திருக்கவும், மற்றும் திறந்த சருமத்தை மூடி உடல் வெப்பத்தை பாதுகாக்கவும்."
+    },
+    {
+        "prompt": "How can I help elderly people during a disaster?",
+        "response": "Assist them with evacuation, ensure they have necessary medications, and provide emotional support."
+    },
+    {
+        "prompt": "ව්යසනයකදී වයස්ගත අයට උදව් කරන්නේ කෙසේද?",
+        "response": "ඔවුන්ව ඉවත් කිරීමට උදව් කරන්න, අවශ්ය ඖෂධ ඇති බවට වග බලා ගන්න, සහ චිත්තවේගීය සහය ලබා දෙන්න."
+    },
+    {
+        "prompt": "பேரிடர் ஏற்பட்டால் முதியவர்களுக்கு எப்படி உதவுவது?",
+        "response": "அவர்களை வெளியேற்ற உதவுங்கள், அவர்களுக்கு தேவையான மருந்துகள் உள்ளதா என்பதை உறுதிப்படுத்தவும், மற்றும் உணர்வுபூர்வமான ஆதரவை வழங்கவும்."
+    },
+    {
+        "prompt": "What should I do if I am in a boat during a storm?",
+        "response": "Wear a life jacket, stay low in the boat, and avoid standing up or moving around."
+    },
+    {
+        "prompt": "කුණාටුවකදී බෝට්ටුවක සිටිනවා නම් මා කළ යුත්තේ කුමක්ද?",
+        "response": "ජීවිත ජැකට් එකක් පැළඳීම, බෝට්ටුවේ අඩුවෙන් සිටීම, සහ නැගී සිටීම හෝ ගමන් කිරීමෙන් වලකින්න."
+    },
+    {
+        "prompt": "புயலின் போது படகில் இருந்தால் நான் என்ன செய்ய வேண்டும்?",
+        "response": "உயிர் காப்பு மேலங்கி அணியுங்கள், படகில் கீழே இருங்கள், மற்றும் எழுந்திருக்கவோ அல்லது நகரவோ தவிர்க்கவும்."
+    },
+    {
+        "prompt": "How can I protect important documents during a disaster?",
+        "response": "Store them in a waterproof and fireproof container, or keep digital copies in a secure cloud storage."
+    },
+    {
+        "prompt": "ව්යසනයකදී වැදගත් ලියකියවිලි ආරක්ෂා කරගන්නේ කෙසේද?",
+        "response": "ජලය හා ගින්නට ඔරොත්තු දෙන බහාලුමක ඒවා ගබඩා කරන්න, හෝ ආරක්ෂිත ක්ලවුඩ් ගබඩාවක ඩිජිටල් පිටපත් තබා ගන්න."
+    },
+    {
+        "prompt": "பேரிடர் ஏற்பட்டால் முக்கியமான ஆவணங்களை எப்படி பாதுகாப்பது?",
+        "response": "நீர்ப்புகா மற்றும் தீப்புகா கொள்கலனில் அவற்றை சேமிக்கவும், அல்லது பாதுகாப்பான கிளவுட் சேமிப்பில் டிஜிட்டல் நகல்களை வைத்திருங்கள்."
+    },
+    {
+        "prompt": "What should I do if I am in a crowded place during a disaster?",
+        "response": "Stay calm, follow instructions from authorities, and avoid pushing or running."
+    },
+    {
+        "prompt": "ව්යසනයකදී ජනාකීර්ණ ස්ථානයක සිටිනවා නම් මා කළ යුත්තේ කුමක්ද?",
+        "response": "සන්සුන් වන්න, බලධාරීන්ගෙන් උපදෙස් අනුගමනය කරන්න, සහ තල්ලු කිරීම හෝ දුවීමෙන් වලකින්න."
+    },
+    {
+        "prompt": "பேரிடர் ஏற்பட்டால் ஒரு கூட்டமைப்பு இடத்தில் இருந்தால் நான் என்ன செய்ய வேண்டும்?",
+        "response": "அமைதியாக இருங்கள், அதிகாரிகளின் அறிவுறுத்தல்களைப் பின்பற்றுங்கள், மற்றும் தள்ளுவது அல்லது ஓடுவதைத் தவிர்க்கவும்."
+    },
+    {
+        "prompt": "What should I do if I am in a high-rise building during an earthquake?",
+        "response": "Stay inside, take cover under sturdy furniture, and avoid windows or glass."
+    },
+    {
+        "prompt": "භූමිකම්පාවකදී උස් ගොඩනැගිල්ලක සිටිනවා නම් මා කළ යුත්තේ කුමක්ද?",
+        "response": "ඇතුළත රැඳී සිටින්න, ශක්තිමත් ගෘහස්ථ භාණ්ඩ යට සැඟවී සිටින්න, සහ කවුළු හෝ වීදුරු වලින් වලකින්න."
+    },
+    {
+        "prompt": "பூகம்பம் ஏற்பட்டால் உயரமான கட்டிடத்தில் இருந்தால் நான் என்ன செய்ய வேண்டும்?",
+        "response": "உள்ளே இருங்கள், உறுதியான தளபாடங்களின் கீழ் மறைந்து, ஜன்னல்கள் அல்லது கண்ணாடிகளைத் தவிர்க்கவும்."
+    },
+    {
+        "prompt": "How can I prepare for a tornado?",
+        "response": "Identify a safe room, such as a basement, and have a tornado emergency kit ready."
+    },
+    {
+        "prompt": "ටෝනාඩෝවකට සූදානම් වන්නේ කෙසේද?",
+        "response": "බේස්මෙන්ට් වැනි ආරක්ෂිත කාමරයක් හඳුනා ගන්න, සහ ටෝනාඩෝ හදිසි උපකරණ පැකට්ටුවක් සූදානම් කරන්න."
+    },
+    {
+        "prompt": "டொர்னாடோவுக்கு எப்படி தயாராகலாம்?",
+        "response": "அடித்தளம் போன்ற பாதுகாப்பான அறையை அடையாளம் காணவும், மற்றும் ஒரு டொர்னாடோ அவசர கிட் தயாராக வைத்திருங்கள்."
+    },
+    {
+        "prompt": "What should I do if I am in a car during a tornado?",
+        "response": "Exit the car, find a low-lying area, and lie flat while covering your head."
+    },
+    {
+        "prompt": "ටෝනාඩෝවකදී මා රථයක සිටිනවා නම් මා කළ යුත්තේ කුමක්ද?",
+        "response": "රථයෙන් ඉවත් වන්න, අඩු ප්රදේශයක් සොයන්න, සහ ඔබේ හිස ආවරණය කරගනිමින් පැතලිව වැතිරෙන්න."
+    },
+    {
+        "prompt": "டொர்னாடோவின் போது காரில் இருந்தால் நான் என்ன செய்ய வேண்டும்?",
+        "response": "காரை விட்டு வெளியேறுங்கள், தாழ்வான பகுதியைக் கண்டறியவும், மற்றும் உங்கள் தலையை மூடிக்கொண்டு தட்டையாக படுத்துக்கொள்ளுங்கள்."
+    },
+    {
+        "prompt": "How can I stay safe during a heatwave?",
+        "response": "Stay hydrated, avoid direct sunlight, and wear lightweight clothing."
+    },
+    {
+        "prompt": "උණුසුම් තරංගයකදී ආරක්ෂිතව සිටීමට මා කළ යුත්තේ කුමක්ද?",
+        "response": "ජලය පානය කරන්න, සෘජු හිරු එළියෙන් වලකින්න, සහ සැහැල්ලු ඇඳුම් පැළඳීම."
+    },
+    {
+        "prompt": "வெப்ப அலைகளின் போது பாதுகாப்பாக இருக்க எப்படி?",
+        "response": "நீரேற்றமாக இருங்கள், நேரடி சூரிய ஒளியைத் தவிர்க்கவும், மற்றும் இலகுவான ஆடைகளை அணியவும்."
+    },
+    {
+        "prompt": "What should I do if I am in a forest during a wildfire?",
+        "response": "Move to a clearing, avoid areas with dry vegetation, and cover your mouth with a cloth."
+    },
+    {
+        "prompt": "වන ගිනි ගැනීමකදී වනාන්තරයක සිටිනවා නම් මා කළ යුත්තේ කුමක්ද?",
+        "response": "හිස් භූමියකට ගමන් කරන්න, වියළි ශාක ඇති ප්රදේශ වලින් වලකින්න, සහ රෙදි කඩකින් ඔබේ මුඛය ආවරණය කරන්න."
+    },
+    {
+        "prompt": "காட்டுத்தீயின் போது காட்டில் இருந்தால் நான் என்ன செய்ய வேண்டும்?",
+        "response": "திறந்த வெளிக்கு செல்லுங்கள், உலர்ந்த தாவரங்கள் உள்ள பகுதிகளைத் தவிர்க்கவும், மற்றும் ஒரு துணியால் உங்கள் வாயை மூடிக் கொள்ளுங்கள்."
+    },
+    {
+        "prompt": "How can I help my community prepare for a disaster?",
+        "response": "Organize community drills, share emergency contact information, and create a neighborhood support network."
+    },
+    {
+        "prompt": "ව්යසනයකට මගේ ප්රජාව සූදානම් කරගන්නේ කෙසේද?",
+        "response": "ප්රජා පුහුණුවීම් සංවිධානය කරන්න, හදිසි සම්බන්ධතා තොරතුරු බෙදා ගන්න, සහ අසල්වැසි සහාය ජාලයක් නිර්මාණය කරන්න."
+    },
+    {
+        "prompt": "பேரிடருக்கு எனது சமூகத்தை எப்படி தயார் செய்வது?",
+        "response": "சமூக பயிற்சிகளை ஏற்பாடு செய்யுங்கள், அவசர தொடர்புத் தகவல்களைப் பகிரவும், மற்றும் ஒரு அக்கம் பக்க ஆதரவு பிணையத்தை உருவாக்கவும்."
+    },
+    {
+        "prompt": "What should I do if I am in a subway during an earthquake?",
+        "response": "Hold onto a sturdy object, stay away from overhead fixtures, and follow instructions from staff."
+    },
+    {
+        "prompt": "භූමිකම්පාවකදී සබ්වේ එකක සිටිනවා නම් මා කළ යුත්තේ කුමක්ද?",
+        "response": "ශක්තිමත් වස්තුවක් අල්ලාගන්න, ඉහළින් ඇති උපකරණ වලින් වලකින්න, සහ කාර්ය මණ්ඩලයේ උපදෙස් පිළිපන්න."
+    },
+    {
+        "prompt": "பூகம்பம் ஏற்பட்டால் சப்வேயில் இருந்தால் நான் என்ன செய்ய வேண்டும்?",
+        "response": "உறுதியான பொருளைப் பிடித்துக் கொள்ளுங்கள், மேலே உள்ள பொருட்களிலிருந்து விலகி இருங்கள், மற்றும் ஊழியர்களின் அறிவுறுத்தல்களைப் பின்பற்றவும்."
+    },
+    {
+        "prompt": "How can I protect my home from flooding?",
+        "response": "Install flood barriers, elevate electrical systems, and ensure proper drainage around your home."
+    },
+    {
+        "prompt": "ගංවතුරෙන් මගේ නිවස ආරක්ෂා කරගන්නේ කෙසේද?",
+        "response": "ගංවතුර බාධක ස්ථාපනය කරන්න, විදුලි පද්ධති ඉහළ නංවන්න, සහ ඔබේ නිවස වටා නිසි ජලාපවහනය සහතික කරන්න."
+    },
+    {
+        "prompt": "வெள்ளத்திலிருந்து எனது வீட்டை எப்படி பாதுகாப்பது?",
+        "response": "வெள்ள தடுப்புகளை நிறுவவும், மின் அமைப்புகளை உயர்த்தவும், மற்றும் உங்கள் வீட்டைச் சுற்றி சரியான வடிகால் இருப்பதை உறுதிப்படுத்தவும்."
+    },
+    {
+        "prompt": "What should I do if I am in a desert during a sandstorm?",
+        "response": "Cover your face with a cloth, find shelter, and protect your eyes with goggles."
+    },
+    {
+        "prompt": "වැලි කුණාටුවකදී කාන්තාරයක සිටිනවා නම් මා කළ යුත්තේ කුමක්ද?",
+        "response": "රෙදි කඩකින් ඔබේ මුහුණ ආවරණය කරන්න, රැකවරණයක් සොයන්න, සහ ඔබේ ඇස් ආරක්ෂා කර ගන්න."
+    },
+    {
+        "prompt": "மணல் புயலின் போது பாலைவனத்தில் இருந்தால் நான் என்ன செய்ய வேண்டும்?",
+        "response": "ஒரு துணியால் உங்கள் முகத்தை மூடிக் கொள்ளுங்கள், தங்குமிடம் கண்டுபிடிக்கவும், மற்றும் உங்கள் கண்களை கண் கவசங்களால் பாதுகாக்கவும்."
+    },
+    {
+        "prompt": "What should I do if I am in a boat during a hurricane?",
+        "response": "Seek shelter on land immediately, secure the boat, and avoid staying on the water."
+    },
+    {
+        "prompt": "ටයිෆූන් එකකදී බෝට්ටුවක සිටිනවා නම් මා කළ යුත්තේ කුමක්ද?",
+        "response": "කෙටි නොකොට ගොඩබිම රැකවරණයක් සොයන්න, බෝට්ටුව ආරක්ෂිත කරන්න, සහ ජලය මත රැඳී සිටීමෙන් වලකින්න."
+    },
+    {
+        "prompt": "சூறாவளியின் போது படகில் இருந்தால் நான் என்ன செய்ய வேண்டும்?",
+        "response": "உடனடியாக கரைக்கு செல்லுங்கள், படகை பாதுகாப்பாக்குங்கள், மற்றும் நீரில் தங்குவதைத் தவிர்க்கவும்."
+    },
+    {
+        "prompt": "How can I prepare for a landslide?",
+        "response": "Monitor weather reports, avoid building on steep slopes, and know evacuation routes."
+    },
+    {
+        "prompt": "භූමික්ෂේපයකට සූදානම් වන්නේ කෙසේද?",
+        "response": "කාලගුණ වාර්තා නිරීක්ෂණය කරන්න, නැඹුරු බෑවුම්වල ගොඩනැගීමෙන් වලකින්න, සහ ඉවත්වීමේ මාර්ග දැන ගන්න."
+    },
+    {
+        "prompt": "நிலச்சரிவுக்கு எப்படி தயாராகலாம்?",
+        "response": "வானிலை அறிக்கைகளை கண்காணிக்கவும், செங்குத்தான சரிவுகளில் கட்டிடம் கட்டுவதைத் தவிர்க்கவும், மற்றும் வெளியேறும் பாதைகளை அறிந்து கொள்ளுங்கள்."
+    },
+    {
+        "prompt": "What should I do if I am in a car during a flood?",
+        "response": "Abandon the car if water is rising, move to higher ground, and call for help."
+    },
+    {
+        "prompt": "ගංවතුරකදී මා රථයක සිටිනවා නම් මා කළ යුත්තේ කුමක්ද?",
+        "response": "ජලය ඉහළ යනවා නම් රථය හැර දමන්න, ඉහළ ප්රදේශවලට ගමන් කරන්න, සහ උදව් ඉල්ලීමට අමතන්න."
+    },
+    {
+        "prompt": "வெள்ளத்தில் காரில் இருந்தால் நான் என்ன செய்ய வேண்டும்?",
+        "response": "நீர் அளவு உயர்ந்து வந்தால் காரை விட்டு வெளியேறுங்கள், உயர்ந்த இடத்திற்குச் செல்லுங்கள், மற்றும் உதவிக்காக அழைக்கவும்."
+    },
+    {
+        "prompt": "How can I protect my home from earthquakes?",
+        "response": "Secure heavy furniture, reinforce walls, and ensure the foundation is stable."
+    },
+    {
+        "prompt": "භූමිකම්පාවලින් මගේ නිවස ආරක්ෂා කරගන්නේ කෙසේද?",
+        "response": "බර ගෘහස්ථ භාණ්ඩ ආරක්ෂිත කරන්න, බිත්ති ශක්තිමත් කරන්න, සහ පදනම ස්ථාවර බවට වග බලා ගන්න."
+    },
+    {
+        "prompt": "பூகம்பங்களிலிருந்து எனது வீட்டை எப்படி பாதுகாப்பது?",
+        "response": "கனமான தளபாடங்களை பாதுகாப்பாக்குங்கள், சுவர்களை வலுப்படுத்துங்கள், மற்றும் அடித்தளம் உறுதியாக உள்ளதா என்பதை உறுதிப்படுத்தவும்."
+    },
+    {
+        "prompt": "What should I do if I am in a forest during a thunderstorm?",
+        "response": "Avoid tall trees, find a low-lying area, and crouch down with your feet together."
+    },
+    {
+        "prompt": "ගිගිරුම් හමුවකදී වනාන්තරයක සිටිනවා නම් මා කළ යුත්තේ කුමක්ද?",
+        "response": "උස ගස් වලින් වලකින්න, අඩු ප්රදේශයක් සොයන්න, සහ ඔබේ පාද එකට ගසාගෙන හකුළන්න."
+    },
+    {
+        "prompt": "இடியுடன் கூடிய மழையின் போது காட்டில் இருந்தால் நான் என்ன செய்ய வேண்டும்?",
+        "response": "உயரமான மரங்களைத் தவிர்க்கவும், தாழ்வான பகுதியைக் கண்டறியவும், மற்றும் உங்கள் கால்களை ஒன்றாக வைத்து குனியுங்கள்."
+    },
+    {
+        "prompt": "How can I prepare for a volcanic eruption?",
+        "response": "Know evacuation routes, wear protective clothing, and stay informed about volcanic activity."
+    },
+    {
+        "prompt": "යමහල් පිපිරීමකට සූදානම් වන්නේ කෙසේද?",
+        "response": "ඉවත්වීමේ මාර්ග දැන ගන්න, ආරක්ෂිත ඇඳුම් පැළඳීම, සහ යමහල් ක්රියාකාරකම් පිළිබඳව දැනුවත් වන්න."
+    },
+    {
+        "prompt": "எரிமலை வெடிப்புக்கு எப்படி தயாராகலாம்?",
+        "response": "வெளியேறும் பாதைகளை அறிந்து கொள்ளுங்கள், பாதுகாப்பு ஆடைகளை அணியுங்கள், மற்றும் எரிமலை செயல்பாடுகளைப் பற்றி தகவலறிந்திருங்கள்."
+    },
+    {
+        "prompt": "What should I do if I am in a car during a tornado?",
+        "response": "Exit the car, find a low-lying area, and lie flat while covering your head."
+    },
+    {
+        "prompt": "ටෝනාඩෝවකදී මා රථයක සිටිනවා නම් මා කළ යුත්තේ කුමක්ද?",
+        "response": "රථයෙන් ඉවත් වන්න, අඩු ප්රදේශයක් සොයන්න, සහ ඔබේ හිස ආවරණය කරගනිමින් පැතලිව වැතිරෙන්න."
+    },
+    {
+        "prompt": "டொர்னாடோவின் போது காரில் இருந்தால் நான் என்ன செய்ய வேண்டும்?",
+        "response": "காரை விட்டு வெளியேறுங்கள், தாழ்வான பகுதியைக் கண்டறியவும், மற்றும் உங்கள் தலையை மூடிக்கொண்டு தட்டையாக படுத்துக்கொள்ளுங்கள்."
+    },
+    {
+        "prompt": "How can I stay safe during a heatwave?",
+        "response": "Stay hydrated, avoid direct sunlight, and wear lightweight clothing."
+    },
+    {
+        "prompt": "උණුසුම් තරංගයකදී ආරක්ෂිතව සිටීමට මා කළ යුත්තේ කුමක්ද?",
+        "response": "ජලය පානය කරන්න, සෘජු හිරු එළියෙන් වලකින්න, සහ සැහැල්ලු ඇඳුම් පැළඳීම."
+    },
+    {
+        "prompt": "வெப்ப அலைகளின் போது பாதுகாப்பாக இருக்க எப்படி?",
+        "response": "நீரேற்றமாக இருங்கள், நேரடி சூரிய ஒளியைத் தவிர்க்கவும், மற்றும் இலகுவான ஆடைகளை அணியவும்."
+    },
+    {
+        "prompt": "What should I do if I am in a forest during a wildfire?",
+        "response": "Move to a clearing, avoid areas with dry vegetation, and cover your mouth with a cloth."
+    },
+    {
+        "prompt": "වන ගිනි ගැනීමකදී වනාන්තරයක සිටිනවා නම් මා කළ යුත්තේ කුමක්ද?",
+        "response": "හිස් භූමියකට ගමන් කරන්න, වියළි ශාක ඇති ප්රදේශ වලින් වලකින්න, සහ රෙදි කඩකින් ඔබේ මුඛය ආවරණය කරන්න."
+    },
+    {
+        "prompt": "காட்டுத்தீயின் போது காட்டில் இருந்தால் நான் என்ன செய்ய வேண்டும்?",
+        "response": "திறந்த வெளிக்கு செல்லுங்கள், உலர்ந்த தாவரங்கள் உள்ள பகுதிகளைத் தவிர்க்கவும், மற்றும் ஒரு துணியால் உங்கள் வாயை மூடிக் கொள்ளுங்கள்."
+    },
+    {
+        "prompt": "How can I help my community prepare for a disaster?",
+        "response": "Organize community drills, share emergency contact information, and create a neighborhood support network."
+    },
+    {
+        "prompt": "ව්යසනයකට මගේ ප්රජාව සූදානම් කරගන්නේ කෙසේද?",
+        "response": "ප්රජා පුහුණුවීම් සංවිධානය කරන්න, හදිසි සම්බන්ධතා තොරතුරු බෙදා ගන්න, සහ අසල්වැසි සහාය ජාලයක් නිර්මාණය කරන්න."
+    },
+    {
+        "prompt": "பேரிடருக்கு எனது சமூகத்தை எப்படி தயார் செய்வது?",
+        "response": "சமூக பயிற்சிகளை ஏற்பாடு செய்யுங்கள், அவசர தொடர்புத் தகவல்களைப் பகிரவும், மற்றும் ஒரு அக்கம் பக்க ஆதரவு பிணையத்தை உருவாக்கவும்."
+    },
+    {
+        "prompt": "What should I do if I am in a subway during an earthquake?",
+        "response": "Hold onto a sturdy object, stay away from overhead fixtures, and follow instructions from staff."
+    },
+    {
+        "prompt": "භූමිකම්පාවකදී සබ්වේ එකක සිටිනවා නම් මා කළ යුත්තේ කුමක්ද?",
+        "response": "ශක්තිමත් වස්තුවක් අල්ලාගන්න, ඉහළින් ඇති උපකරණ වලින් වලකින්න, සහ කාර්ය මණ්ඩලයේ උපදෙස් පිළිපන්න."
+    },
+    {
+        "prompt": "பூகம்பம் ஏற்பட்டால் சப்வேயில் இருந்தால் நான் என்ன செய்ய வேண்டும்?",
+        "response": "உறுதியான பொருளைப் பிடித்துக் கொள்ளுங்கள், மேலே உள்ள பொருட்களிலிருந்து விலகி இருங்கள், மற்றும் ஊழியர்களின் அறிவுறுத்தல்களைப் பின்பற்றவும்."
+    },
+    {
+        "prompt": "How can I protect my home from flooding?",
+        "response": "Install flood barriers, elevate electrical systems, and ensure proper drainage around your home."
+    },
+    {
+        "prompt": "ගංවතුරෙන් මගේ නිවස ආරක්ෂා කරගන්නේ කෙසේද?",
+        "response": "ගංවතුර බාධක ස්ථාපනය කරන්න, විදුලි පද්ධති ඉහළ නංවන්න, සහ ඔබේ නිවස වටා නිසි ජලාපවහනය සහතික කරන්න."
+    },
+    {
+        "prompt": "வெள்ளத்திலிருந்து எனது வீட்டை எப்படி பாதுகாப்பது?",
+        "response": "வெள்ள தடுப்புகளை நிறுவவும், மின் அமைப்புகளை உயர்த்தவும், மற்றும் உங்கள் வீட்டைச் சுற்றி சரியான வடிகால் இருப்பதை உறுதிப்படுத்தவும்."
+    },
+    {
+        "prompt": "What should I do if I am in a desert during a sandstorm?",
+        "response": "Cover your face with a cloth, find shelter, and protect your eyes with goggles."
+    },
+    {
+        "prompt": "වැලි කුණාටුවකදී කාන්තාරයක සිටිනවා නම් මා කළ යුත්තේ කුමක්ද?",
+        "response": "රෙදි කඩකින් ඔබේ මුහුණ ආවරණය කරන්න, රැකවරණයක් සොයන්න, සහ ඔබේ ඇස් ආරක්ෂා කර ගන්න."
+    },
+    {
+        "prompt": "மணல் புயலின் போது பாலைவனத்தில் இருந்தால் நான் என்ன செய்ய வேண்டும்?",
+        "response": "ஒரு துணியால் உங்கள் முகத்தை மூடிக் கொள்ளுங்கள், தங்குமிடம் கண்டுபிடிக்கவும், மற்றும் உங்கள் கண்களை கண் கவசங்களால் பாதுகாக்கவும்."
+    }
+]

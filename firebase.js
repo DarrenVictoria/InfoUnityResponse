@@ -3,6 +3,7 @@ import { getFirestore } from '@firebase/firestore';
 import { getAuth } from '@firebase/auth';
 import { getStorage } from '@firebase/storage';
 import { getMessaging, getToken } from '@firebase/messaging';
+import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -20,6 +21,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 const messaging = getMessaging(app);
+const functions = getFunctions(app, 'asia-southeast1');
 
 // Request permission and get token
 // getToken(messaging, { vapidKey: "BG5ZJKYHQwGAGEOZ2aQH47UQFHM1o1Zp9CEP7cG1mbFBavtezzUj1rC_S4L4VmQAaCqYi2mpgRfWyU-TuN6zc84" })
@@ -34,6 +36,9 @@ const messaging = getMessaging(app);
 //     console.log('An error occurred while retrieving token. ', err);
 //   });
 
+if (process.env.NODE_ENV === 'development') {
+  connectFunctionsEmulator(functions, 'localhost', 5001);
+}
 
 // Register Firebase messaging service worker before requesting token
 if ('serviceWorker' in navigator) {
@@ -59,4 +64,4 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-export { db, auth, storage, messaging };
+export { db, auth, storage, messaging, functions };
