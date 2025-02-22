@@ -15,45 +15,11 @@ const DisasterAI = () => {
 
   const handleLanguageChange = () => {
     const languageMap = {
-      english: 'සිංහල',
-      සිංහල: 'தமிழ்',
+      english: 'සිංහල',  // Display in native script
+      සිංහල: 'தமிழ்',    // Display in native script
       தமிழ்: 'english'
     };
     setLanguage(prev => languageMap[prev] || 'english');
-  };
-
-  // Format the message content with proper styling
-  const formatMessage = (content) => {
-    if (!content) return '';
-
-    // Split by numbered points
-    const parts = content.split(/(\d+\.\s*\*\*.*?\*\*)/g);
-
-    return parts.map((part, index) => {
-      // Check if this part is a numbered point
-      const pointMatch = part.match(/(\d+)\.\s*\*\*(.*?)\*\*(.*)/);
-      
-      if (pointMatch) {
-        const [_, number, boldText, remainingText] = pointMatch;
-        return (
-          <div key={index} className="mb-4">
-            <span className="font-semibold">{number}. </span>
-            <span className="font-bold">{boldText}</span>
-            {remainingText}
-          </div>
-        );
-      }
-      
-      // Handle regular bold text
-      const parts = part.split(/\*\*(.*?)\*\*/g);
-      return (
-        <span key={index}>
-          {parts.map((text, i) => (
-            i % 2 === 0 ? text : <strong key={i}>{text}</strong>
-          ))}
-        </span>
-      );
-    });
   };
 
   const handleSubmit = async (e) => {
@@ -108,12 +74,9 @@ const DisasterAI = () => {
               }
             `}
           >
-            <div className={`text-${message.type === 'error' ? 'red' : 'gray'}-800`}>
-              {message.type === 'ai' 
-                ? formatMessage(message.content)
-                : message.content
-              }
-            </div>
+            <p className={`text-${message.type === 'error' ? 'red' : 'gray'}-800`}>
+              {message.content}
+            </p>
           </div>
         ))}
         {loading && (
