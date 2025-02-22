@@ -52,13 +52,18 @@ export class NotificationService {
     setupMessageListener(callback) {
         onMessage(this.messaging, (payload) => {
             const { title, body, data } = payload.notification;
-            const { showWarning } = useNotification();
-            showWarning({
-                title,
-                body,
-                borderColor: data.borderColor
-            });
-            callback(payload);
+            const { validFrom, validUntil } = data;
+            const currentTime = new Date().getTime();
+
+            if (currentTime >= validFrom && currentTime <= validUntil) {
+                const { showWarning } = useNotification();
+                showWarning({
+                    title,
+                    body,
+                    borderColor: data.borderColor
+                });
+                callback(payload);
+            }
         });
     }
 }

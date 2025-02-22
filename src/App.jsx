@@ -34,211 +34,215 @@ import WarningForm from './views/dmc-official/WarningForm';
 import DisasterAI from './views/respondant/DisasterAI';
 
 function App() {
-  const [userRoles, setUserRoles] = useState([]); // Array of roles
+  const [userRoles, setUserRoles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
   const [notifications, setNotifications] = useState([]);
+  const [shownNotifications, setShownNotifications] = useState(new Set());
   const navigate = useNavigate();
 
   const notificationService = new NotificationService();
   const warningService = new WarningService();
 
   useEffect(() => {
-    const checkAuthAndFetchRoles = () => {
-      onAuthStateChanged(auth, async (user) => {
-        if (user) {
-          const userId = user.uid;
-          try {
-            const userDoc = await getDoc(doc(db, 'users', userId));
-            if (userDoc.exists()) {
-              const userData = userDoc.data();
-              const roles = userData.roles || [];
-              setUserRoles(roles);
-              setCurrentUser({ ...userData, uid: userId });
+      const checkAuthAndFetchRoles = () => {
+          onAuthStateChanged(auth, async (user) => {
+              if (user) {
+                  const userId = user.uid;
+                  try {
+                      const userDoc = await getDoc(doc(db, 'users', userId));
+                      if (userDoc.exists()) {
+                          const userData = userDoc.data();
+                          const roles = userData.roles || [];
+                          setUserRoles(roles);
+                          setCurrentUser({ ...userData, uid: userId });
 
-              if (userData.division) {
-                setupNotifications(userId, userData.division);
+                          if (userData.division) {
+                              setupNotifications(userId, userData.division);
+                          }
+                      } else {
+                          navigate('/role-selection');
+                      }
+                  } catch (error) {
+                      console.error('Error fetching user roles:', error);
+                      navigate('/role-selection');
+                  }
+              } else {
+                  setUserRoles([]);
+                  setCurrentUser(null);
               }
-            } else {
-              navigate('/role-selection');
-            }
-          } catch (error) {
-            console.error('Error fetching user roles:', error);
-            navigate('/role-selection');
-          }
-        } else {
-          setUserRoles([]);
-          setCurrentUser(null);
-        }
-        setLoading(false);
-      });
-    };
+              setLoading(false);
+          });
+      };
 
-    checkAuthAndFetchRoles();
+      checkAuthAndFetchRoles();
   }, [navigate]);
 
   const setupNotifications = async (userId, division) => {
-    try {
-      await notificationService.requestPermission(userId);
+      try {
+          await notificationService.requestPermission(userId);
 
-      notificationService.setupMessageListener((payload) => {
-        const { title, body, messageId } = payload.notification;
-        if (!notifications.some(n => n.messageId === messageId)) {
-          addNotification({ title, body, messageId });
-        }
-      });
+          notificationService.setupMessageListener((payload) => {
+              const { title, body, messageId } = payload.notification;
+              if (!shownNotifications.has(messageId)) {
+                  addNotification({ title, body, messageId });
+                  setShownNotifications(prev => new Set(prev).add(messageId));
+              }
+          });
 
-      const unsubscribe = warningService.subscribeToWarnings(
-        userId,
-        division,
-        (warning) => {
-          if (!notifications.some(n => n.messageId === warning.messageId)) {
-            addNotification({
-              title: `${warning.type} Warning`,
-              body: warning.warningMessage,
-              messageId: warning.messageId
-            });
-          }
-        }
-      );
+          const unsubscribe = warningService.subscribeToWarnings(
+              userId,
+              division,
+              (warning) => {
+                  if (!shownNotifications.has(warning.messageId)) {
+                      addNotification({
+                          title: `${warning.type} Warning`,
+                          body: warning.warningMessage,
+                          messageId: warning.messageId
+                      });
+                      setShownNotifications(prev => new Set(prev).add(warning.messageId));
+                  }
+              }
+          );
 
-      return () => unsubscribe();
-    } catch (error) {
-      console.error('Error setting up notifications:', error);
-    }
+          return () => unsubscribe();
+      } catch (error) {
+          console.error('Error setting up notifications:', error);
+      }
   };
 
   const addNotification = (notification) => {
-    setNotifications((prev) => [notification, ...prev].slice(0, 5)); // Limit to 5 recent notifications
-    playNotificationSound();
+      setNotifications((prev) => [notification, ...prev].slice(0, 5)); // Limit to 5 recent notifications
+      playNotificationSound();
   };
 
   const playNotificationSound = () => {
-    const audio = new Audio('/sounds/warning_sound.mp3');
-    audio.play();
+      const audio = new Audio('/sounds/warning_sound.mp3');
+      audio.play();
   };
 
   const dismissNotification = (index) => {
-    setNotifications((prev) => prev.filter((_, i) => i !== index));
+      setNotifications((prev) => prev.filter((_, i) => i !== index));
   };
 
   const dismissAllNotifications = () => {
-    setNotifications([]);
+      setNotifications([]);
   };
 
   if (loading) {
-    return <LoadingPage />;
+      return <LoadingPage />;
   }
 
   // Protected route component
   const ProtectedRoute = ({ children, allowedRoles }) => {
-    if (!auth.currentUser) {
-      return <Navigate to="/role-selection" replace />;
-    }
-    if (allowedRoles && !userRoles.some(role => allowedRoles.includes(role))) {
-      return <div>403 - You do not have permission to access this page.</div>;
-    }
-    return children;
+      if (!auth.currentUser) {
+          return <Navigate to="/role-selection" replace />;
+      }
+      if (allowedRoles && !userRoles.some(role => allowedRoles.includes(role))) {
+          return <div>403 - You do not have permission to access this page.</div>;
+      }
+      return children;
   };
 
   return (
-    <NotificationProvider>
-      <NextUIProvider>
-        <Layout>
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<HomePage />} />
-            <Route path="/role-selection" element={<RoleSelection />} />
-            <Route path="/login/:role" element={<DynamicLogin />} />
-            <Route path="/register/respondent" element={<RespondentRegister />} />
-            <Route path="/register/volunteer" element={<VolunteerRegister />} />
-            
-            {/* Protected Route */}
-            <Route
-              path="/home"
-              element={
-                <ProtectedRoute allowedRoles={['Respondent']}>
-                  <RespondantLanding />
-                </ProtectedRoute>
-              }
-            />
+      <NotificationProvider>
+          <NextUIProvider>
+              <Layout>
+                  <Routes>
+                      {/* Public Routes */}
+                      <Route path="/" element={<HomePage />} />
+                      <Route path="/role-selection" element={<RoleSelection />} />
+                      <Route path="/login/:role" element={<DynamicLogin />} />
+                      <Route path="/register/respondent" element={<RespondentRegister />} />
+                      <Route path="/register/volunteer" element={<VolunteerRegister />} />
+                      
+                      {/* Protected Route */}
+                      <Route
+                          path="/home"
+                          element={
+                              <ProtectedRoute allowedRoles={['Respondent']}>
+                                  <RespondantLanding />
+                              </ProtectedRoute>
+                          }
+                      />
 
-            <Route
-              path="/ai-bot"
-              element={
-                <ProtectedRoute allowedRoles={['Respondent']}>
-                  <DisasterAI />
-                </ProtectedRoute>
-              }
-            />
+                      <Route
+                          path="/ai-bot"
+                          element={
+                              <ProtectedRoute allowedRoles={['Respondent']}>
+                                  <DisasterAI />
+                              </ProtectedRoute>
+                          }
+                      />
 
-            <Route
-              path="/addreport"
-              element={
-                <ProtectedRoute allowedRoles={['Respondent']}>
-                  <PublicDisasterReport />
-                </ProtectedRoute>
-              }
-            />
+                      <Route
+                          path="/addreport"
+                          element={
+                              <ProtectedRoute allowedRoles={['Respondent']}>
+                                  <PublicDisasterReport />
+                              </ProtectedRoute>
+                          }
+                      />
 
-            <Route
-              path="/dmc/home"
-              element={
-                <ProtectedRoute allowedRoles={['Dmc system admin']}>
-                  <DMCLanding />
-                </ProtectedRoute>
-              }
-            />
+                      <Route
+                          path="/dmc/home"
+                          element={
+                              <ProtectedRoute allowedRoles={['Dmc system admin']}>
+                                  <DMCLanding />
+                              </ProtectedRoute>
+                          }
+                      />
 
-            <Route
-              path="/dmc/adddisaster"
-              element={
-                <ProtectedRoute allowedRoles={['Dmc system admin']}>
-                  <DisasterAddStepper />
-                </ProtectedRoute>
-              }
-            />
+                      <Route
+                          path="/dmc/adddisaster"
+                          element={
+                              <ProtectedRoute allowedRoles={['Dmc system admin']}>
+                                  <DisasterAddStepper />
+                              </ProtectedRoute>
+                          }
+                      />
 
-            <Route
-              path="/disaster/:id"
-              element={
-                <ProtectedRoute allowedRoles={['Dmc system admin']}>
-                  <DisasterDetails />
-                </ProtectedRoute>
-              }
-            />
+                      <Route
+                          path="/disaster/:id"
+                          element={
+                              <ProtectedRoute allowedRoles={['Dmc system admin']}>
+                                  <DisasterDetails />
+                              </ProtectedRoute>
+                          }
+                      />
 
-            <Route
-              path="/dmc/managedisasters"
-              element={
-                <ProtectedRoute allowedRoles={['Dmc system admin']}>
-                  <DisasterReportManagement />
-                </ProtectedRoute>
-              }
-            />
+                      <Route
+                          path="/dmc/managedisasters"
+                          element={
+                              <ProtectedRoute allowedRoles={['Dmc system admin']}>
+                                  <DisasterReportManagement />
+                              </ProtectedRoute>
+                          }
+                      />
 
-            <Route
-              path="/dmc/warningform"
-              element={
-                <ProtectedRoute allowedRoles={['Dmc system admin']}>
-                  <WarningForm />
-                </ProtectedRoute>
-              }
-            />
+                      <Route
+                          path="/dmc/warningform"
+                          element={
+                              <ProtectedRoute allowedRoles={['Dmc system admin']}>
+                                  <WarningForm />
+                              </ProtectedRoute>
+                          }
+                      />
 
-            {/* Fallback route */}
-            <Route path="*" element={<div>404 - Page not found</div>} />
-          </Routes>
-          <UpdateNotification />
-          <NotificationPanel 
-            notifications={notifications} 
-            onDismiss={dismissNotification} 
-            onDismissAll={dismissAllNotifications} 
-          />
-        </Layout>
-      </NextUIProvider>
-    </NotificationProvider>
+                      {/* Fallback route */}
+                      <Route path="*" element={<div>404 - Page not found</div>} />
+                  </Routes>
+                  <UpdateNotification />
+                  <NotificationPanel 
+                      notifications={notifications} 
+                      onDismiss={dismissNotification} 
+                      onDismissAll={dismissAllNotifications} 
+                  />
+              </Layout>
+          </NextUIProvider>
+      </NotificationProvider>
   );
 }
 
 export default App;
+
