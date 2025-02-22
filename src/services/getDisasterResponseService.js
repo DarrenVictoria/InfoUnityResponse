@@ -10,7 +10,7 @@ export const getDisasterResponse = async (prompt, language = 'english') => {
         console.log('Received response:', result);
         return result.data;
     } catch (error) {
-        console.error('Detailed error:', error);
+        console.error('Error in getDisasterResponse:', error);
         throw error;
     }
 };

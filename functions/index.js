@@ -18,8 +18,8 @@ app.use(cors({ origin: true }));
 // Use body-parser middleware
 app.use(bodyParser.urlencoded({ extended: false }));
 
-// Initialize Google AI
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
+// Initialize Gemini AI
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || functions.config().gemini.key);
 
 // Validate disaster type against allowed types
 const VALID_DISASTER_TYPES = [
@@ -28,49 +28,50 @@ const VALID_DISASTER_TYPES = [
   "Industrial Accident", "Epidemic"
 ];
 
-// AI response function
+// Helper function to validate disaster type
+function isValidDisasterType(type) {
+  return VALID_DISASTER_TYPES.includes(type);
+}
+
+// Get system prompt based on language
+function getSystemPrompt(language) {
+  const disasters = VALID_DISASTER_TYPES.join(', ');
+  const prompts = {
+    english: `You are a disaster response expert focusing on ${disasters}. 
+              Provide clear, actionable advice. Include specific safety measures and mitigation strategies.`,
+    sinhala: `ඔබ ${disasters} පිළිබඳ ආපදා ප්‍රතිචාර විශේෂඥයෙකි. 
+              පැහැදිලි, ක්‍රියාත්මක කළ හැකි උපදෙස් ලබා ද෇න්න. විශේෂිත ආරක්ෂණ පියවර සහ අවම කිරීමේ උපාය මාර්ග ඇතුළත් කරන්න.`,
+    tamil: `நீங்கள் ${disasters} பற்றிய பேரழிவு மீட்பு நிபுணர். 
+           தெளிவான, செயல்படுத்தக்கூடிய ஆலோசனையை வழங்குங்கள். குறிப்பிட்ட பாதுகாப்பு நடவடிக்கைகள் மற்றும் தணிப்பு உத்திகளை சேர்க்கவும்.`
+  };
+  return prompts[language] || prompts.english;
+}
+
+// AI response function using Gemini
 async function getModelResponse(prompt, language = 'english') {
   try {
-    const model = genAI.getGenerativeModel({ model: "IURChatbot" });
-
-    const systemPrompts = {
-      english: `You are a disaster response expert focusing on ${VALID_DISASTER_TYPES.join(', ')}. 
-                Provide clear, actionable advice. Include specific safety measures and mitigation strategies.`,
-      sinhala: `ඔබ ${VALID_DISASTER_TYPES.join(', ')} පිළිබඳ ආපදා ප්‍රතිචාර විශේෂඥයෙකි. 
-                පැහැදිලි, ක්‍රියාත්මක කළ හැකි උපදෙස් ලබා දෙන්න. විශේෂිත ආරක්ෂණ පියවර සහ අවම කිරීමේ උපාය මාර්ග ඇතුළත් කරන්න.`,
-      tamil: `நீங்கள் ${VALID_DISASTER_TYPES.join(', ')} பற்றிய பேரழிவு மீட்பு நிபுணர். 
-             தெளிவான, செயல்படுத்தக்கூடிய ஆலோசனையை வழங்குங்கள். குறிப்பிட்ட பாதுகாப்பு நடவடிக்கைகள் மற்றும் தணிப்பு உத்திகளை சேர்க்கவும்.`
-    };
+    const model = genAI.getGenerativeModel({
+      model: "tunedModels/iurchatbot-7pcq1pnz48r0",
+    });
 
     const chat = model.startChat({
+      generationConfig: {
+        temperature: 1,
+        topP: 0.95,
+        topK: 40,
+        maxOutputTokens: 8192,
+      },
       history: [
         {
           role: "user",
-          parts: [{ text: systemPrompts[language] }]
-        }
+          parts: [{ text: getSystemPrompt(language) }],
+        },
       ],
-      generationConfig: {
-        temperature: 0.7,
-        topK: 40,
-        topP: 0.8,
-        maxOutputTokens: 2048,
-      },
     });
 
-    const result = await chat.sendMessage([{ text: prompt }]);
+    const result = await chat.sendMessage(prompt);
     const response = await result.response;
-
-    // Check if response has candidates and extract the text from the first candidate
-    if (response.candidates && response.candidates.length > 0) {
-      return response.candidates[0].content.parts[0].text;
-    }
-
-    // Fallback if the response structure is different
-    if (response.text) {
-      return response.text;
-    }
-
-    throw new Error('Unexpected response format from AI model');
+    return response.text();
   } catch (error) {
     console.error('Error in getModelResponse:', error);
     throw new Error(`Failed to get AI response: ${error.message}`);
