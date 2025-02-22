@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { getDisasterResponse } from '../../services/getDisasterResponseService';
-import { Search, Send, Globe, Loader } from 'lucide-react';
+import { Search, Send, Globe, Loader, AlertTriangle, PhoneCall, MapPin } from 'lucide-react';
 import QuickQuestionsSlider from '../../components/QuickQuestionSlider';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const DisasterAI = () => {
   const [messages, setMessages] = useState([]);
@@ -10,6 +11,48 @@ const DisasterAI = () => {
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
+  // Add emergency contacts state
+  const emergencyContacts = {
+    english: [
+      { name: 'Emergency Services', number: '119' },
+      { name: 'Disaster Management Center', number: '117' },
+      { name: 'Ambulance', number: '1990' }
+    ],
+    'සිංහල': [
+      { name: 'හදිසි සේවා', number: '119' },
+      { name: 'ආපදා කළමනාකරණ මධ්‍යස්ථානය', number: '117' },
+      { name: 'ගිලන් රථ', number: '1990' }
+    ],
+    'தமிழ்': [
+      { name: 'அவசர சேவைகள்', number: '119' },
+      { name: 'அனர்த்த முகாமைத்துவ நிலையம்', number: '117' },
+      { name: 'அவசர ஊர்தி', number: '1990' }
+    ]
+  };
+
+  // Initialize with welcome message
+  useEffect(() => {
+    const welcomeMessage = {
+      type: 'ai',
+      content: getWelcomeMessage(language),
+      timestamp: new Date().toISOString()
+    };
+    setMessages([welcomeMessage]);
+  }, [language]);
+
+  const getWelcomeMessage = (lang) => {
+    const messages = {
+        english: `**Welcome to the Disaster Response Assistant**\n\n1. **How to Ask Questions**: You can ask questions in English, Sinhala, or Tamil, and the chatbot will respond accordingly.\n\n2. **Emergency Contacts**: Save these numbers:\n   - Emergency Services: 119\n   - Disaster Management: 117\n   - Ambulance: 1990\n\n3. **Quick Access**: Use the question slider below to get immediate information about floods, landslides, and droughts.\n\nHow can I assist you today?`,
+
+        'සිංහල': `**ආපදා ප්‍රතිචාර සහායකයා වෙත සාදරයෙන් පිළිගනිමු**\n\n1. **ප්‍රශ්න අසන ආකාරය**: ඔබට ප්‍රශ්න සිංහල, ඉංග්‍රීසි හෝ දෙමළ භාෂාවෙන් අසන්නාට හැකි අතර, chatbot එකට එම භාෂාවෙන් පිළිතුරු දිය හැක.\n\n2. **හදිසි ඇමතුම්**: මෙම අංක සුරකින්න:\n   - හදිසි සේවා: 119\n   - ආපදා කළමනාකරණය: 117\n   - ගිලන් රථ: 1990\n\n3. **ක්ෂණික ප්‍රවේශය**: ගංවතුර, නායයෑම් සහ නියඟය පිළිබඳ වහා තොරතුරු ලබා ගැනීමට පහත ප්‍රශ්න ස්ලයිඩරය භාවිතා කරන්න.\n\nමට අද ඔබට කෙසේ උපකාර කළ හැකිද?`,
+
+        'தமிழ்': `**பேரிடர் பதில் உதவியாளருக்கு வரவேற்கிறோம்**\n\n1. **எப்படி கேள்வி கேட்கலாம்**: நீங்கள் ஆங்கிலம், தமிழ் அல்லது சிங்கள மொழியில் கேள்விகளை கேட்கலாம், மற்றும் chatbot அதற்கு அதே மொழியில் பதிலளிக்கும்.\n\n2. **அவசர தொடர்புகள்**: இந்த எண்களை சேமிக்கவும்:\n   - அவசர சேவைகள்: 119\n   - பேரிடர் மேலாண்மை: 117\n   - ஆம்புலன்ஸ்: 1990\n\n3. **விரைவு அணுகல்**: வெள்ளம், மண்சரிவு மற்றும் வறட்சி பற்றிய உடனடி தகவல்களுக்கு கீழே உள்ள கேள்வி ஸ்லைடரைப் பயன்படுத்தவும்.\n\nநான் இன்று உங்களுக்கு எவ்வாறு உதவ முடியும்?`
+    };
+    return messages[lang] || messages.english;
+};
+
+
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -17,27 +60,18 @@ const DisasterAI = () => {
   const handleLanguageChange = () => {
     const languageMap = {
       english: 'සිංහල',
-      සිංහල: 'தமிழ்',
-      தமிழ்: 'english'
+      'සිංහල': 'தமிழ்',
+      'தமிழ்': 'english'
     };
     setLanguage(prev => languageMap[prev] || 'english');
   };
 
-  const handleQuickQuestionSelect = (question) => {
-    setInput(question);
-    // Optionally, you can auto-submit the question:
-    handleSubmit({ preventDefault: () => {} });
-  };
-
-  // Format the message content with proper styling
   const formatMessage = (content) => {
     if (!content) return '';
 
-    // Split by numbered points
     const parts = content.split(/(\d+\.\s*\*\*.*?\*\*)/g);
 
     return parts.map((part, index) => {
-      // Check if this part is a numbered point
       const pointMatch = part.match(/(\d+)\.\s*\*\*(.*?)\*\*(.*)/);
       
       if (pointMatch) {
@@ -51,16 +85,20 @@ const DisasterAI = () => {
         );
       }
       
-      // Handle regular bold text
-      const parts = part.split(/\*\*(.*?)\*\*/g);
+      const textParts = part.split(/\*\*(.*?)\*\*/g);
       return (
         <span key={index}>
-          {parts.map((text, i) => (
+          {textParts.map((text, i) => (
             i % 2 === 0 ? text : <strong key={i}>{text}</strong>
           ))}
         </span>
       );
     });
+  };
+
+  const handleQuickQuestionSelect = (question) => {
+    setInput(question);
+    handleSubmit({ preventDefault: () => {} });
   };
 
   const handleSubmit = async (e) => {
@@ -101,7 +139,30 @@ const DisasterAI = () => {
 
   return (
     <div className="h-screen flex flex-col bg-white">
+      
+
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {/* Emergency Contacts Card */}
+        <div className="bg-orange-50 p-4 rounded-lg mb-4">
+          <div className="flex items-center gap-2 mb-2">
+            <PhoneCall className="w-5 h-5 text-orange-600" />
+            <h3 className="font-semibold text-orange-800">
+              {language === 'english' ? 'Emergency Contacts' :
+               language === 'සිංහල' ? 'හදිසි ඇමතුම්' :
+               'அவசர தொடர்புகள்'}
+            </h3>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {emergencyContacts[language].map((contact, index) => (
+              <div key={index} className="bg-white p-2 rounded-md text-center">
+                <div className="font-semibold text-orange-700">{contact.name}</div>
+                <div className="text-orange-600">{contact.number}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Chat Messages */}
         {messages.map((message, index) => (
           <div
             key={`${message.timestamp}-${index}`}
@@ -123,6 +184,7 @@ const DisasterAI = () => {
             </div>
           </div>
         ))}
+        
         {loading && (
           <div className="bg-gray-100 p-4 rounded-lg max-w-3xl mx-2">
             <div className="flex space-x-2">
@@ -177,15 +239,12 @@ const DisasterAI = () => {
             </button>
           </form>
 
-          {/* QuickQuestionsSlider placed under the search box */}
           <QuickQuestionsSlider 
             language={language}
             onQuestionSelect={handleQuickQuestionSelect}
           />
         </div>
       </div>
-
-      <div ref={messagesEndRef} />
     </div>
   );
 };
