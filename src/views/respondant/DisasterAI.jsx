@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { getDisasterResponse } from '../../services/getDisasterResponseService';
 import { Search, Send, Globe, Loader } from 'lucide-react';
+import QuickQuestionsSlider from '../../components/QuickQuestionSlider';
 
 const DisasterAI = () => {
   const [messages, setMessages] = useState([]);
@@ -20,6 +21,12 @@ const DisasterAI = () => {
       தமிழ்: 'english'
     };
     setLanguage(prev => languageMap[prev] || 'english');
+  };
+
+  const handleQuickQuestionSelect = (question) => {
+    setInput(question);
+    // Optionally, you can auto-submit the question:
+    handleSubmit({ preventDefault: () => {} });
   };
 
   // Format the message content with proper styling
@@ -169,8 +176,16 @@ const DisasterAI = () => {
               )}
             </button>
           </form>
+
+          {/* QuickQuestionsSlider placed under the search box */}
+          <QuickQuestionsSlider 
+            language={language}
+            onQuestionSelect={handleQuickQuestionSelect}
+          />
         </div>
       </div>
+
+      <div ref={messagesEndRef} />
     </div>
   );
 };
