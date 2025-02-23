@@ -15,18 +15,17 @@ const messaging = firebase.messaging();
 const seenMessages = new Set();
 
 messaging.onBackgroundMessage((payload) => {
-    const { messageId, notification } = payload;
-    if (seenMessages.has(messageId)) {
-        return; // Skip duplicate messages
-    }
-    seenMessages.add(messageId);
+    const { notification, data } = payload;
 
-    const { title, body } = notification;
-    self.registration.showNotification(title, {
-        body,
+    // Show system notification
+    self.registration.showNotification(notification.title, {
+        body: notification.body,
         icon: '/logo192.png',
         badge: '/badge.png',
+        tag: data.messageId, // Use messageId as tag to prevent duplicates
+        data: payload.data,
+        requireInteraction: true, // Keep notification until user interacts
         vibrate: [200, 100, 200],
-        sound: '/sounds/warning_sound.mp3',
+        sound: '/sounds/warning_sound.mp3'
     });
 });

@@ -5,12 +5,13 @@ import { getDoc, doc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { db, auth } from '../firebase';
 import { NotificationService } from './services/notificationService';
+import { NotificationProvider } from './context/NotificationContext';
+import { NotificationWrapper } from './components/NotificationWrapper';
 import { WarningService } from './services/warningService';
 
 import UpdateNotification from './components/UpdateNotification';
 import Layout from './components/Layout';
 import LoadingPage from './components/Loading';
-import { NotificationProvider } from './context/NotificationContext';
 import NotificationPanel from './components/NotificationPanel';
 
 // Role-based routing
@@ -34,50 +35,51 @@ import WarningForm from './views/dmc-official/WarningForm';
 import DisasterAI from './views/respondant/DisasterAI';
 import DisasterDetailView from './views/respondant/DisasterDetailView';
 
+
+
 function App() {
   const [userRoles, setUserRoles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
-  const [notifications, setNotifications] = useState([]);
+  // const [notifications, setNotifications] = useState([]);
   const [shownNotifications, setShownNotifications] = useState(new Set());
   const navigate = useNavigate();
+
 
   const notificationService = new NotificationService();
   const warningService = new WarningService();
 
   useEffect(() => {
-      const checkAuthAndFetchRoles = () => {
-          onAuthStateChanged(auth, async (user) => {
-              if (user) {
-                  const userId = user.uid;
-                  try {
-                      const userDoc = await getDoc(doc(db, 'users', userId));
-                      if (userDoc.exists()) {
-                          const userData = userDoc.data();
-                          const roles = userData.roles || [];
-                          setUserRoles(roles);
-                          setCurrentUser({ ...userData, uid: userId });
+    const checkAuthAndFetchRoles = () => {
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const userId = user.uid;
+                try {
+                    const userDoc = await getDoc(doc(db, 'users', userId));
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        const roles = userData.roles || [];
+                        setUserRoles(roles);
+                        setCurrentUser({ ...userData, uid: userId });
+                    } else {
+                        navigate('/role-selection');
+                    }
+                } catch (error) {
+                    console.error('Error fetching user roles:', error);
+                    navigate('/role-selection');
+                }
+            } else {
+                setUserRoles([]);
+                setCurrentUser(null);
+            }
+            setLoading(false);
+        });
+    };
 
-                          if (userData.division) {
-                              setupNotifications(userId, userData.division);
-                          }
-                      } else {
-                          navigate('/role-selection');
-                      }
-                  } catch (error) {
-                      console.error('Error fetching user roles:', error);
-                      navigate('/role-selection');
-                  }
-              } else {
-                  setUserRoles([]);
-                  setCurrentUser(null);
-              }
-              setLoading(false);
-          });
-      };
+    checkAuthAndFetchRoles();
+}, [navigate]);
 
-      checkAuthAndFetchRoles();
-  }, [navigate]);
+
 
   const setupNotifications = async (userId, division) => {
       try {
@@ -112,22 +114,11 @@ function App() {
       }
   };
 
-  const addNotification = (notification) => {
-      setNotifications((prev) => [notification, ...prev].slice(0, 5)); // Limit to 5 recent notifications
-      playNotificationSound();
-  };
+
 
   const playNotificationSound = () => {
       const audio = new Audio('/sounds/warning_sound.mp3');
       audio.play();
-  };
-
-  const dismissNotification = (index) => {
-      setNotifications((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const dismissAllNotifications = () => {
-      setNotifications([]);
   };
 
   if (loading) {
@@ -243,11 +234,7 @@ function App() {
                       <Route path="*" element={<div>404 - Page not found</div>} />
                   </Routes>
                   <UpdateNotification />
-                  <NotificationPanel 
-                      notifications={notifications} 
-                      onDismiss={dismissNotification} 
-                      onDismissAll={dismissAllNotifications} 
-                  />
+                  <NotificationWrapper currentUser={currentUser} />
               </Layout>
           </NextUIProvider>
       </NotificationProvider>
