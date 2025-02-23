@@ -429,7 +429,7 @@ const DMCLanding = () => {
 
         <div 
           className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow cursor-pointer"
-          onClick={() => navigateToSection('dmc/warningform')}
+          onClick={() => navigateToSection('/dmc/WarningForm')}
         >
           <h2 className="text-xl font-bold mb-2">Send Warning</h2>
           <p className="text-gray-600">Update Population On A Disaster</p>

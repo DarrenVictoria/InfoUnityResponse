@@ -32,6 +32,7 @@ import PublicDisasterReport from './views/respondant/PublicDisasterReport';
 import DisasterReportManagement from './views/dmc-official/DisasterReportManagement';
 import WarningForm from './views/dmc-official/WarningForm';
 import DisasterAI from './views/respondant/DisasterAI';
+import DisasterDetailView from './views/respondant/DisasterDetailView';
 
 function App() {
   const [userRoles, setUserRoles] = useState([]);
@@ -180,6 +181,15 @@ function App() {
                           element={
                               <ProtectedRoute allowedRoles={['Respondent']}>
                                   <PublicDisasterReport />
+                              </ProtectedRoute>
+                          }
+                      />
+
+                      <Route
+                          path="/view-disaster/:id"
+                          element={
+                              <ProtectedRoute allowedRoles={['Respondent']}>
+                                  <DisasterDetailView/>
                               </ProtectedRoute>
                           }
                       />

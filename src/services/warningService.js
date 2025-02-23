@@ -14,11 +14,7 @@ export class WarningService {
         return onSnapshot(q, (snapshot) => {
             snapshot.docChanges().forEach((change) => {
                 if (change.type === 'added') {
-                    const warning = change.doc.data();
-                    const currentTime = new Date().getTime();
-                    if (currentTime >= warning.validFrom && currentTime <= warning.validUntil) {
-                        callback(warning);
-                    }
+                    callback(change.doc.data());
                 }
             });
         });
