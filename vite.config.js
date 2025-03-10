@@ -44,6 +44,7 @@ const manifestForPlugin = {
     orientation: 'portrait'
   },
   workbox: {
+    maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
     clientsClaim: true,
     skipWaiting: true,
     cleanupOutdatedCaches: true,
