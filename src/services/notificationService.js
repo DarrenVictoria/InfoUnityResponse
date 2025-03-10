@@ -29,8 +29,6 @@ export class NotificationService {
         const validUntil = warning.validUntil?.toDate?.()?.getTime() || warning.validUntil;
 
         return (!validFrom || now >= validFrom) && (!validUntil || now <= validUntil);
-
-
     }
 
     markAsSeen(messageId) {

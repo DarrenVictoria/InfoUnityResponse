@@ -34,6 +34,10 @@ import DisasterReportManagement from './views/dmc-official/DisasterReportManagem
 import WarningForm from './views/dmc-official/WarningForm';
 import DisasterAI from './views/respondant/DisasterAI';
 import DisasterDetailView from './views/respondant/DisasterDetailView';
+import FloodDisasterSupportPage from './views/respondant/FloodPage';
+import WarningLocationMap from './components/WarningLocationMap';
+import RealtimePage from './views/respondant/RealtimePage';
+import ResourceLocator from './views/respondant/ResourceLocator';
 
 
 
@@ -158,11 +162,47 @@ function App() {
                           }
                       />
 
+<Route
+                          path="/realtime"
+                          element={
+                              <ProtectedRoute allowedRoles={['Respondent']}>
+                                  <RealtimePage/>
+                              </ProtectedRoute>
+                          }
+                      />
+
+                    <Route
+                          path="/warningmap"
+                          element={
+                              <ProtectedRoute allowedRoles={['Respondent']}>
+                                  <WarningLocationMap />
+                              </ProtectedRoute>
+                          }
+                      />
+
                       <Route
-                          path="/ai-bot"
+                          path="/support-chat"
                           element={
                               <ProtectedRoute allowedRoles={['Respondent']}>
                                   <DisasterAI />
+                              </ProtectedRoute>
+                          }
+                      />
+
+<Route
+                          path="/resources"
+                          element={
+                              <ProtectedRoute allowedRoles={['Respondent']}>
+                                  <ResourceLocator />
+                              </ProtectedRoute>
+                          }
+                      />
+
+<Route
+                          path="/help/flood"
+                          element={
+                              <ProtectedRoute allowedRoles={['Respondent']}>
+                                  <FloodDisasterSupportPage/>
                               </ProtectedRoute>
                           }
                       />

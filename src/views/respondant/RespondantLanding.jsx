@@ -307,14 +307,16 @@ const InfoUnitySection = () => {
       <ActionButtonsSection />
 
       <div className="flex justify-center px-4">
-        <Button
-          color="error"
-          variant="outline"
-          className="w-full max-w-md px-6 py-3 border border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-200 flex items-center justify-center gap-2"
-        >
-          <AlertOctagon size={24} />
-          {t('button.reportDisaster')}
-        </Button>
+        <Link to="/addreport" className="w-full max-w-md">
+          <Button
+            color="error"
+            variant="outline"
+            className="w-full px-6 py-3 border border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-200 flex items-center justify-center gap-2"
+          >
+            <AlertOctagon size={24} />
+            {t('button.reportDisaster')}
+          </Button>
+        </Link>
       </div>
     </div>
   );
@@ -355,7 +357,7 @@ const ActionButtonsSection = () => {
     {
       label: t('action.realtimeMaps'),
       icon: <MapPin size={24} color="red" />,
-      path: "/realtime-maps"
+      path: "/realtime"
     },
     {
       label: t('action.supportChatbot'),
@@ -377,11 +379,11 @@ const ActionButtonsSection = () => {
       icon: <Users size={24} color="purple" />,
       path: "/resources"
     },
-    {
-      label: t('action.donate'),
-      icon: <DollarSign size={24} color="green" />,
-      path: "/donate"
-    }
+    // {
+    //   label: t('action.donate'),
+    //   icon: <DollarSign size={24} color="green" />,
+    //   path: "/donate"
+    // }
   ];
 
   return (

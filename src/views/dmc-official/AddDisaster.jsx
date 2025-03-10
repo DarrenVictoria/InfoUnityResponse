@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { ChevronRight, ChevronLeft, Save, MapPin, Trash2  } from 'lucide-react';
 import LocationSelector from "../../components/LocationSelector";
 import { db } from '../../../firebase';
-import { collection, addDoc, doc, setDoc, updateDoc ,getDoc} from "firebase/firestore";
+import { collection, addDoc, doc, setDoc, updateDoc ,getDoc, getDocs} from "firebase/firestore";
 import LocationSelectorPin from '../../components/LocationSelectorPin';
+import * as tf from '@tensorflow/tfjs';
 
 // Common disaster types in Sri Lanka
 const DISASTER_TYPES = [
@@ -37,8 +38,12 @@ const STEPPER_LABELS = [
 const RESOURCE_TYPES = ["Food", "Shelter", "Clothing"];
 const RESOURCE_STATUSES = ["Request Received", "Pending Approval", "Approved", "Dispatched", "Rejected"];
 
+
+
 export default function DisasterReportingStepper() {
   const [currentStep, setCurrentStep] = useState(1);
+
+
 
   const [dateErrors, setDateErrors] = useState({
     dateCommenced: '',
@@ -93,8 +98,46 @@ export default function DisasterReportingStepper() {
     
     // Volunteer Requests
     volunteerNeeded: false,
-    volunteerRequests: {}
+    volunteerRequests: {},
+
+    predictedResources: {
+      water: 0,
+      rice: 0,
+      dhal: 0,
+      cannedFish: 0,
+      milkPowder: 0,
+      sugar: 0,
+      tea: 0,
+      biscuits: 0,
+      soap: 0,
+      toothpaste: 0
+    }
+    
   });
+
+  useEffect(() => {
+    const fetchDataAndTrainModel = async () => {
+      const trainingData = await getDocs(collection(db, 'ResourceData'));
+      if (trainingData.docs.length >= 10) { // Ensure there's enough data
+        await trainModel(); // Call the trainModel function
+      }
+    };
+  
+    fetchDataAndTrainModel();
+  }, []); // Run once when the component mounts
+
+  useEffect(() => {
+    if (formData.resourceRequestType === 'Food') {
+      handleFoodResourcePrediction();
+    }
+  }, [formData.humanEffect, formData.foodDuration]);
+
+  // Save report data to Firebase on final step
+  useEffect(() => {
+    if (currentStep === 7) {
+      handleSaveReport();
+    }
+  }, [currentStep]);
 
   const handleLocationChange = (district, division) => {
     setFormData(prev => ({
@@ -645,8 +688,113 @@ export default function DisasterReportingStepper() {
     </div>
   );
 
+  const initializeTensorFlowModel = async () => {
+    const model = tf.sequential();
+    
+    model.add(tf.layers.dense({
+      inputShape: [3], // total displaced, families affected, infrastructure damage
+      units: 64,
+      activation: 'relu'
+    }));
+    
+    model.add(tf.layers.dense({
+      units: 32,
+      activation: 'relu'
+    }));
+    
+    model.add(tf.layers.dense({
+      units: 10, // output for 10 essential items
+      activation: 'relu' // Ensure non-negative outputs
+    }));
+    
+    model.compile({
+      optimizer: tf.train.adam(0.001),
+      loss: 'meanSquaredError'
+    });
+    
+    return model;
+  };
 
-  const addResourceRequest = () => {
+
+  const predictResources = (model, humanEffect, duration) => {
+    const inputTensor = tf.tensor2d([
+      [
+        humanEffect.affectedPeople,
+        humanEffect.affectedFamilies,
+        humanEffect.injured + humanEffect.deaths + humanEffect.missing
+      ]
+    ]);
+  
+    const prediction = model.predict(inputTensor);
+    const predictedValues = prediction.dataSync();
+  
+    // Ensure no negative values
+    const clamp = (value) => Math.max(0, value);
+  
+    return {
+      water: clamp(predictedValues[0]) * duration,
+      rice: clamp(predictedValues[1]) * duration,
+      dhal: clamp(predictedValues[2]) * duration,
+      cannedFish: clamp(predictedValues[3]) * duration,
+      milkPowder: clamp(predictedValues[4]) * duration,
+      sugar: clamp(predictedValues[5]) * duration,
+      tea: clamp(predictedValues[6]) * duration,
+      biscuits: clamp(predictedValues[7]) * duration,
+      soap: clamp(predictedValues[8]) * duration,
+      toothpaste: clamp(predictedValues[9]) * duration,
+      foodPortions: clamp(predictedValues[10]) * duration, // Add foodPortions for prepared meals
+    };
+  };
+
+  const roundValues = (resources) => {
+    return {
+      water: Math.round(resources.water), // Round to nearest liter
+      rice: Math.round(resources.rice * 2) / 2, // Round to nearest 0.5 kg
+      dhal: Math.round(resources.dhal * 2) / 2, // Round to nearest 0.5 kg
+      cannedFish: Math.round(resources.cannedFish), // Round to nearest whole number
+      milkPowder: Math.round(resources.milkPowder * 2) / 2, // Round to nearest 0.5 kg
+      sugar: Math.round(resources.sugar * 2) / 2, // Round to nearest 0.5 kg
+      tea: Math.round(resources.tea * 2) / 2, // Round to nearest 0.5 kg
+      biscuits: Math.round(resources.biscuits), // Round to nearest whole number
+      soap: Math.round(resources.soap), // Round to nearest whole number
+      toothpaste: Math.round(resources.toothpaste), // Round to nearest whole number
+    };
+  };
+
+
+  const trainModel = async () => {
+    const model = await initializeTensorFlowModel();
+    const trainingData = await getDocs(collection(db, 'ResourceData'));
+  
+    const inputs = trainingData.docs.map(doc => [
+      doc.data().totalDisplaced,
+      doc.data().familiesAffected,
+      doc.data().infrastructureDamage,
+    ]);
+  
+    const outputs = trainingData.docs.map(doc => [
+      doc.data().predictedDryRations,
+      doc.data().predictedPreparedMeals,
+    ]);
+  
+    const xs = tf.tensor2d(inputs);
+    const ys = tf.tensor2d(outputs);
+  
+    await model.fit(xs, ys, {
+      epochs: 100,
+      batchSize: 32,
+      callbacks: {
+        onEpochEnd: async (epoch, logs) => {
+          console.log(`Epoch ${epoch}: loss = ${logs.loss}`);
+        },
+      },
+    });
+  
+    alert('Model trained successfully!');
+  };
+
+
+  const addResourceRequest = async () => {
     const newRequest = {
       type: formData.resourceRequestType,
       requestedTimestamp: new Date().toISOString().slice(0, 16),
@@ -658,6 +806,32 @@ export default function DisasterReportingStepper() {
       status: 'Request Received'
     };
   
+    if (formData.resourceRequestType === 'Food') {
+      // Define actualData based on predictedResources
+      const actualData = {
+        water: formData.predictedResources.water,
+        rice: formData.predictedResources.rice,
+        dhal: formData.predictedResources.dhal,
+        cannedFish: formData.predictedResources.cannedFish,
+        milkPowder: formData.predictedResources.milkPowder,
+        sugar: formData.predictedResources.sugar,
+        tea: formData.predictedResources.tea,
+        biscuits: formData.predictedResources.biscuits,
+        soap: formData.predictedResources.soap,
+        toothpaste: formData.predictedResources.toothpaste
+      };
+  
+      // Store training data in Firebase
+      await storeTrainingData(
+        {
+          ...formData,
+          foodType: foodType, // Pass the selected food type
+        },
+        actualData
+      );
+    }
+  
+    // Add the new request to resourceRequests
     setFormData(prev => ({
       ...prev,
       resourceRequests: [...prev.resourceRequests, newRequest],
@@ -668,96 +842,297 @@ export default function DisasterReportingStepper() {
     }));
   };
 
-  const renderResourceRequests = () => (
-    <div className="space-y-4">
-      <h2 className="text-xl font-semibold">Resource Requests</h2>
-      
-      {/* Add new resource request form */}
-      <div className="grid grid-cols-1 gap-4 p-4 border rounded-lg">
-        <div>
-          <label className="block text-sm font-medium mb-1">Resource Type</label>
-          <select
-            className="w-full px-4 py-2 border rounded-lg"
-            value={formData.resourceRequestType}
-            onChange={(e) => setFormData(prev => ({ ...prev, resourceRequestType: e.target.value }))}
-          >
-            <option value="">Select Resource Type</option>
-            {RESOURCE_TYPES.map(type => (
-              <option key={type} value={type}>{type}</option>
-            ))}
-          </select>
-        </div>
-  
-        <div>
-          <label className="block text-sm font-medium mb-1">Contact Person Name</label>
-          <input
-            type="text"
-            className="w-full px-4 py-2 border rounded-lg"
-            placeholder="Enter contact person name"
-            value={formData.resourceRequestContactName}
-            onChange={(e) => setFormData(prev => ({ ...prev, resourceRequestContactName: e.target.value }))}
-          />
-        </div>
-  
-        <div>
-          <label className="block text-sm font-medium mb-1">Contact Mobile Number</label>
-          <input
-            type="text"
-            className="w-full px-4 py-2 border rounded-lg"
-            placeholder="Enter contact mobile number"
-            value={formData.resourceRequestContactNumber}
-            onChange={(e) => setFormData(prev => ({ ...prev, resourceRequestContactNumber: e.target.value }))}
-          />
-        </div>
-  
-        <div>
-          <label className="block text-sm font-medium mb-1">Description</label>
-          <textarea
-            className="w-full px-4 py-2 border rounded-lg"
-            placeholder="Enter necessary resource description"
-            value={formData.resourceRequestDescription}
-            onChange={(e) => setFormData(prev => ({ ...prev, resourceRequestDescription: e.target.value }))}
-          />
-        </div>
-  
-        <button
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg disabled:opacity-50"
-          disabled={!formData.resourceRequestType || !formData.resourceRequestContactName || !formData.resourceRequestContactNumber}
-          onClick={addResourceRequest}
-        >
-          Add Resource Request
-        </button>
-      </div>
-  
-      {/* List of resource requests */}
-      {formData.resourceRequests.length > 0 && (
-        <div className="mt-4 space-y-2 border rounded-lg p-4">
-          <h3 className="font-medium text-sm text-gray-700">Listed Resource Requests:</h3>
-          {formData.resourceRequests.map((request, index) => (
-            <div key={index} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
-              <div className="flex-1 grid grid-cols-2 gap-4">
-                <span className="text-sm font-medium">{request.type}</span>
-                <span className="text-sm">Status: {request.status}</span>
-                <span className="text-sm">Contact: {request.contactDetails.contactPersonName}</span>
-                <span className="text-sm">Mobile: {request.contactDetails.contactMobileNumber}</span>
-              </div>
-              <button
-                className="p-1 text-red-500 hover:bg-red-50 rounded-full"
-                onClick={() => {
-                  setFormData(prev => ({
-                    ...prev,
-                    resourceRequests: prev.resourceRequests.filter((_, i) => i !== index)
-                  }));
-                }}
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+  const [foodType, setFoodType] = useState('dryRations'); // Default to dry rations
+
+const renderFoodTypeSelection = () => (
+  <div className="space-y-4">
+    <h2 className="text-xl font-semibold">Food Supply Type</h2>
+    <div className="flex gap-4">
+      <label className="flex items-center space-x-2">
+        <input
+          type="radio"
+          name="foodType"
+          value="dryRations"
+          checked={foodType === 'dryRations'}
+          onChange={(e) => setFoodType(e.target.value)}
+        />
+        <span>Dry Rations</span>
+      </label>
+      <label className="flex items-center space-x-2">
+        <input
+          type="radio"
+          name="foodType"
+          value="preparedMeals"
+          checked={foodType === 'preparedMeals'}
+          onChange={(e) => setFoodType(e.target.value)}
+        />
+        <span>Prepared Meals</span>
+      </label>
     </div>
-  );
+  </div>
+);
+
+const calculateFoodSupplies = (humanEffect, foodType, duration) => {
+  const { affectedPeople } = humanEffect;
+
+  if (foodType === 'dryRations') {
+    return {
+      water: affectedPeople * 2 * duration, // 2 liters per person per day
+      rice: affectedPeople * 0.5 * duration, // 0.5 kg per person per day
+      dhal: affectedPeople * 0.2 * duration, // 0.2 kg per person per day
+      cannedFish: affectedPeople * 0.1 * duration, // 0.1 cans per person per day
+      milkPowder: affectedPeople * 0.05 * duration, // 0.05 kg per person per day
+      sugar: affectedPeople * 0.05 * duration, // 0.05 kg per person per day
+      tea: affectedPeople * 0.02 * duration, // 0.02 kg per person per day
+      biscuits: affectedPeople * 0.1 * duration, // 0.1 packs per person per day
+      soap: affectedPeople * 0.1 * duration, // 0.1 bars per person per day
+      toothpaste: affectedPeople * 0.05 * duration, // 0.05 tubes per person per day
+      foodPortions: 0, // No food portions for dry rations
+    };
+  } else {
+    return {
+      water: affectedPeople * 2 * duration, // 2 liters per person per day
+      rice: 0,
+      dhal: 0,
+      cannedFish: 0,
+      milkPowder: 0,
+      sugar: 0,
+      tea: 0,
+      biscuits: 0,
+      soap: affectedPeople * 0.1 * duration, // 0.1 bars per person per day
+      toothpaste: affectedPeople * 0.05 * duration, // 0.05 tubes per person per day
+      foodPortions: affectedPeople * 3 * duration, // 3 meals per person per day
+    };
+  }
+};
+
+const renderResourceRequests = () => (
+  <div className="space-y-4">
+    <h2 className="text-xl font-semibold">Resource Requests</h2>
+
+     {/* Briefing for families and people count */}
+     <div className="bg-blue-50 p-4 rounded-lg">
+      <p className="text-sm text-gray-700">
+        <strong>{formData.humanEffect.affectedFamilies}</strong> families and <strong>{formData.humanEffect.affectedPeople}</strong> people are affected.
+      </p>
+    </div>
+    
+    {/* Add new resource request form */}
+    <div className="grid grid-cols-1 gap-4 p-4 border rounded-lg">
+      <div>
+        <label className="block text-sm font-medium mb-1">Resource Type</label>
+        <select
+          className="w-full px-4 py-2 border rounded-lg"
+          value={formData.resourceRequestType}
+          onChange={(e) => {
+            setFormData(prev => ({ ...prev, resourceRequestType: e.target.value }));
+            if (e.target.value === 'Food') {
+              // Trigger prediction when Food is selected
+              handleFoodResourcePrediction();
+            }
+          }}
+        >
+          <option value="">Select Resource Type</option>
+          {RESOURCE_TYPES.map(type => (
+            <option key={type} value={type}>{type}</option>
+          ))}
+        </select>
+      </div>
+
+      {formData.resourceRequestType === 'Food' && (
+  <>
+         <div>
+            <label className="block text-sm font-medium mb-1">Duration (Days)</label>
+            <input
+              type="number"
+              min="1"
+              className="w-full px-4 py-2 border rounded-lg"
+              placeholder="Enter number of days"
+              value={formData.foodDuration || ''}
+              onChange={(e) => {
+                const duration = parseInt(e.target.value);
+                setFormData(prev => ({
+                  ...prev,
+                  foodDuration: duration
+                }));
+                // Trigger prediction when duration changes
+                handleFoodResourcePrediction();
+              }}
+            />
+          </div>
+    {renderFoodTypeSelection()}
+    {foodType === 'dryRations' ? (
+      renderPredictedResources() // Show resource breakdown for dry rations
+    ) : (
+      <div>
+        <label className="block text-sm font-medium mb-1">Food Portions</label>
+        <input
+          type="number"
+          className="w-full px-4 py-2 border rounded-lg"
+          value={formData.predictedResources.foodPortions || ''}
+          readOnly
+        />
+      </div>
+    )}
+  </>
+)}
+
+      <div>
+        <label className="block text-sm font-medium mb-1">Contact Person Name</label>
+        <input
+          type="text"
+          className="w-full px-4 py-2 border rounded-lg"
+          placeholder="Enter contact person name"
+          value={formData.resourceRequestContactName}
+          onChange={(e) => setFormData(prev => ({ ...prev, resourceRequestContactName: e.target.value }))}
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-1">Contact Mobile Number</label>
+        <input
+          type="text"
+          className="w-full px-4 py-2 border rounded-lg"
+          placeholder="Enter contact mobile number"
+          value={formData.resourceRequestContactNumber}
+          onChange={(e) => setFormData(prev => ({ ...prev, resourceRequestContactNumber: e.target.value }))}
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-1">Description</label>
+        <textarea
+          className="w-full px-4 py-2 border rounded-lg"
+          placeholder="Enter necessary resource description"
+          value={formData.resourceRequestDescription}
+          onChange={(e) => setFormData(prev => ({ ...prev, resourceRequestDescription: e.target.value }))}
+        />
+      </div>
+
+      <button
+        className="px-4 py-2 bg-blue-500 text-white rounded-lg disabled:opacity-50"
+        disabled={!formData.resourceRequestType || !formData.resourceRequestContactName || !formData.resourceRequestContactNumber}
+        onClick={addResourceRequest}
+      >
+        Add Resource Request
+      </button>
+    </div>
+
+    {/* List of resource requests */}
+    {formData.resourceRequests.length > 0 && (
+      <div className="mt-4 space-y-2 border rounded-lg p-4">
+        <h3 className="font-medium text-sm text-gray-700">Listed Resource Requests:</h3>
+        {formData.resourceRequests.map((request, index) => (
+          <div key={index} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+            <div className="flex-1 grid grid-cols-2 gap-4">
+              <span className="text-sm font-medium">{request.type}</span>
+              <span className="text-sm">Status: {request.status}</span>
+              <span className="text-sm">Contact: {request.contactDetails.contactPersonName}</span>
+              <span className="text-sm">Mobile: {request.contactDetails.contactMobileNumber}</span>
+            </div>
+            <button
+              className="p-1 text-red-500 hover:bg-red-50 rounded-full"
+              onClick={() => {
+                setFormData(prev => ({
+                  ...prev,
+                  resourceRequests: prev.resourceRequests.filter((_, i) => i !== index)
+                }));
+              }}
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+);
+
+const handleFoodResourcePrediction = async () => {
+  const { affectedPeople } = formData.humanEffect;
+  const duration = formData.foodDuration || 1; // Default to 1 day if not specified
+
+  // Fetch training data from Firestore
+  const trainingData = await getDocs(collection(db, 'ResourceData'));
+
+  let predictedResources;
+
+  // Check if there is enough training data (at least 10 documents)
+  if (trainingData.docs.length >= 10) {
+    // Train the model and predict resources
+    const model = await initializeTensorFlowModel();
+    predictedResources = predictResources(model, formData.humanEffect, duration);
+  } else {
+    // Fallback to manual calculation if there is insufficient training data
+    predictedResources = calculateFoodSupplies(formData.humanEffect, foodType, duration);
+  }
+
+  // Ensure predictedResources has all required fields
+  predictedResources = {
+    water: predictedResources.water || 0,
+    rice: predictedResources.rice || 0,
+    dhal: predictedResources.dhal || 0,
+    cannedFish: predictedResources.cannedFish || 0,
+    milkPowder: predictedResources.milkPowder || 0,
+    sugar: predictedResources.sugar || 0,
+    tea: predictedResources.tea || 0,
+    biscuits: predictedResources.biscuits || 0,
+    soap: predictedResources.soap || 0,
+    toothpaste: predictedResources.toothpaste || 0,
+    foodPortions: predictedResources.foodPortions || 0, // Add foodPortions for prepared meals
+  };
+
+  // Round the predicted resources to practical values
+  const roundedResources = roundValues(predictedResources);
+
+  // Update the formData state with the predicted resources
+  setFormData(prev => ({
+    ...prev,
+    predictedResources: roundedResources
+  }));
+};
+
+const renderPredictedResources = () => (
+  <div className="space-y-4">
+    <h2 className="text-xl font-semibold">Predicted Resources</h2>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {Object.entries(formData.predictedResources).map(([item, value]) => (
+        <div key={item}>
+          <label className="block text-sm font-medium mb-1">
+            {item === 'foodPortions' ? 'Food Portions' : item.charAt(0).toUpperCase() + item.slice(1)} 
+            ({item === 'water' ? 'liters' : item === 'cannedFish' || item === 'biscuits' || item === 'soap' || item === 'toothpaste' ? 'units' : 'kg'})
+          </label>
+          <input
+            type="number"
+            className="w-full px-4 py-2 border rounded-lg"
+            value={formData.overrideResources?.[item] || value}
+            onChange={(e) => {
+              const overrideValue = parseFloat(e.target.value);
+              setFormData(prev => ({
+                ...prev,
+                overrideResources: {
+                  ...prev.overrideResources,
+                  [item]: overrideValue
+                }
+              }));
+            }}
+          />
+        </div>
+      ))}
+    </div>
+
+    {/* Reason for overriding */}
+    {/* <div>
+      <label className="block text-sm font-medium mb-1">Reason for Override</label>
+      <textarea
+        className="w-full px-4 py-2 border rounded-lg"
+        placeholder="Explain why you are overriding the predicted values"
+        value={formData.overrideReason || ''}
+        onChange={(e) => setFormData(prev => ({ ...prev, overrideReason: e.target.value }))}
+      />
+    </div> */}
+  </div>
+);
 
   const renderVolunteerRequests = () => (
     <div className="space-y-4">
@@ -865,6 +1240,52 @@ export default function DisasterReportingStepper() {
             ))}
           </div>
         </div>
+
+        <div className="border rounded-lg p-4">
+        <h3 className="font-medium mb-3 text-blue-600">Predicted Resources</h3>
+        <div className="space-y-2">
+          <div>
+            <span className="text-sm text-gray-600">Water (liters):</span>
+            <p className="font-medium">{formData.predictedResources.water.toFixed(2)}</p>
+          </div>
+          <div>
+            <span className="text-sm text-gray-600">Rice (kg):</span>
+            <p className="font-medium">{formData.predictedResources.rice.toFixed(2)}</p>
+          </div>
+          <div>
+            <span className="text-sm text-gray-600">Dhal (kg):</span>
+            <p className="font-medium">{formData.predictedResources.dhal.toFixed(2)}</p>
+          </div>
+          <div>
+            <span className="text-sm text-gray-600">Canned Fish (cans):</span>
+            <p className="font-medium">{formData.predictedResources.cannedFish.toFixed(2)}</p>
+          </div>
+          <div>
+            <span className="text-sm text-gray-600">Milk Powder (kg):</span>
+            <p className="font-medium">{formData.predictedResources.milkPowder.toFixed(2)}</p>
+          </div>
+          <div>
+            <span className="text-sm text-gray-600">Sugar (kg):</span>
+            <p className="font-medium">{formData.predictedResources.sugar.toFixed(2)}</p>
+          </div>
+          <div>
+            <span className="text-sm text-gray-600">Tea (kg):</span>
+            <p className="font-medium">{formData.predictedResources.tea.toFixed(2)}</p>
+          </div>
+          <div>
+            <span className="text-sm text-gray-600">Biscuits (packs):</span>
+            <p className="font-medium">{formData.predictedResources.biscuits.toFixed(2)}</p>
+          </div>
+          <div>
+            <span className="text-sm text-gray-600">Soap (bars):</span>
+            <p className="font-medium">{formData.predictedResources.soap.toFixed(2)}</p>
+          </div>
+          <div>
+            <span className="text-sm text-gray-600">Toothpaste (tubes):</span>
+            <p className="font-medium">{formData.predictedResources.toothpaste.toFixed(2)}</p>
+          </div>
+        </div>
+      </div>
   
         {/* Infrastructure Summary */}
         <div className="border rounded-lg p-4">
@@ -1017,7 +1438,9 @@ export default function DisasterReportingStepper() {
 
   const handleSaveReport = async () => {
     try {
-      // Clean and validate form data before saving
+      const model = await initializeTensorFlowModel();
+      const predictedResources = predictResources(model, formData.humanEffect);
+  
       const cleanFormData = {
         // Main Details
         reportDateTime: new Date(),
@@ -1029,11 +1452,11 @@ export default function DisasterReportingStepper() {
         dateEnded: formData.dateEnded ? new Date(formData.dateEnded) : null,
         riskLevel: formData.riskLevel?.trim() || '',
         
-        // Disaster Location - added at the base level
+        // Disaster Location
         latitude: formData.disasterLocation.latitude || null,
         longitude: formData.disasterLocation.longitude || null,
         
-        // Human Effect - ensure all numbers are properly parsed
+        // Human Effect
         humanEffect: {
           affectedFamilies: parseInt(formData.humanEffect?.affectedFamilies) || 0,
           affectedPeople: parseInt(formData.humanEffect?.affectedPeople) || 0,
@@ -1042,7 +1465,7 @@ export default function DisasterReportingStepper() {
           missing: parseInt(formData.humanEffect?.missing) || 0
         },
         
-        // Infrastructure - ensure all numbers are properly parsed
+        // Infrastructure
         infrastructure: {
           housesFullyDamaged: parseInt(formData.infrastructure?.housesFullyDamaged) || 0,
           housesPartiallyDamaged: parseInt(formData.infrastructure?.housesPartiallyDamaged) || 0,
@@ -1050,7 +1473,7 @@ export default function DisasterReportingStepper() {
           criticalInfrastructureDamages: formData.infrastructure?.criticalInfrastructureDamages || []
         },
         
-        // Safe Locations - validate coordinates and numbers
+        // Safe Locations
         safeLocations: formData.safeLocations.map(location => ({
           name: location.name?.trim() || '',
           latitude: parseFloat(location.latitude) || 0,
@@ -1059,7 +1482,7 @@ export default function DisasterReportingStepper() {
           capacity: parseInt(location.capacity) || 0
         })),
         
-        // Resource Requests - ensure proper structure and defaults
+        // Resource Requests
         resourceRequests: formData.resourceRequests.map(request => ({
           type: request.type?.trim() || '',
           requestedTimestamp: request.requestedTimestamp || new Date().toISOString(),
@@ -1071,7 +1494,21 @@ export default function DisasterReportingStepper() {
           status: request.status || 'Request Received'
         })),
         
-        // Volunteer Requests - clean and validate
+        // Predicted Resources
+        predictedResources: {
+          water: predictedResources.water,
+          rice: predictedResources.rice,
+          dhal: predictedResources.dhal,
+          cannedFish: predictedResources.cannedFish,
+          milkPowder: predictedResources.milkPowder,
+          sugar: predictedResources.sugar,
+          tea: predictedResources.tea,
+          biscuits: predictedResources.biscuits,
+          soap: predictedResources.soap,
+          toothpaste: predictedResources.toothpaste
+        },
+        
+        // Volunteer Requests
         volunteerNeeded: Boolean(formData.volunteerNeeded),
         volunteerRequests: Object.entries(formData.volunteerRequests || {}).reduce((acc, [key, value]) => {
           acc[key] = parseInt(value) || 0;
@@ -1095,52 +1532,115 @@ export default function DisasterReportingStepper() {
       if (invalidLocations.length > 0) {
         throw new Error('Invalid coordinates found in safe locations');
       }
+
+      // Calculate or predict food supplies
+      const { affectedPeople } = formData.humanEffect;
+      let foodSupplies;
+  
+      // Check if we have enough data to train the model
+      const trainingData = await getDocs(collection(db, 'ResourceData'));
+      if (trainingData.docs.length >= 10) {
+        // Use the trained model to predict food supplies
+        const model = await initializeTensorFlowModel();
+        foodSupplies = predictResources(model, formData.humanEffect);
+      } else {
+        // Use manual calculation for small datasets
+        foodSupplies = calculateFoodSupplies(formData.humanEffect, foodType);
+      }
   
       // Create the document and get the auto-generated ID
-      const disasterRef = await addDoc(collection(db, 'verifiedDisasters'), cleanFormData);
-      
+      const disasterRef = await addDoc(collection(db, 'verifiedDisasters'), {
+        ...formData,
+        predictedResources: foodSupplies,
+        foodType: foodType,
+      });
+
+      await storeTrainingData(
+        {
+          ...formData,
+          foodType: foodType, // Pass the selected food type
+        },
+        foodSupplies // Use the predicted/calculated food supplies as actualData
+      );
+
       // Update the document with its ID as the disasterId
       await updateDoc(disasterRef, {
         disasterId: disasterRef.id
       });
-
+  
       const locationStatusRef = doc(db, 'Location_Status', 'divisionalSecretariats');
       const locationStatusDoc = await getDoc(locationStatusRef);
-
-        if (locationStatusDoc.exists()) {
-          const data = locationStatusDoc.data();
-          const updatedData = { ...data };
-
-          // Update the specific DS Division
-          if (!updatedData[cleanFormData.dsDivision]) {
-            updatedData[cleanFormData.dsDivision] = {
-              Safety: false,
-              VolunteerNeed: false,
-              WarningStatus: 'High'
-            };
-          } else {
-            updatedData[cleanFormData.dsDivision].Safety = false;
-            updatedData[cleanFormData.dsDivision].VolunteerNeed = false;
-            updatedData[cleanFormData.dsDivision].WarningStatus = 'High';
-          }
-
-          await setDoc(locationStatusRef, updatedData);
-        }
-      
-      console.log('Report saved successfully with ID: ', disasterRef.id);
-      alert('Report submitted successfully!');
-      window.location.href = '/dmc/home';
-      
-      return disasterRef.id;
   
-    } catch (error) {
-      console.error('Error saving report: ', error);
-      alert(`Failed to submit report: ${error.message}`);
-      throw error;
-    }
+      if (locationStatusDoc.exists()) {
+        const data = locationStatusDoc.data();
+        const updatedData = { ...data };
+  
+        // Update the specific DS Division
+        if (!updatedData[cleanFormData.dsDivision]) {
+          updatedData[cleanFormData.dsDivision] = {
+            Safety: false,
+            VolunteerNeed: false,
+            WarningStatus: 'High'
+          };
+        } else {
+          updatedData[cleanFormData.dsDivision].Safety = false;
+          updatedData[cleanFormData.dsDivision].VolunteerNeed = false;
+          updatedData[cleanFormData.dsDivision].WarningStatus = 'High';
+        }
+  
+        await setDoc(locationStatusRef, updatedData);
+      }
+      
+      await addDoc(collection(db, 'ResourceData'), {
+      totalDisplaced: affectedPeople,
+      familiesAffected: formData.humanEffect.affectedFamilies,
+      infrastructureDamage: formData.infrastructure.housesFullyDamaged + formData.infrastructure.housesPartiallyDamaged,
+      verificationDate: new Date().toISOString(),
+    });
 
-    
+    console.log('Report saved successfully with ID: ', disasterRef.id);
+    alert('Report submitted successfully!');
+    window.location.href = '/dmc/home';
+  } catch (error) {
+    console.error('Error saving report: ', error);
+    alert(`Failed to submit report: ${error.message}`);
+  }
+};
+
+const storeTrainingData = async (submission, actualData) => {
+  // Validate predictedResources
+  if (!submission.predictedResources || typeof submission.predictedResources !== 'object') {
+    throw new Error('Invalid predictedResources data');
+  }
+
+  // Validate actualData
+  if (!actualData || typeof actualData !== 'object') {
+    throw new Error('Invalid actualData');
+  }
+
+  // Determine the food type (dryRations or preparedMeals)
+  const foodType = submission.foodType || 'dryRations'; // Default to dryRations if not specified
+
+  // Prepare training data based on food type
+  const trainingData = {
+    totalDisplaced: submission.totalDisplaced || 0,
+    familiesAffected: submission.familiesAffected || 0,
+    infrastructureDamage: submission.infrastructureDamage || 0,
+    verificationDate: new Date().toISOString(),
   };
+
+  // Add fields based on food type
+  if (foodType === 'dryRations') {
+    trainingData.predictedDryRations = submission.predictedResources.rice || 0; // Use rice as dry rations
+    trainingData.actualDryRations = actualData.rice || 0; // Use rice as dry rations
+  } else if (foodType === 'preparedMeals') {
+    trainingData.predictedPreparedMeals = submission.predictedResources.foodPortions || 0; // Use foodPortions for prepared meals
+    trainingData.actualPreparedMeals = actualData.foodPortions || 0; // Use foodPortions for prepared meals
+  }
+
+  // Save to Firestore
+  await addDoc(collection(db, 'ResourceData'), trainingData);
+};
   
   // Helper function to validate coordinates
   const isValidCoordinate = (lat, lng) => {
@@ -1272,7 +1772,6 @@ const handleNextClick = async () => {
     }
   }
 };
-
 
   return (
     <div className="max-w-4xl mx-auto p-6">

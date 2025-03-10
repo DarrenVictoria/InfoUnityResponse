@@ -128,7 +128,7 @@ const SriLankaMap = ({ selectedCluster = [], selectedReports = [] }) => {
             return !isNaN(lat) && !isNaN(lon);
           });
 
-        setVerifiedDisasters(verifiedData);
+        setVerifiedDisasters(verifiedData || []);
 
         // Fetch crowdsourced reports
         const crowdsourcedReportsRef = collection(db, 'crowdsourcedReports');
@@ -145,8 +145,7 @@ const SriLankaMap = ({ selectedCluster = [], selectedReports = [] }) => {
             return !isNaN(lat) && !isNaN(lon);
           });
 
-        setCrowdsourcedReports(crowdsourcedData);
-
+        setCrowdsourcedReports(crowdsourcedData || []);
         setLoading(false);
       } catch (err) {
         console.error('Error fetching disaster data:', err);
@@ -220,7 +219,7 @@ const SriLankaMap = ({ selectedCluster = [], selectedReports = [] }) => {
           <p className="text-sm mb-1">Volunteers needed: {hoveredDisaster.volunteerRequired}</p>
           <p className="text-sm mb-1">Resources needed:</p>
           <ul className="text-sm list-disc pl-6">
-            {hoveredDisaster.resourcesRequired.map((resource, index) => (
+            {hoveredDisaster.resourcesRequired?.map((resource, index) => (
               <li key={index}>{resource}</li>
             ))}
           </ul>

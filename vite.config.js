@@ -1,8 +1,7 @@
-// vite.config.js
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
-import path from "path"
+import path, { resolve } from "path";
 
 const manifestForPlugin = {
   registerType: 'autoUpdate',
@@ -80,4 +79,16 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    sourcemap: true,
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'index.html'),
+        'firebase-messaging-sw': resolve(__dirname, 'public/firebase-messaging-sw.js')
+      }
+    }
+  },
+  define: {
+    'process.env': {}
+  }
 })

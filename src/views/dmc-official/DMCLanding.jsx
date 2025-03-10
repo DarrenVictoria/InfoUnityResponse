@@ -37,7 +37,7 @@ const EditProfileModal = ({ isOpen, onClose, userData, onUpdate }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1000]">
       <div className="bg-white rounded-lg p-6 max-w-md w-full">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Edit Profile</h2>
@@ -101,6 +101,8 @@ const EditProfileModal = ({ isOpen, onClose, userData, onUpdate }) => {
 
 const DisasterTable = ({ disasters, tableType }) => {
   const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10; // Number of items per page
 
   // Filter disasters based on status
   const filteredDisasters = disasters.filter(disaster => {
@@ -110,6 +112,17 @@ const DisasterTable = ({ disasters, tableType }) => {
       return disaster.status === 'Ended';
     }
   });
+
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredDisasters.slice(indexOfFirstItem, indexOfLastItem);
+
+  const totalPages = Math.ceil(filteredDisasters.length / itemsPerPage);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
 
   // Format date function remains the same
   const formatDate = (timestamp) => {
@@ -124,7 +137,7 @@ const DisasterTable = ({ disasters, tableType }) => {
           minute: '2-digit',
         });
       }
-      
+
       const date = new Date(timestamp);
       if (!isNaN(date.getTime())) {
         return date.toLocaleString('en-US', {
@@ -135,7 +148,7 @@ const DisasterTable = ({ disasters, tableType }) => {
           minute: '2-digit',
         });
       }
-      
+
       return 'Invalid Date';
     } catch (error) {
       console.error('Error formatting date:', error);
@@ -170,7 +183,7 @@ const DisasterTable = ({ disasters, tableType }) => {
           {tableType === 'ongoing' ? 'Ongoing Verified Disasters' : 'Closed Verified Disasters'}
         </h2>
       </div>
-      
+
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
@@ -184,21 +197,20 @@ const DisasterTable = ({ disasters, tableType }) => {
               <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Disaster Info
               </th>
-              
               <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Actions
               </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {filteredDisasters.map((disaster) => (
+            {currentItems.map((disaster) => (
               <tr key={disaster.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap text-center">
                   <div className="text-sm text-gray-900">
                     {formatDate(disaster.datetime)}
                   </div>
                 </td>
-                
+
                 <td className="px-6 py-4 text-center">
                   <div className="text-sm text-gray-900 font-medium">
                     {disaster.district || 'N/A'}
@@ -212,7 +224,7 @@ const DisasterTable = ({ disasters, tableType }) => {
                     </div>
                   )}
                 </td>
-                
+
                 <td className="px-6 py-4 text-center">
                   <div className="text-sm font-medium text-gray-900">
                     {disaster.disasterType}
@@ -223,9 +235,7 @@ const DisasterTable = ({ disasters, tableType }) => {
                     </div>
                   )}
                 </td>
-                
-                
-                
+
                 <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                   <button
                     onClick={() => navigate(`/disaster/${disaster.id}`)}
@@ -239,7 +249,28 @@ const DisasterTable = ({ disasters, tableType }) => {
           </tbody>
         </table>
       </div>
-      
+
+      {/* Pagination Controls */}
+      <div className="flex justify-center items-center py-4">
+        <button
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="px-4 py-2 mx-1 bg-gray-200 rounded-md disabled:opacity-50"
+        >
+          Previous
+        </button>
+        <span className="mx-2">
+          Page {currentPage} of {totalPages}
+        </span>
+        <button
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="px-4 py-2 mx-1 bg-gray-200 rounded-md disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
+
       {filteredDisasters.length === 0 && (
         <div className="text-center py-8 text-gray-500">
           No {tableType === 'ongoing' ? 'ongoing' : 'closed'} disasters found

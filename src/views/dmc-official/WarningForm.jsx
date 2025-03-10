@@ -30,6 +30,9 @@ const WarningForm = () => {
   });
   const [warnings, setWarnings] = useState([]);
   const [selectedWarning, setSelectedWarning] = useState(null);
+  const [showMapFallback, setShowMapFallback] = useState(false);
+const [manualCoordinates, setManualCoordinates] = useState({ latitude: null, longitude: null });
+
 
   useEffect(() => {
     const generateMessageId = () => {
@@ -63,6 +66,26 @@ const WarningForm = () => {
       validUntil: format(warning.validUntil.toDate(), "yyyy-MM-dd'T'HH:mm"),
     });
     setWarningType(warning.type);
+  };
+
+  const geocodeLocation = async (district, dsDivision) => {
+    const query = `${dsDivision}, ${district}, Sri Lanka`;
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
+  
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+  
+      if (data.length > 0) {
+        const { lat, lon } = data[0];
+        return { latitude: parseFloat(lat), longitude: parseFloat(lon) };
+      } else {
+        throw new Error('Location not found');
+      }
+    } catch (error) {
+      console.error('Geocoding error:', error);
+      return null;
+    }
   };
 
   const validateForm = () => {
@@ -123,13 +146,14 @@ const WarningForm = () => {
     }
   };
 
-  const handleLocationChange = (district, dsDivision) => {
+  const handleLocationChange = async (district, dsDivision) => {
     setFormData(prev => ({
       ...prev,
       district,
       dsDivision,
       gnDivisions: []
     }));
+  
     // Clear location-related errors
     if (errors.district || errors.dsDivision) {
       setErrors(prev => ({
@@ -138,6 +162,19 @@ const WarningForm = () => {
         dsDivision: undefined
       }));
     }
+  
+    // Geocode the location
+    const coordinates = await geocodeLocation(district, dsDivision);
+    if (coordinates) {
+      setFormData(prev => ({
+        ...prev,
+        latitude: coordinates.latitude,
+        longitude: coordinates.longitude
+      }));
+      setShowMapFallback(false); // Hide map fallback if geocoding succeeds
+    } else {
+      setShowMapFallback(true); // Show map fallback if geocoding fails
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -145,7 +182,7 @@ const WarningForm = () => {
     if (validateForm()) {
       try {
         setIsSubmitting(true);
-
+  
         const warningData = {
           type: warningType,
           ...formData,
@@ -157,8 +194,10 @@ const WarningForm = () => {
           majorFloodLevel: formData.majorFloodLevel ? Number(formData.majorFloodLevel) : null,
           windSpeed: formData.windSpeed ? Number(formData.windSpeed) : null,
           waveHeight: formData.waveHeight ? Number(formData.waveHeight) : null,
+          latitude: formData.latitude || manualCoordinates.latitude, // Use manual coordinates if geocoding failed
+          longitude: formData.longitude || manualCoordinates.longitude // Use manual coordinates if geocoding failed
         };
-
+  
         if (selectedWarning) {
           // Update existing warning
           const warningRef = doc(db, 'warnings', selectedWarning.id);
@@ -175,7 +214,7 @@ const WarningForm = () => {
           console.log('Warning added with ID:', docRef.id);
           alert('Warning issued successfully!');
         }
-
+  
         // Reset form after successful submission
         setFormData({
           severity: '',
@@ -193,15 +232,19 @@ const WarningForm = () => {
           windSpeed: '',
           waveHeight: '',
           incidentType: '',
-          warningMessage: ''
+          warningMessage: '',
+          latitude: null,
+          longitude: null
         });
+        setManualCoordinates({ latitude: null, longitude: null });
+        setShowMapFallback(false);
         setWarningType('');
         setSelectedWarning(null);
-
+  
         // Refresh warnings list
         const warnings = await fetchWarnings();
         setWarnings(warnings);
-
+  
       } catch (error) {
         console.error('Error:', error);
         alert('Error processing warning. Please try again.');
@@ -210,7 +253,6 @@ const WarningForm = () => {
       }
     }
   };
-
   const handleDeleteWarning = async () => {
     if (selectedWarning) {
       const confirmDelete = window.confirm('Are you sure you want to delete this warning?');
@@ -451,6 +493,26 @@ const WarningForm = () => {
                   {errors.district && (
                     <p className="text-red-500 text-sm">{errors.district}</p>
                   )}
+
+                  {
+                    showMapFallback && (
+                      <div className="mt-4">
+                        <p className="text-sm text-gray-600 mb-2">
+                          Could not find coordinates for the selected location. Please select a location on the map.
+                        </p>
+                        <MapFallback
+                          onCoordinatesSelect={(coordinates) => {
+                            setManualCoordinates(coordinates);
+                            setFormData(prev => ({
+                              ...prev,
+                              latitude: coordinates.latitude,
+                              longitude: coordinates.longitude
+                            }));
+                          }}
+                        />
+                      </div>
+                    )
+                  }
                 </div>
               </div>
 

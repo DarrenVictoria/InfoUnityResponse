@@ -3,6 +3,7 @@ import { getDisasterResponse } from '../../services/getDisasterResponseService';
 import { Search, Send, Globe, Loader, AlertTriangle, PhoneCall, MapPin } from 'lucide-react';
 import QuickQuestionsSlider from '../../components/QuickQuestionSlider';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import NavigationBar from '../../utils/Navbar';
 
 const DisasterAI = () => {
   const [messages, setMessages] = useState([]);
@@ -139,7 +140,7 @@ const DisasterAI = () => {
 
   return (
     <div className="h-screen flex flex-col bg-white">
-      
+      <NavigationBar/>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {/* Emergency Contacts Card */}

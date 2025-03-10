@@ -102,7 +102,7 @@ const NavigationBar = () => {
       translationKey: "nav.learn",
       items: [
         { translationKey: "nav.disasterCatalogue", icon: BookOpen, href: "#" },
-        { translationKey: "nav.aiChatbot", icon: Bot, href: "#" },
+        { translationKey: "nav.aiChatbot", icon: Bot, href: "support-chat" },
       ],
     },
     tools: {
@@ -431,15 +431,17 @@ const NavigationBar = () => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md z-[9999]">
       <div className="max-w-[1920px] mx-auto px-4 lg:px-6 flex items-center justify-between h-16">
-        {/* Logo */}
-        <div className="flex items-center flex-shrink-0">
-          <img src="/favicon-32x32.png" alt="Logo" className="h-10 w-10" />
-          <span className="ml-2 text-lg font-bold text-black">
-            {t("InfoUnity Response")}
-          </span>
-        </div>
+          <div
+            className="flex items-center flex-shrink-0 cursor-pointer"
+            onClick={() => (window.location.href = "/home")}
+          >
+            <img src="/favicon-32x32.png" alt="Logo" className="h-10 w-10" />
+            <span className="ml-2 text-lg font-bold text-black">
+              {t("InfoUnity Response")}
+            </span>
+          </div>
 
-        {/* Desktop Navigation */}
+          {/* Desktop Navigation */}
         <div className="hidden lg:flex items-center space-x-1">
           {renderNavItems()}
         </div>
