@@ -53,35 +53,33 @@ function App() {
   const notificationService = new NotificationService();
   const warningService = new WarningService();
 
-  useEffect(() => {
-    const checkAuthAndFetchRoles = () => {
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                const userId = user.uid;
-                try {
-                    const userDoc = await getDoc(doc(db, 'users', userId));
-                    if (userDoc.exists()) {
-                        const userData = userDoc.data();
-                        const roles = userData.roles || [];
-                        setUserRoles(roles);
-                        setCurrentUser({ ...userData, uid: userId });
-                    } else {
-                        navigate('/role-selection');
-                    }
-                } catch (error) {
-                    console.error('Error fetching user roles:', error);
-                    navigate('/role-selection');
-                }
-            } else {
-                setUserRoles([]);
-                setCurrentUser(null);
-            }
-            setLoading(false);
-        });
-    };
+// Update the useEffect hook that checks auth:
 
-    checkAuthAndFetchRoles();
-}, [navigate]);
+useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      try {
+        if (user) {
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          if (userDoc.exists()) {
+            setCurrentUser({ ...user, ...userDoc.data() });
+            setUserRoles(userDoc.data().roles || []);
+          } else {
+            setCurrentUser(user);
+            setUserRoles([]);
+          }
+        } else {
+          setCurrentUser(null);
+          setUserRoles([]);
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      } finally {
+        setLoading(false);
+      }
+    });
+  
+    return () => unsubscribe();
+  }, []); // Remove navigate from dependencies
 
 
 

@@ -13,6 +13,7 @@ import {
 import background from "../../assets/hero-background.jpg";
 import logo from "../../assets/logo-small.png";
 import LocationSelector from "../../components/LocationSelector";
+import Select from "react-select";
 import { useTranslation } from "react-i18next"; // Import useTranslation hook
 
 // Helper functions
@@ -20,6 +21,16 @@ const validateNIC = (nic) => /^[A-Za-z0-9]{1,13}$/.test(nic);
 const validateEmail = (email) =>
   /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(email);
 const validateMobileNumber = (mobileNumber) => /^\d{9}$/.test(mobileNumber);
+
+const VOLUNTEER_CATEGORIES = {
+  "Emergency Response": ["Search and Rescue (SAR)", "Medical Assistance", "Firefighting Support", "Evacuation Assistance", "Damage Assessment"],
+  "Relief and Humanitarian Aid": ["Food Distribution", "Shelter Assistance", "Clothing & Supplies Distribution", "Water, Sanitation, and Hygiene (WASH) Support"],
+  "Psychosocial Support": ["Counseling and Psychological First Aid", "Childcare & Education", "Community Support"],
+  "Technical Support": ["Communication & IT Support", "Transportation & Logistics", "GIS & Mapping"],
+  "Recovery & Reconstruction": ["Debris Removal & Cleanup", "Rebuilding Infrastructure", "Livelihood Restoration"],
+  "Disaster Preparedness": ["Community Training & Drills"],
+  "Animal Rescue": ["Animal Evacuation & Shelter", "Wildlife Conservation"]
+};
 
 const VolunteerRegister = () => {
   const navigate = useNavigate();
@@ -33,7 +44,10 @@ const VolunteerRegister = () => {
   const [password, setPassword] = useState("");
   const [isRedCrossVolunteer, setIsRedCrossVolunteer] = useState(false);
   const [errors, setErrors] = useState({});
-
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const handleCategoryChange = (selectedOptions) => {
+    setSelectedCategories(selectedOptions || []);
+  };
   const handleRegister = async () => {
     setErrors({});
     if (!validateNIC(nicNumber)) {
@@ -110,6 +124,7 @@ const VolunteerRegister = () => {
           roles: ["Volunteer"],
           userId,
           isRedCrossVolunteer,
+          disasterCategories: selectedCategories.map((cat) => cat.value),
         });
         navigate("/login/volunteer");
       }
@@ -123,6 +138,61 @@ const VolunteerRegister = () => {
     i18n.changeLanguage(language);
   };
 
+  const transformedCategories = Object.entries(VOLUNTEER_CATEGORIES).map(
+    ([category, subcategories]) => ({
+      label: t(category), // Translated group label
+      options: subcategories.map((subcategory) => ({
+        label: t(subcategory), // Translated subcategory label
+        value: subcategory, // Keep the value in English
+      })),
+    })
+  );
+
+  const customStyles = {
+    control: (provided) => ({
+      ...provided,
+      border: "1px solid #d1d5db",
+      borderRadius: "0.5rem",
+      padding: "0.25rem",
+    }),
+    option: (provided, state) => ({
+      ...provided,
+      backgroundColor: state.isSelected ? "#3b82f6" : "white",
+      color: state.isSelected ? "white" : "black",
+    }),
+    multiValue: (provided) => ({
+      ...provided,
+      backgroundColor: "#dbeafe",
+    }),
+    multiValueLabel: (provided) => ({
+      ...provided,
+      color: "#1e40af",
+    }),
+    multiValueRemove: (provided) => ({
+      ...provided,
+      color: "#1e40af",
+      ":hover": {
+        backgroundColor: "#93c5fd",
+        color: "#1e40af",
+      },
+    }),
+  };
+  
+  // Add `styles={customStyles}` to the `Select` component
+  <Select
+  isMulti
+  options={transformedCategories}
+  value={selectedCategories}
+  onChange={handleCategoryChange}
+  placeholder={t("searchDisasterCategories")}
+  styles={customStyles}
+  className="react-select-container"
+  classNamePrefix="react-select"
+  closeMenuOnSelect={false}
+  maxMenuHeight={140} // Set a maximum height for the dropdown menu
+  menuPlacement="auto" // Automatically adjust placement (top/bottom)
+/>
+
   return (
     <div
       className="min-h-screen bg-cover bg-center"
@@ -135,7 +205,7 @@ const VolunteerRegister = () => {
         </div>
 
         {/* Language Toggle */}
-        <div className="flex justify-end space-x-2 mb-4">
+        <div className="flex justify-center space-x-2 mb-4">
           <button
             onClick={() => handleLanguageChange("en")}
             className="text-sm px-2 py-1 border border-gray-300 rounded"
@@ -180,6 +250,45 @@ const VolunteerRegister = () => {
             onChange={(e) => setFullName(e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-lg"
           />
+
+          {/* Disaster Categories Multi-Select */}
+          <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          {t("disasterCategories")}
+        </label>
+        <Select
+          isMulti
+          options={transformedCategories}
+          value={selectedCategories}
+          onChange={handleCategoryChange}
+          placeholder={t("searchDisasterCategories")}
+          className="react-select-container"
+          classNamePrefix="react-select"
+          closeMenuOnSelect={false}
+        />
+      </div>
+
+      {/* Display Selected Categories as Tags */}
+      <div className="flex flex-wrap gap-2 mt-2">
+        {selectedCategories.map((category) => (
+          <div
+            key={category.value}
+            className="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full flex items-center"
+          >
+            {category.label}
+            <button
+              onClick={() =>
+                setSelectedCategories((prev) =>
+                  prev.filter((item) => item.value !== category.value)
+                )
+              }
+              className="ml-2 text-blue-600 hover:text-blue-800"
+            >
+              ×
+            </button>
+          </div>
+        ))}
+      </div>
 
           {/* Mobile Number */}
           <div className="flex">
@@ -247,6 +356,10 @@ const VolunteerRegister = () => {
             />
             <label className="text-sm">{t("redCrossVolunteer")}</label>
           </div>
+
+
+          
+  
 
           {/* Register Button */}
           <button

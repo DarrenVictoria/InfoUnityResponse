@@ -41,27 +41,56 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // Register Firebase messaging service worker before requesting token
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/firebase-messaging-sw.js')
-    .then((registration) => {
-      console.log('Firebase Service Worker registered:', registration);
+// async function registerServiceWorker() {
+//   if ('serviceWorker' in navigator) {
+//     try {
+//       const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+//         scope: '/'
+//       });
 
-      // Now get the FCM token
-      return getToken(messaging, {
-        vapidKey: "BG5ZJKYHQwGAGEOZ2aQH47UQFHM1o1Zp9CEP7cG1mbFBavtezzUj1rC_S4L4VmQAaCqYi2mpgRfWyU-TuN6zc84",
-        serviceWorkerRegistration: registration,
-      });
-    })
-    .then((currentToken) => {
-      if (currentToken) {
-        console.log('Token retrieved successfully:', currentToken);
-      } else {
-        console.log('No registration token available. Request permission to generate one.');
+//       if (registration.active) {
+//         const token = await getToken(messaging, {
+//           vapidKey: "BG5ZJKYHQwGAGEOZ2aQH47UQFHM1o1Zp9CEP7cG1mbFBavtezzUj1rC_S4L4VmQAaCqYi2mpgRfWyU-TuN6zc84",
+//           serviceWorkerRegistration: registration
+//         });
+
+//         if (token) {
+//           console.log('FCM Token:', token);
+//           return token;
+//         }
+//       }
+//     } catch (error) {
+//       console.error('Service Worker registration failed:', error);
+//     }
+//   }
+//   return null;
+// }
+
+// // Initialize service worker registration
+// registerServiceWorker();
+
+async function initializeFirebaseMessaging() {
+  try {
+    if ('serviceWorker' in navigator) {
+      const registration = await navigator.serviceWorker.ready
+      const token = await getToken(messaging, {
+        vapidKey: 'BG5ZJKYHQwGAGEOZ2aQH47UQFHM1o1Zp9CEP7cG1mbFBavtezzUj1rC_S4L4VmQAaCqYi2mpgRfWyU-TuN6zc84',
+        serviceWorkerRegistration: registration
+      })
+      if (token) {
+        console.log('FCM Token:', token)
+        return token
       }
-    })
-    .catch((err) => {
-      console.log('An error occurred while retrieving token:', err);
-    });
+    }
+  } catch (error) {
+    console.error('Failed to initialize Firebase messaging:', error)
+  }
+  return null
+}
+
+// Initialize messaging only after page load
+if (typeof window !== 'undefined') {
+  window.addEventListener('load', initializeFirebaseMessaging)
 }
 
 export { db, auth, storage, messaging, functions };
