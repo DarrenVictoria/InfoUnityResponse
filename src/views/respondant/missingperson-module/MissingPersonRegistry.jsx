@@ -1,60 +1,71 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-
-// Import Firebase services from your initialization file
 import { db, auth, storage } from '../../../../firebase';
 
 // Components
+import Header from './components/Header';
 import MissingPersonForm from './components/MissingPersonForm';
 import MissingPersonsList from './components/MissingPersonsList';
 import GroundReportForm from './components/GroundReportForm';
 import MyReports from './components/MyReports';
 import AlertBanner from './components/AlertBanner';
-import NavigationBar from '../../../utils/Navbar';
 
 function MissingPersonRegistry() {
   const [alert, setAlert] = useState(null);
-  
+  const [activeSection, setActiveSection] = useState('home'); // State to manage active section
+
+  // Function to render the active section
+  const renderActiveSection = () => {
+    switch (activeSection) {
+      case 'home':
+        return (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <MissingPersonForm
+              db={db}
+              storage={storage}
+              auth={auth}
+              setAlert={setAlert}
+            />
+            <MissingPersonsList
+              db={db}
+              setAlert={setAlert}
+            />
+          </div>
+        );
+      case 'ground-report':
+        return (
+          <GroundReportForm
+            db={db}
+            storage={storage}
+            auth={auth}
+            setAlert={setAlert}
+          />
+        );
+      case 'my-reports':
+        return (
+          <MyReports
+            db={db}
+            auth={auth}
+            setAlert={setAlert}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
-    <Router>
-      <div className="app-container">
-        {alert && <AlertBanner message={alert.message} type={alert.type} onClose={() => setAlert(null)} />}
-        <NavigationBar />
-        <main className="container mx-auto p-4">
-          <Routes>
-            <Route path="/" element={
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <MissingPersonForm 
-                  db={db} 
-                  storage={storage} 
-                  auth={auth} 
-                  setAlert={setAlert} 
-                />
-                <MissingPersonsList 
-                  db={db} 
-                  setAlert={setAlert} 
-                />
-              </div>
-            } />
-            <Route path="/ground-report" element={
-              <GroundReportForm 
-                db={db} 
-                storage={storage} 
-                auth={auth} 
-                setAlert={setAlert} 
-              />
-            } />
-            <Route path="/my-reports" element={
-              <MyReports 
-                db={db} 
-                auth={auth} 
-                setAlert={setAlert} 
-              />
-            } />
-          </Routes>
-        </main>
-      </div>
-    </Router>
+    <div className="app-container">
+      {/* Alert Banner */}
+      {alert && <AlertBanner message={alert.message} type={alert.type} onClose={() => setAlert(null)} />}
+
+      {/* Header */}
+      <Header activeSection={activeSection} setActiveSection={setActiveSection} />
+
+      {/* Main Content */}
+      <main className="container mx-auto p-4">
+        {renderActiveSection()}
+      </main>
+    </div>
   );
 }
 

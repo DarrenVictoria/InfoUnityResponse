@@ -6,7 +6,7 @@ import path, { resolve } from "path";
 const manifestForPlugin = {
   // registerType: 'autoUpdate',
   strategies: 'injectManifest',
-  srcDir: 'src/service-worker',
+  srcDir: 'src',
   filename: 'sw.js',
   registerType: 'prompt',
   injectRegister: 'auto',

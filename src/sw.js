@@ -37,6 +37,7 @@ registerRoute(
     })
 );
 
+
 // Firebase messaging setup
 importScripts('https://www.gstatic.com/firebasejs/9.x.x/firebase-app-compat.js')
 importScripts('https://www.gstatic.com/firebasejs/9.x.x/firebase-messaging-compat.js')
