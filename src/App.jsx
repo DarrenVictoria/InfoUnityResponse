@@ -38,6 +38,8 @@ import FloodDisasterSupportPage from './views/respondant/FloodPage';
 import WarningLocationMap from './components/WarningLocationMap';
 import RealtimePage from './views/respondant/RealtimePage';
 import ResourceLocator from './views/respondant/ResourceLocator';
+import VolunteerAdminPage from './views/volunteer-admin/volunteeradmin-landing';
+import MissingPersonRegistry from './views/respondant/missingperson-module/MissingPersonRegistry';
 
 
 
@@ -264,6 +266,24 @@ useEffect(() => {
                           element={
                               <ProtectedRoute allowedRoles={['Dmc system admin']}>
                                   <WarningForm />
+                              </ProtectedRoute>
+                          }
+                      />
+
+<Route
+                          path="/voladm/home"
+                          element={
+                              <ProtectedRoute allowedRoles={['Red cross manager']}>
+                                  <VolunteerAdminPage />
+                              </ProtectedRoute>
+                          }
+                      />
+
+<Route
+                          path="/missingperson"
+                          element={
+                              <ProtectedRoute allowedRoles={['Respondent']}>
+                                  <MissingPersonRegistry />
                               </ProtectedRoute>
                           }
                       />

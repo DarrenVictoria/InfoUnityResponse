@@ -13,7 +13,7 @@ precacheAndRoute(self.__WB_MANIFEST)
 registerRoute(
     ({ url }) => url.origin === 'https://apis.google.com',
     new NetworkFirst({
-        cacheName: 'google-apis',
+        cacheName: 'google-api-cache',
         plugins: [
             new ExpirationPlugin({
                 maxEntries: 50,
@@ -27,7 +27,13 @@ registerRoute(
 registerRoute(
     ({ url }) => url.origin === 'https://api.mapbox.com',
     new NetworkFirst({
-        cacheName: 'mapbox-resources'
+        cacheName: 'mapbox-api-cache',
+        plugins: [
+            new ExpirationPlugin({
+                maxEntries: 50,
+                maxAgeSeconds: 86400 // 24 hours
+            })
+        ]
     })
 );
 
@@ -45,7 +51,7 @@ firebase.initializeApp({
     appId: "1:1022190584708:web:aae8dea7bb08ef042653d1"
 })
 
-const messaging = firebase.messaging()
+const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
     console.log('Received background message:', payload);
@@ -54,6 +60,5 @@ messaging.onBackgroundMessage((payload) => {
         body: payload.notification.body,
         icon: '/logo-192x192.png'
     };
-
     self.registration.showNotification(notificationTitle, notificationOptions);
 });

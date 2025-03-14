@@ -4,7 +4,12 @@ import { VitePWA } from 'vite-plugin-pwa'
 import path, { resolve } from "path";
 
 const manifestForPlugin = {
-  registerType: 'autoUpdate',
+  // registerType: 'autoUpdate',
+  strategies: 'injectManifest',
+  srcDir: 'src/service-worker',
+  filename: 'sw.js',
+  registerType: 'prompt',
+  injectRegister: 'auto',
   includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
   manifest: {
     name: "InfoUnityResponse",
@@ -43,8 +48,11 @@ const manifestForPlugin = {
     start_url: "/",
     orientation: 'portrait'
   },
+  injectManifest: {
+    maximumFileSizeToCacheInBytes: 7000000 // Set limit to 7MB
+  },
   workbox: {
-    maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+    maximumFileSizeToCacheInBytes: 7000000,
     clientsClaim: true,
     skipWaiting: true,
     cleanupOutdatedCaches: true,
@@ -66,7 +74,8 @@ const manifestForPlugin = {
     globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}']
   },
   devOptions: {
-    enabled: true
+    enabled: true,
+    type: 'module'
   }
 }
 
@@ -79,6 +88,11 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+  },
+  server: {
+    headers: {
+      'Service-Worker-Allowed': '/'
+    }
   },
   build: {
     sourcemap: true,
