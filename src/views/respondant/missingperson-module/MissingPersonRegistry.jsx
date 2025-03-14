@@ -8,6 +8,7 @@ import MissingPersonsList from './components/MissingPersonsList';
 import GroundReportForm from './components/GroundReportForm';
 import MyReports from './components/MyReports';
 import AlertBanner from './components/AlertBanner';
+import NavigationBar from '../../../utils/Navbar';
 
 function MissingPersonRegistry() {
   const [alert, setAlert] = useState(null);
@@ -58,6 +59,7 @@ function MissingPersonRegistry() {
       {/* Alert Banner */}
       {alert && <AlertBanner message={alert.message} type={alert.type} onClose={() => setAlert(null)} />}
 
+     
       {/* Header */}
       <Header activeSection={activeSection} setActiveSection={setActiveSection} />
 

@@ -21,12 +21,12 @@ const Header = ({ activeSection, setActiveSection }) => {
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         {/* Logo and Home Link */}
         <div className="flex items-center space-x-2 cursor-pointer" onClick={() => setActiveSection('home')}>
-          <img
+          {/* <img
             src="/logo.png" // Replace with your logo path
             alt="Missing Person Registry Logo"
             className="h-10 w-10"
-          />
-          <span className="text-xl font-bold text-blue-600">Missing Person Registry</span>
+          /> */}
+          <span className="text-xl font-bold text-blue-600">Missing Person Registry v1.0</span>
         </div>
 
         {/* Navigation Links */}
@@ -58,7 +58,7 @@ const Header = ({ activeSection, setActiveSection }) => {
         </nav>
 
         {/* User Authentication Section */}
-        <div className="flex items-center space-x-4">
+        {/* <div className="flex items-center space-x-4">
           {user ? (
             <>
               <span className="text-gray-700">Welcome, {user.displayName || user.email}</span>
@@ -85,7 +85,7 @@ const Header = ({ activeSection, setActiveSection }) => {
               </button>
             </>
           )}
-        </div>
+        </div> */}
       </div>
     </header>
   );
