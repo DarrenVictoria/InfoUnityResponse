@@ -59,14 +59,19 @@ function MissingPersonRegistry() {
       {/* Alert Banner */}
       {alert && <AlertBanner message={alert.message} type={alert.type} onClose={() => setAlert(null)} />}
 
-     
-      {/* Header */}
-      <Header activeSection={activeSection} setActiveSection={setActiveSection} />
+      {/* Navigation Bar */}
+      <NavigationBar />
+      
+      {/* Add padding to account for fixed navigation bar */}
+      <div className="pt-16">
+        {/* Header */}
+        <Header activeSection={activeSection} setActiveSection={setActiveSection} />
 
-      {/* Main Content */}
-      <main className="container mx-auto p-4">
-        {renderActiveSection()}
-      </main>
+        {/* Main Content */}
+        <main className="container mx-auto p-4">
+          {renderActiveSection()}
+        </main>
+      </div>
     </div>
   );
 }

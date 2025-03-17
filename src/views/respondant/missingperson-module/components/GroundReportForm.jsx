@@ -3,12 +3,14 @@ import React, { useState } from 'react';
 import { collection, addDoc, serverTimestamp, doc, updateDoc, query, where, getDocs } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { v4 as uuidv4 } from 'uuid';
+import { getMessaging } from 'firebase/messaging';
+import LocationSelectorPin from '../../../../components/LocationSelectorPin';
 
 const GroundReportForm = ({ db, storage, auth, setAlert }) => {
   const [formData, setFormData] = useState({
     personName: '',
     facilityType: '',
-    currentLocation: '',
+    location: null,
     timeLogged: '',
     additionalNotes: '',
     identificationDocs: []
@@ -24,6 +26,43 @@ const GroundReportForm = ({ db, storage, auth, setAlert }) => {
       ...prevState,
       [name]: value
     }));
+  };
+
+    // Handle location selection
+    const handleLocationSelect = (location) => {
+      setFormData((prevState) => ({
+        ...prevState,
+        location, // Update the location in the form state
+      }));
+    };
+
+  const sendNotificationToReporter = async (missingPersonDoc, groundReportRef) => {
+    const messaging = getMessaging();
+    const reporterUid = missingPersonDoc.data().reporterUid;
+
+    // Get the reporter's FCM tokens
+    const reporterRef = doc(db, 'users', reporterUid);
+    const reporterDoc = await getDoc(reporterRef);
+
+    if (reporterDoc.exists()) {
+      const fcmTokens = reporterDoc.data().fcmTokens || [];
+
+      // Send notification to each token
+      fcmTokens.forEach(token => {
+        sendMessage(messaging, {
+          token,
+          notification: {
+            title: 'Potential Match Found',
+            body: `A ground report matches your missing person report for ${missingPersonDoc.data().missingPersonName}.`,
+          },
+          data: {
+            type: 'missingPersonMatch',
+            groundReportId: groundReportRef.id,
+            missingPersonId: missingPersonDoc.id,
+          },
+        });
+      });
+    }
   };
 
   const handleFileSelect = (e) => {
@@ -65,13 +104,22 @@ const GroundReportForm = ({ db, storage, auth, setAlert }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.personName || !formData.currentLocation) {
+    if (!formData.personName ) {
       setAlert({ 
         message: "Please fill in all required fields", 
         type: "error" 
       });
       return;
     }
+
+    // Validation: Ensure a location is selected
+  if (!formData.location) {
+    setAlert({
+      message: "Please select a location on the map or via search",
+      type: "error",
+    });
+    return;
+  }
 
     try {
       setLoading(true);
@@ -83,7 +131,7 @@ const GroundReportForm = ({ db, storage, auth, setAlert }) => {
       const groundReportRef = await addDoc(collection(db, "groundReports"), {
         personName: formData.personName,
         facilityType: formData.facilityType,
-        currentLocation: formData.currentLocation,
+        location: formData.location, 
         timeLogged: formData.timeLogged,
         additionalNotes: formData.additionalNotes,
         identificationDocs: uploadedFiles,
@@ -104,8 +152,11 @@ const GroundReportForm = ({ db, storage, auth, setAlert }) => {
           status: "found",
           groundReportId: groundReportRef.id,
           foundAt: serverTimestamp(),
-          foundLocation: formData.currentLocation
+          foundLocation: formData.location,
         });
+
+        // Send notification to the reporter
+        await sendNotificationToReporter(missingPersonDoc, groundReportRef);
         
         setAlert({ 
           message: "Ground report submitted and matching missing person record updated!", 
@@ -120,12 +171,12 @@ const GroundReportForm = ({ db, storage, auth, setAlert }) => {
       
       // Reset form
       setFormData({
-        personName: '',
-        facilityType: '',
-        currentLocation: '',
-        timeLogged: '',
-        additionalNotes: '',
-        identificationDocs: []
+        personName: "",
+        facilityType: "",
+        location: null, // Reset location
+        timeLogged: "",
+        additionalNotes: "",
+        identificationDocs: [],
       });
       setSelectedFiles([]);
       setFileUploadProgress(0);
@@ -197,18 +248,10 @@ const GroundReportForm = ({ db, storage, auth, setAlert }) => {
         </div>
         
         <div className="mb-4">
-          <label className="block text-sm font-medium mb-1" htmlFor="currentLocation">
+          <label className="block text-sm font-medium mb-1">
             Current Location
           </label>
-          <input
-            type="text"
-            id="currentLocation"
-            name="currentLocation"
-            value={formData.currentLocation}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-            placeholder="Location details"
-          />
+          <LocationSelectorPin onLocationSelect={handleLocationSelect} />
         </div>
         
         <div className="mb-4">

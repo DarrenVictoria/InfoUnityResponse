@@ -46,13 +46,14 @@ const MissingPersonsList = ({ db, setAlert }) => {
   }, [db, filter, setAlert]);
 
   // Filter persons based on search term
+  // Filter persons based on search term
   const filteredPersons = missingPersons.filter(person => {
     if (!searchTerm) return true;
     
     const searchLower = searchTerm.toLowerCase();
     return (
       person.missingPersonName?.toLowerCase().includes(searchLower) ||
-      person.lastKnownLocation?.toLowerCase().includes(searchLower)
+      person.location?.toLowerCase().includes(searchLower) // Changed from lastKnownLocation to location
     );
   });
 
@@ -63,6 +64,28 @@ const MissingPersonsList = ({ db, setAlert }) => {
       month: '2-digit',
       day: '2-digit'
     }).format(date);
+  };
+
+   // Helper function to format location data based on its structure
+   const formatLocation = (location) => {
+    if (!location) return 'Unknown';
+    
+    // If location is a string, return it directly
+    if (typeof location === 'string') {
+      return location;
+    }
+    
+    // If location has a name property, return that
+    if (location.name) {
+      return location.name;
+    }
+    
+    // If location has latitude and longitude, return them formatted
+    if (location.latitude !== undefined && location.longitude !== undefined) {
+      return `${location.latitude}, ${location.longitude}`;
+    }
+    
+    return 'Unknown';
   };
 
   return (
@@ -179,7 +202,7 @@ const MissingPersonsList = ({ db, setAlert }) => {
                       {person.lastSeenDate ? formatDate(new Date(person.lastSeenDate)) : 'Unknown'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {person.lastKnownLocation || 'Unknown'}
+                      {formatLocation(person.location)}
                     </td>
                   </tr>
                 ))

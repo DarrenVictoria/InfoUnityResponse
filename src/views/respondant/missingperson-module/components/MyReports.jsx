@@ -198,8 +198,12 @@ const MyReports = ({ db, auth, setAlert }) => {
                   
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {activeTab === 'missing' 
-                      ? report.lastKnownLocation || 'Unknown'
-                      : report.currentLocation || 'Unknown'
+                      ? report.location  // Changed from lastKnownLocation to location
+                        ? `${report.location.latitude}, ${report.location.longitude}` 
+                        : 'Unknown'
+                      : report.currentLocation 
+                        ? `${report.currentLocation.latitude}, ${report.currentLocation.longitude}` 
+                        : 'Unknown'
                     }
                   </td>
                   

@@ -107,6 +107,14 @@ export class NotificationService {
 
     setupMessageListener(callback) {
         return onMessage(this.messaging, (payload) => {
+            if (payload.data.type === 'missingPersonMatch') {
+                this.addNotification({
+                    messageId: payload.messageId,
+                    title: payload.notification.title,
+                    body: payload.notification.body,
+                    data: payload.data,
+                });
+            }
             callback(payload);
         });
     }

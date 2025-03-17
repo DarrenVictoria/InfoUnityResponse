@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { v4 as uuidv4 } from 'uuid';
+import LocationSelectorPin from '../../../../components/LocationSelectorPin';
 
 const MissingPersonForm = ({ db, storage, auth, setAlert }) => {
   const [formData, setFormData] = useState({
@@ -13,7 +14,7 @@ const MissingPersonForm = ({ db, storage, auth, setAlert }) => {
     gender: '',
     lastSeenDate: '',
     lastSeenTime: '',
-    lastKnownLocation: '',
+    location: null,
     description: '',
     photo: null
   });
@@ -25,6 +26,13 @@ const MissingPersonForm = ({ db, storage, auth, setAlert }) => {
     setFormData(prevState => ({
       ...prevState,
       [name]: value
+    }));
+  };
+
+  const handleLocationSelect = (location) => {
+    setFormData((prevState) => ({
+      ...prevState,
+      location, // Update the location in the form state
     }));
   };
 
@@ -48,6 +56,14 @@ const MissingPersonForm = ({ db, storage, auth, setAlert }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    if (!auth.currentUser) {
+      setAlert({ 
+        message: "You must be logged in to submit a report", 
+        type: "error" 
+      });
+      return;
+    }
+  
     if (!formData.reporterName || !formData.contactNumber || !formData.missingPersonName) {
       setAlert({ 
         message: "Please fill in all required fields", 
@@ -55,7 +71,7 @@ const MissingPersonForm = ({ db, storage, auth, setAlert }) => {
       });
       return;
     }
-
+  
     try {
       setLoading(true);
       
@@ -80,13 +96,12 @@ const MissingPersonForm = ({ db, storage, auth, setAlert }) => {
         gender: formData.gender,
         lastSeenDate: formData.lastSeenDate,
         lastSeenTime: formData.lastSeenTime,
-        lastKnownLocation: formData.lastKnownLocation,
+        location: formData.location,
         description: formData.description,
         photoURL: photoURL,
         status: "missing",
         reportedAt: serverTimestamp(),
-        // Add reporter UID if authenticated
-        reporterUid: auth.currentUser ? auth.currentUser.uid : null
+        reporterUid: auth.currentUser.uid  // Ensure the user is authenticated
       });
       
       // Reset form
@@ -98,7 +113,7 @@ const MissingPersonForm = ({ db, storage, auth, setAlert }) => {
         gender: '',
         lastSeenDate: '',
         lastSeenTime: '',
-        lastKnownLocation: '',
+        location: null,
         description: '',
         photo: null
       });
@@ -232,17 +247,10 @@ const MissingPersonForm = ({ db, storage, auth, setAlert }) => {
         </div>
         
         <div className="mb-4">
-          <label className="block text-sm font-medium mb-1" htmlFor="lastKnownLocation">
+          <label className="block text-sm font-medium mb-1">
             Last Known Location
           </label>
-          <input
-            type="text"
-            id="lastKnownLocation"
-            name="lastKnownLocation"
-            value={formData.lastKnownLocation}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-          />
+          <LocationSelectorPin onLocationSelect={handleLocationSelect} />
         </div>
         
         <div className="mb-4">
