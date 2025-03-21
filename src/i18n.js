@@ -51,7 +51,7 @@ const resources = {
       "action.supportChatbot": "Support Chatbot",
       "action.volunteer": "Volunteer",
       "action.missingRegistry": "Missing Person Registry",
-      "action.resources": "Resource Allocation",
+      "action.resources": "Resource Locator",
       "action.donate": "Donate",
 
       // Who Are We Section
@@ -184,7 +184,68 @@ const resources = {
       "Animal Rescue": "Animal Rescue",
       "Animal Evacuation & Shelter": "Animal Evacuation & Shelter",
       "Wildlife Conservation": "Wildlife Conservation",
-      "searchDisasterCategories": "Search disaster categories..."
+      "searchDisasterCategories": "Search disaster categories...",
+
+      // Emergency response page
+      "emergency.responseTitle": "Disaster Response Center",
+      "emergency.latestArticles": "Latest Articles",
+      "emergency.stayInformed": "Stay Informed About Disasters",
+      "emergency.drought": "Drought",
+      "emergency.tsunami": "Tsunami",
+      "emergency.flood": "Flood",
+      "emergency.landslide": "Landslide",
+      "emergency.noArticles": "No articles available at this time",
+
+      // Common elements
+      "common.previous": "Previous",
+      "common.next": "Next",
+      "common.readMore": "Read More",
+      "common.loading": "Loading...",
+
+      // Admin section
+      "admin.articleManagement": "Disaster Articles Management",
+      "admin.createArticle": "Create New Article",
+      "admin.editArticle": "Edit Article",
+      "admin.title": "Title",
+      "admin.author": "Author",
+      "admin.summary": "Summary",
+      "admin.content": "Content",
+      "admin.coverImage": "Cover Image",
+      "admin.uploadImage": "Upload Image",
+      "admin.published": "Published Date",
+      "admin.actions": "Actions",
+      "admin.save": "Save Article",
+      "admin.cancel": "Cancel",
+      "admin.delete": "Delete",
+      "admin.edit": "Edit",
+      "admin.confirmDelete": "Are you sure you want to delete this article?",
+      "admin.titleRequired": "Title is required",
+      "admin.savingError": "Error saving article. Please try again.",
+      "admin.deletingError": "Error deleting article. Please try again.",
+      "admin.noArticles": "No articles available. Create your first article!",
+      "admin.articleSaved": "Article saved successfully!",
+      "admin.articleDeleted": "Article deleted successfully!",
+      "admin.unsavedChanges": "You have unsaved changes. Are you sure you want to leave?",
+      "admin.preview": "Preview",
+      "admin.publish": "Publish",
+      "admin.draft": "Save as Draft",
+      "admin.lastUpdated": "Last Updated",
+      "admin.status": "Status",
+      "admin.featured": "Featured Article",
+      "admin.tags": "Tags",
+      "admin.addTag": "Add Tag",
+
+      // Article view
+      "article.shareArticle": "Share this Article",
+      "article.relatedArticles": "Related Articles",
+      "article.readingTime": "{{minutes}} min read",
+      "article.minutesToRead": "{{minutes}} minutes to read",
+      "article.publishedOn": "Published on {{date}}",
+      "article.lastUpdated": "Last updated {{date}}",
+      "article.by": "By {{author}}",
+      "article.backToArticles": "Back to Articles"
+
+
 
     },
   },
@@ -242,7 +303,7 @@ const resources = {
       "action.supportChatbot": "සහාය චැට්බෝට්",
       "action.volunteer": "ස්වේච්ඡා සේවය",
       "action.missingRegistry": "අතුරුදහන් පුද්ගල ලේඛනය",
-      "action.resources": "සම්පත් වෙන්කිරීම",
+      "action.resources": "සම්පත් සොයන්න",
       "action.donate": "පරිත්‍යාග",
 
       // Who Are We Section
@@ -369,7 +430,67 @@ const resources = {
       "Community Training & Drills": "සමාජ පුහුණුව සහ අභ්‍යාස",
       "Animal Rescue": "සත්ව ගලවා ගැනීම",
       "Animal Evacuation & Shelter": "සත්ව ඉවත්වීම සහ ආරක්‍ෂිත ස්ථාන",
-      "Wildlife Conservation": "වනජීවි සංරක්‍ෂණය"
+      "Wildlife Conservation": "වනජීවි සංරක්‍ෂණය",
+      // Emergency response page
+      "emergency.responseTitle": "ආපදා ප්‍රතිචාර මධ්‍යස්ථානය",
+      "emergency.latestArticles": "නවතම ලිපි",
+      "emergency.stayInformed": "ආපදා පිළිබඳව දැනුවත්ව සිටින්න",
+      "emergency.drought": "නියඟය",
+      "emergency.tsunami": "සුනාමි",
+      "emergency.flood": "ගංවතුර",
+      "emergency.landslide": "නාය යාම",
+      "emergency.noArticles": "මේ වන විට ලිපි නොමැත",
+
+      // Common elements
+      "common.previous": "පෙර",
+      "common.next": "ඊළඟ",
+      "common.readMore": "තව කියවන්න",
+      "common.loading": "පූරණය වෙමින්...",
+
+      // Admin section
+      "admin.articleManagement": "ආපදා ලිපි කළමනාකරණය",
+      "admin.createArticle": "නව ලිපියක් සාදන්න",
+      "admin.editArticle": "ලිපිය සංස්කරණය කරන්න",
+      "admin.title": "මාතෘකාව",
+      "admin.author": "කතෘ",
+      "admin.summary": "සාරාංශය",
+      "admin.content": "අන්තර්ගතය",
+      "admin.coverImage": "ආවරණ රූපය",
+      "admin.uploadImage": "රූපය උඩුගත කරන්න",
+      "admin.published": "ප්‍රකාශිත දිනය",
+      "admin.actions": "ක්‍රියාමාර්ග",
+      "admin.save": "ලිපිය සුරකින්න",
+      "admin.cancel": "අවලංගු කරන්න",
+      "admin.delete": "මකන්න",
+      "admin.edit": "සංස්කරණය",
+      "admin.confirmDelete": "ඔබට මෙම ලිපිය මැකීමට අවශ්‍ය බව විශ්වාසද?",
+      "admin.titleRequired": "මාතෘකාව අවශ්‍යයි",
+      "admin.savingError": "ලිපිය සුරැකීමේ දෝෂයකි. කරුණාකර නැවත උත්සාහ කරන්න.",
+      "admin.deletingError": "ලිපිය මැකීමේ දෝෂයකි. කරුණාකර නැවත උත්සාහ කරන්න.",
+      "admin.noArticles": "ලිපි නොමැත. ඔබේ පළමු ලිපිය සාදන්න!",
+      "admin.articleSaved": "ලිපිය සාර්ථකව සුරකින ලදී!",
+      "admin.articleDeleted": "ලිපිය සාර්ථකව මකා දමන ලදී!",
+      "admin.unsavedChanges": "ඔබට සුරකින නොලද වෙනස්කම් ඇත. ඔබට පිටවීමට අවශ්‍ය බව විශ්වාසද?",
+      "admin.preview": "පෙරදසුන",
+      "admin.publish": "ප්‍රකාශ කරන්න",
+      "admin.draft": "කෙටුම්පතක් ලෙස සුරකින්න",
+      "admin.lastUpdated": "අවසන් යාවත්කාලීන කිරීම",
+      "admin.status": "තත්ත්වය",
+      "admin.featured": "විශේෂාංග ලිපිය",
+      "admin.tags": "ටැග",
+      "admin.addTag": "ටැග් එකතු කරන්න",
+
+      // Article view
+      "article.shareArticle": "මෙම ලිපිය බෙදා ගන්න",
+      "article.relatedArticles": "සම්බන්ධිත ලිපි",
+      "article.readingTime": "කියවීමට විනාඩි {{minutes}}",
+      "article.minutesToRead": "කියවීමට විනාඩි {{minutes}}",
+      "article.publishedOn": "{{date}} දින ප්‍රකාශිතයි",
+      "article.lastUpdated": "අවසන් යාවත්කාලීන කිරීම {{date}}",
+      "article.by": "{{author}} විසිනි",
+      "article.backToArticles": "ලිපි වෙත ආපසු"
+
+
     },
   },
   ta: {
@@ -426,7 +547,7 @@ const resources = {
       "action.supportChatbot": "ஆதரவு சாட்போட்",
       "action.volunteer": "தன்னார்வலர்",
       "action.missingRegistry": "காணாமல் போனவர் பதிவேடு",
-      "action.resources": "வள ஒதுக்கீடு",
+      "action.resources": "வளங்களை கண்டுபிடிக்க",
       "action.donate": "நன்கொடை",
 
       // Who Are We Section
@@ -554,7 +675,66 @@ const resources = {
       "Community Training & Drills": "சமூக பயிற்சி மற்றும் பயிற்சிகள்",
       "Animal Rescue": "விலங்கு மீட்பு",
       "Animal Evacuation & Shelter": "விலங்கு காலி செய்தல் மற்றும் தங்குமிடம்",
-      "Wildlife Conservation": "வனவிலங்கு பாதுகாப்பு"
+      "Wildlife Conservation": "வனவிலங்கு பாதுகாப்பு",
+      // Emergency response page
+      "emergency.responseTitle": "பேரிடர் மீட்பு மையம்",
+      "emergency.latestArticles": "சமீபத்திய கட்டுரைகள்",
+      "emergency.stayInformed": "பேரிடர்கள் பற்றி தெரிந்துகொள்ளுங்கள்",
+      "emergency.drought": "வறட்சி",
+      "emergency.tsunami": "சுனாமி",
+      "emergency.flood": "வெள்ளம்",
+      "emergency.landslide": "மண்சரிவு",
+      "emergency.noArticles": "இந்த நேரத்தில் கட்டுரைகள் எதுவும் கிடைக்கவில்லை",
+
+      // Common elements
+      "common.previous": "முந்தைய",
+      "common.next": "அடுத்து",
+      "common.readMore": "மேலும் படிக்க",
+      "common.loading": "ஏற்றுகிறது...",
+
+      // Admin section
+      "admin.articleManagement": "பேரிடர் கட்டுரைகள் நிர்வாகம்",
+      "admin.createArticle": "புதிய கட்டுரையை உருவாக்கவும்",
+      "admin.editArticle": "கட்டுரையைத் திருத்தவும்",
+      "admin.title": "தலைப்பு",
+      "admin.author": "ஆசிரியர்",
+      "admin.summary": "சுருக்கம்",
+      "admin.content": "உள்ளடக்கம்",
+      "admin.coverImage": "அட்டைப் படம்",
+      "admin.uploadImage": "படத்தைப் பதிவேற்றுக",
+      "admin.published": "வெளியிடப்பட்ட தேதி",
+      "admin.actions": "செயல்கள்",
+      "admin.save": "கட்டுரையை சேமிக்கவும்",
+      "admin.cancel": "ரத்து செய்",
+      "admin.delete": "நீக்கு",
+      "admin.edit": "திருத்து",
+      "admin.confirmDelete": "இந்த கட்டுரையை நீக்க விரும்புகிறீர்களா?",
+      "admin.titleRequired": "தலைப்பு தேவை",
+      "admin.savingError": "கட்டுரையை சேமிப்பதில் பிழை. மீண்டும் முயற்சிக்கவும்.",
+      "admin.deletingError": "கட்டுரையை நீக்குவதில் பிழை. மீண்டும் முயற்சிக்கவும்.",
+      "admin.noArticles": "கட்டுரைகள் இல்லை. உங்கள் முதல் கட்டுரையை உருவாக்குங்கள்!",
+      "admin.articleSaved": "கட்டுரை வெற்றிகரமாக சேமிக்கப்பட்டது!",
+      "admin.articleDeleted": "கட்டுரை வெற்றிகரமாக நீக்கப்பட்டது!",
+      "admin.unsavedChanges": "சேமிக்கப்படாத மாற்றங்கள் உள்ளன. நீங்கள் நிச்சயமாக விலக விரும்புகிறீர்களா?",
+      "admin.preview": "முன்னோட்டம்",
+      "admin.publish": "வெளியிடு",
+      "admin.draft": "வரைவாக சேமி",
+      "admin.lastUpdated": "கடைசியாக புதுப்பிக்கப்பட்டது",
+      "admin.status": "நிலை",
+      "admin.featured": "சிறப்பு கட்டுரை",
+      "admin.tags": "குறிச்சொற்கள்",
+      "admin.addTag": "குறிச்சொல் சேர்க்க",
+
+      // Article view
+      "article.shareArticle": "இந்த கட்டுரையை பகிர",
+      "article.relatedArticles": "தொடர்புடைய கட்டுரைகள்",
+      "article.readingTime": "{{minutes}} நிமிட வாசிப்பு",
+      "article.minutesToRead": "படிக்க {{minutes}} நிமிடங்கள்",
+      "article.publishedOn": "{{date}} அன்று வெளியிடப்பட்டது",
+      "article.lastUpdated": "கடைசியாக புதுப்பிக்கப்பட்டது {{date}}",
+      "article.by": "{{author}} எழுதியது",
+      "article.backToArticles": "கட்டுரைகளுக்கு திரும்பு"
+
     },
   },
 };

@@ -554,22 +554,22 @@ const EmergencyResponseGrid = () => {
     {
       title: t('emergency.drought'),
       image: Drought,
-      path: "/response/droughts"
+      path: "/help/drought"
     },
     {
       title: t('emergency.tsunami'),
       image: Tsunami,
-      path: "/response/tsunamis"
+      path: "/help/tsunamis"
     },
     {
       title: t('emergency.flood'),
       image: Flood,
-      path: "/response/floods"
+      path: "/help/floods"
     },
     {
       title: t('emergency.landslide'),
       image: Landslide,
-      path: "/response/landslides"
+      path: "/help/landslides"
     }
   ];
 

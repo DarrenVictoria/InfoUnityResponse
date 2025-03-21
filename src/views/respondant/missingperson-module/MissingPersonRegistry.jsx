@@ -63,7 +63,7 @@ function MissingPersonRegistry() {
       <NavigationBar />
       
       {/* Add padding to account for fixed navigation bar */}
-      <div className="pt-16">
+      <div >
         {/* Header */}
         <Header activeSection={activeSection} setActiveSection={setActiveSection} />
 

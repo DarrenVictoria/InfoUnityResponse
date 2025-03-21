@@ -96,56 +96,108 @@ function getBorderColor(disasterType) {
 }
 
 // SMS webhook endpoint
-app.post('/', async (req, res) => {
-  try {
-    const messageBody = req.body.Body;
-    const fromNumber = req.body.From;
+// Firebase Function to receive SMS data from mobile app
+// SMS data processing function
+exports.processSmsData = functions
+  .region('asia-southeast1')
+  .https.onRequest(async (req, res) => {
+    try {
+      // Expect JSON data from the mobile app
+      const { messageBody, fromNumber } = req.body;
 
-    const parts = messageBody.split('#');
+      console.log(`Received SMS from ${fromNumber}: ${messageBody}`);
 
-    if (parts.length !== 7 || parts[0].toUpperCase() !== 'DISASTER') {
-      throw new Error('Invalid message format');
+      const parts = messageBody.split('#');
+
+      if (parts.length !== 7 || parts[0].toUpperCase() !== 'DISASTER') {
+        throw new Error('Invalid message format');
+      }
+
+      const [_, district, dsDivision, disasterType, description, reporterName, reporterIdNumber] = parts;
+
+      if (!isValidDisasterType(disasterType)) {
+        throw new Error(`Invalid disaster type: ${disasterType}`);
+      }
+
+      const reportData = {
+        district: district.trim(),
+        dsDivision: dsDivision.trim(),
+        disasterType: disasterType.trim(),
+        description: description.trim(),
+        reporterName: reporterName.trim(),
+        reporterIdNumber: reporterIdNumber.trim(),
+        reportType: 'single',
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+        status: 'pending',
+        source: 'sms',
+        phoneNumber: fromNumber,
+        borderColor: getBorderColor(disasterType.trim())
+      };
+
+      // Add the report to Firestore
+      const docRef = await admin.firestore()
+        .collection('crowdsourcedReports')
+        .add(reportData);
+
+      console.log(`Added SMS report to Firestore with ID: ${docRef.id}`);
+
+      // Return JSON response
+      res.status(200).json({
+        success: true,
+        message: `Report received. Reference ID: ${docRef.id}`,
+        referenceId: docRef.id
+      });
+
+      // Optionally trigger notifications to officials based on severity
+      try {
+        // Get officials who should be notified for this division
+        const officialsSnapshot = await admin.firestore()
+          .collection('officials')
+          .where('responsibleAreas', 'array-contains', dsDivision)
+          .get();
+
+        const officialTokens = [];
+        officialsSnapshot.forEach(doc => {
+          const officialData = doc.data();
+          if (officialData.fcmTokens) {
+            officialTokens.push(...officialData.fcmTokens);
+          }
+        });
+
+        if (officialTokens.length > 0) {
+          const message = {
+            notification: {
+              title: `New ${disasterType} Report in ${dsDivision}`,
+              body: `${description.substring(0, 100)}${description.length > 100 ? '...' : ''}`,
+            },
+            data: {
+              reportId: docRef.id,
+              type: 'crowdsourced_report',
+              disasterType: disasterType,
+              district: district,
+              dsDivision: dsDivision,
+              borderColor: getBorderColor(disasterType)
+            },
+            tokens: officialTokens,
+          };
+
+          const response = await admin.messaging().sendMulticast(message);
+          console.log(`Sent notifications to ${response.successCount} officials`);
+        }
+      } catch (notificationError) {
+        // Log but don't fail the main function if notification sending fails
+        console.error('Error sending notifications to officials:', notificationError);
+      }
+
+    } catch (error) {
+      console.error('Error processing SMS:', error);
+      res.status(400).json({
+        success: false,
+        message: 'Error: Please use format DISASTER#DISTRICT#DSDIVISION#TYPE#DESCRIPTION#NAME#ID',
+        error: error.message
+      });
     }
-
-    const [_, district, dsDivision, disasterType, description, reporterName, reporterIdNumber] = parts;
-
-    if (!isValidDisasterType(disasterType)) {
-      throw new Error('Invalid disaster type');
-    }
-
-    const reportData = {
-      district: district.trim(),
-      dsDivision: dsDivision.trim(),
-      disasterType: disasterType.trim(),
-      description: description.trim(),
-      reporterName: reporterName.trim(),
-      reporterIdNumber: reporterIdNumber.trim(),
-      reportType: 'single',
-      timestamp: admin.firestore.FieldValue.serverTimestamp(),
-      status: 'pending',
-      source: 'sms',
-      phoneNumber: fromNumber
-    };
-
-    const docRef = await admin.firestore()
-      .collection('crowdsourcedReports')
-      .add(reportData);
-
-    const twiml = new MessagingResponse();
-    twiml.message(`Report received. Reference ID: ${docRef.id}`);
-
-    res.set('Content-Type', 'text/xml');
-    res.send(twiml.toString());
-
-  } catch (error) {
-    console.error('Error processing SMS:', error);
-    const twiml = new MessagingResponse();
-    twiml.message('Error: Please use format DISASTER#DISTRICT#DSDIVISION#TYPE#DESCRIPTION#NAME#ID');
-    res.set('Content-Type', 'text/xml');
-    res.send(twiml.toString());
-  }
-});
-
+  });
 // Cloud Functions exports
 exports.getDisasterResponse = functions
   .region('asia-southeast1')

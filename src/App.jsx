@@ -34,12 +34,16 @@ import DisasterReportManagement from './views/dmc-official/DisasterReportManagem
 import WarningForm from './views/dmc-official/WarningForm';
 import DisasterAI from './views/respondant/DisasterAI';
 import DisasterDetailView from './views/respondant/DisasterDetailView';
-import FloodDisasterSupportPage from './views/respondant/FloodPage';
+import FloodDisasterSupportPage from './views/respondant/disaster-pages/FloodPage';
+import LandslideDisasterSupportPage from './views/respondant/disaster-pages/LandslidePage';
 import WarningLocationMap from './components/WarningLocationMap';
 import RealtimePage from './views/respondant/RealtimePage';
 import ResourceLocator from './views/respondant/ResourceLocator';
 import VolunteerAdminPage from './views/volunteer-admin/volunteeradmin-landing';
 import MissingPersonRegistry from './views/respondant/missingperson-module/MissingPersonRegistry';
+import DroughtDisasterSupportPage from './views/respondant/disaster-pages/DroughtPage';
+import DisasterCatalouge from './views/respondant/disaster-catalouge/DisasterCatalouge';
+import AdminBlogManagement from './views/respondant/disaster-catalouge/AdminBlogManagement';
 
 
 
@@ -146,7 +150,7 @@ useEffect(() => {
               <Layout>
                   <Routes>
                       {/* Public Routes */}
-                      <Route path="/" element={<HomePage />} />
+                      <Route path="/" element={<RespondantLanding />} />
                       <Route path="/role-selection" element={<RoleSelection />} />
                       <Route path="/login/:role" element={<DynamicLogin />} />
                       <Route path="/register/respondent" element={<RespondentRegister />} />
@@ -199,6 +203,15 @@ useEffect(() => {
                       />
 
 <Route
+                          path="/disastercatalogue"
+                          element={
+                              <ProtectedRoute allowedRoles={['Respondent']}>
+                                  <DisasterCatalouge/>
+                              </ProtectedRoute>
+                          }
+                      />
+
+<Route
                           path="/help/flood"
                           element={
                               <ProtectedRoute allowedRoles={['Respondent']}>
@@ -206,6 +219,26 @@ useEffect(() => {
                               </ProtectedRoute>
                           }
                       />
+
+<Route
+                          path="/help/landslide"
+                          element={
+                              <ProtectedRoute allowedRoles={['Respondent']}>
+                                  <LandslideDisasterSupportPage/>
+                              </ProtectedRoute>
+                          }
+                      />
+
+<Route
+                          path="/help/drought"
+                          element={
+                              <ProtectedRoute allowedRoles={['Respondent']}>
+                                  <DroughtDisasterSupportPage/>
+                              </ProtectedRoute>
+                          }
+                      />
+
+
 
                       <Route
                           path="/addreport"
@@ -266,6 +299,15 @@ useEffect(() => {
                           element={
                               <ProtectedRoute allowedRoles={['Dmc system admin']}>
                                   <WarningForm />
+                              </ProtectedRoute>
+                          }
+                      />
+
+<Route
+                          path="/dmc/blogedit"
+                          element={
+                              <ProtectedRoute allowedRoles={['Dmc system admin']}>
+                                  <AdminBlogManagement />
                               </ProtectedRoute>
                           }
                       />
