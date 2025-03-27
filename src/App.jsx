@@ -44,6 +44,8 @@ import MissingPersonRegistry from './views/respondant/missingperson-module/Missi
 import DroughtDisasterSupportPage from './views/respondant/disaster-pages/DroughtPage';
 import DisasterCatalouge from './views/respondant/disaster-catalouge/DisasterCatalouge';
 import AdminBlogManagement from './views/respondant/disaster-catalouge/AdminBlogManagement';
+import VolunteerLanding from './views/volunteer-user/volunteeruser-landing';
+import UserProfile from './views/respondant/UserProfile';
 
 
 
@@ -156,6 +158,17 @@ useEffect(() => {
                       <Route path="/register/respondent" element={<RespondentRegister />} />
                       <Route path="/register/volunteer" element={<VolunteerRegister />} />
                       
+
+                      <Route
+                          path="/profile"
+                          element={
+                              <ProtectedRoute allowedRoles={['Respondent']}>
+                                  <UserProfile/>
+                              </ProtectedRoute>
+                          }
+                      />
+
+
                       {/* Protected Route */}
                       <Route
                           path="/home"
@@ -317,6 +330,15 @@ useEffect(() => {
                           element={
                               <ProtectedRoute allowedRoles={['Red cross manager']}>
                                   <VolunteerAdminPage />
+                              </ProtectedRoute>
+                          }
+                      />
+
+<Route
+                          path="/volunteer/home"
+                          element={
+                              <ProtectedRoute allowedRoles={['Volunteer']}>
+                                  <VolunteerLanding/>
                               </ProtectedRoute>
                           }
                       />
