@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { db, auth } from '../../../firebase';
-import { collection, getDocs, query, where, doc, getDoc, updateDoc } from 'firebase/firestore';
-import { Users, AlertTriangle, Check, MapPin, Heart, Info, X, Plus, Minus } from 'lucide-react';
+import { collection, getDocs, query, where, doc, getDoc, updateDoc, addDoc, onSnapshot } from 'firebase/firestore';
+import { Users, AlertTriangle, Check, MapPin, Heart, Info, X, Plus, Minus, Clock } from 'lucide-react';
 import NavigationBar from '../../utils/Navbar';
+import DisasterDetailsPopup from './DisasterDetailsPopup';
 
 const VOLUNTEER_CATEGORIES = {
   "Emergency Response": ["Search and Rescue (SAR)", "Medical Assistance", "Firefighting Support", "Evacuation Assistance", "Damage Assessment"],
@@ -21,6 +22,8 @@ const VolunteerLanding = () => {
     approvedDisasters: 0,
     approvedInRegion: 0,
     assignedDisasters: 0,
+    totalHoursLogged: 0,
+    approvedHours: 0
   });
   const [assignedDisasters, setAssignedDisasters] = useState([]);
   const [availableDisasters, setAvailableDisasters] = useState([]);
@@ -29,12 +32,55 @@ const VolunteerLanding = () => {
   const [preferences, setPreferences] = useState([]);
   const [newPreference, setNewPreference] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
+  const [loggedHours, setLoggedHours] = useState([]);
+  const [showLogHoursModal, setShowLogHoursModal] = useState(false);
+  const [selectedDisasterForLogging, setSelectedDisasterForLogging] = useState(null);
+
+  // Function to get user ID from IndexedDB
+  const getUserIdFromIndexedDB = () => {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open('firebaseLocalStorageDb');
+      
+      request.onerror = () => reject('Error opening IndexedDB');
+      
+      request.onsuccess = (event) => {
+        const db = event.target.result;
+        const transaction = db.transaction(['firebaseLocalStorage'], 'readonly');
+        const store = transaction.objectStore('firebaseLocalStorage');
+        const userRequest = store.get('firebase:authUser:[DEFAULT]');
+        
+        userRequest.onerror = () => reject('Error getting user data');
+        
+        userRequest.onsuccess = () => {
+          if (userRequest.result && userRequest.result.uid) {
+            resolve(userRequest.result.uid);
+          } else {
+            reject('User data not found in IndexedDB');
+          }
+        };
+      };
+    });
+  };
 
   // Fetch user data and stats
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const userId = auth.currentUser?.uid || localStorage.getItem('userId');
+        // Try to get user ID from multiple sources
+        let userId = auth.currentUser?.uid;
+        
+        if (!userId) {
+          userId = localStorage.getItem('userId');
+        }
+        
+        if (!userId) {
+          try {
+            userId = await getUserIdFromIndexedDB();
+          } catch (indexedDBError) {
+            console.log('Could not get user ID from IndexedDB:', indexedDBError);
+          }
+        }
+
         if (!userId) {
           console.error('User ID not found');
           return;
@@ -44,7 +90,9 @@ const VolunteerLanding = () => {
         const userDoc = await getDoc(doc(db, 'users', userId));
         if (userDoc.exists()) {
           const userData = userDoc.data();
-          setUser(userData);
+          setUser({ ...userData, uid: userId }); // Ensure uid is set in user object
+
+          // Set preferences from user data or empty array
           setPreferences(userData.disasterCategories || []);
 
           // Fetch all disasters stats
@@ -58,7 +106,7 @@ const VolunteerLanding = () => {
           const approvedDisasters = approvedSnapshot.size;
           const approvedInRegion = approvedSnapshot.docs.filter(
             (doc) => doc.data().district === userData.district && 
-                    doc.data().dsDivision === userData.dsDivision
+                    doc.data().division === userData.dsDivision
           ).length;
 
           // Fetch assigned disasters
@@ -82,7 +130,9 @@ const VolunteerLanding = () => {
               totalOpenDisasters,
               approvedDisasters,
               approvedInRegion,
-              assignedDisasters: 0
+              assignedDisasters: 0,
+              totalHoursLogged: 0,
+              approvedHours: 0
             });
           }
 
@@ -91,7 +141,7 @@ const VolunteerLanding = () => {
             collection(db, 'verifiedVolunteer'),
             where('volunteerStatus', '==', 'Approved'),
             where('district', '==', userData.district),
-            where('dsDivision', '==', userData.division)
+            where('dsDivision', '==', userData.dsDivision)
           );
           const availableSnapshot = await getDocs(availableQuery);
           const availableDisastersList = availableSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -106,6 +156,40 @@ const VolunteerLanding = () => {
 
     fetchUserData();
   }, []);
+
+  // Fetch logged hours
+  useEffect(() => {
+    if (!user?.uid) return;
+
+    const q = query(
+      collection(db, 'volunteerHours'),
+      where('volunteerId', '==', user.uid)
+    );
+    
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const hoursData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        date: doc.data().date?.toDate(),
+        createdAt: doc.data().createdAt?.toDate()
+      }));
+      
+      setLoggedHours(hoursData);
+      
+      // Update stats
+      const approvedHours = hoursData
+        .filter(h => h.status === 'approved')
+        .reduce((sum, h) => sum + h.hours, 0);
+      
+      setUserStats(prev => ({
+        ...prev,
+        totalHoursLogged: hoursData.length,
+        approvedHours
+      }));
+    });
+
+    return () => unsubscribe();
+  }, [user?.uid]);
 
   const formatDate = (timestamp) => {
     if (!timestamp) return 'N/A';
@@ -128,7 +212,11 @@ const VolunteerLanding = () => {
 
   const handleSavePreferences = async () => {
     try {
-      const userId = auth.currentUser?.uid || localStorage.getItem('userId');
+      const userId = auth.currentUser?.uid || localStorage.getItem('userId') || user?.uid;
+      if (!userId) {
+        console.error('No user ID available to save preferences');
+        return;
+      }
       await updateDoc(doc(db, 'users', userId), {
         disasterCategories: preferences
       });
@@ -145,14 +233,104 @@ const VolunteerLanding = () => {
            Object.values(disaster.volunteerRequests || {}).some((_, key) => key.includes(categoryFilter));
   });
 
+  const LogHoursModal = ({ disaster, onClose }) => {
+    const [hours, setHours] = useState('');
+    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+    const [submitting, setSubmitting] = useState(false);
+
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      setSubmitting(true);
+      try {
+        // Use the user object's uid or fall back to auth.currentUser
+        const volunteerId = user?.uid || auth.currentUser?.uid;
+        if (!volunteerId) {
+          throw new Error('No user ID available for logging hours');
+        }
+
+        await addDoc(collection(db, 'volunteerHours'), {
+          disasterId: disaster.id,
+          volunteerId: volunteerId,
+          volunteerName: user.fullName,
+          disasterType: disaster.disasterType,
+          hours: parseFloat(hours),
+          date: new Date(date),
+          status: 'pending',
+          createdAt: new Date()
+        });
+        onClose();
+      } catch (error) {
+        console.error('Error logging hours:', error);
+        alert('Failed to log hours');
+      } finally {
+        setSubmitting(false);
+      }
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-lg p-6 max-w-md w-full">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">Log Hours for {disaster.disasterType}</h2>
+            <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+          <form onSubmit={handleSubmit}>
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-1">Date</label>
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="w-full p-2 border rounded-lg"
+                required
+                max={new Date().toISOString().split('T')[0]}
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-1">Hours Worked</label>
+              <input
+                type="number"
+                step="0.5"
+                min="0.5"
+                max="24"
+                value={hours}
+                onChange={(e) => setHours(e.target.value)}
+                className="w-full p-2 border rounded-lg"
+                required
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-blue-300"
+              >
+                {submitting ? 'Logging...' : 'Log Hours'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  };
+
   if (loading) {
     return <div className="p-6 text-center">Loading...</div>;
   }
 
   return (
     <div className="max-w-7xl mx-auto p-6">
-       <NavigationBar/> 
-      {/* User Profile Section - Clean and Left-Aligned */}
+      <NavigationBar/>
+      {/* User Profile Section */}
       <div className="mb-8 space-y-4 mt-16">
         <h1 className="text-2xl font-bold">Volunteer Dashboard</h1>
         <div className="space-y-2">
@@ -170,7 +348,7 @@ const VolunteerLanding = () => {
           <div className="flex items-center gap-2">
             <MapPin className="w-4 h-4 text-gray-600" />
             <span className="text-sm text-gray-600">
-              {user?.district}, {user?.dsDivision}
+              {user?.division} , {user?.district}
             </span>
           </div>
         </div>
@@ -200,20 +378,20 @@ const VolunteerLanding = () => {
 
         <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
           <div className="flex items-center gap-3">
-            <MapPin className="w-6 h-6 text-yellow-600" />
+            <Heart className="w-6 h-6 text-purple-600" />
             <div>
-              <h3 className="text-sm text-gray-500">Approved in Your Area</h3>
-              <p className="text-xl font-bold">{userStats.approvedInRegion}</p>
+              <h3 className="text-sm text-gray-500">Assigned to You</h3>
+              <p className="text-xl font-bold">{userStats.assignedDisasters}</p>
             </div>
           </div>
         </div>
 
         <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
           <div className="flex items-center gap-3">
-            <Heart className="w-6 h-6 text-purple-600" />
+            <Clock className="w-6 h-6 text-orange-600" />
             <div>
-              <h3 className="text-sm text-gray-500">Assigned to You</h3>
-              <p className="text-xl font-bold">{userStats.assignedDisasters}</p>
+              <h3 className="text-sm text-gray-500">Approved Hours</h3>
+              <p className="text-xl font-bold">{userStats.approvedHours}</p>
             </div>
           </div>
         </div>
@@ -291,6 +469,7 @@ const VolunteerLanding = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Commenced</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Risk Level</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Log Hours</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -316,6 +495,17 @@ const VolunteerLanding = () => {
                         <Info className="w-5 h-5" />
                       </button>
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <button
+                        onClick={() => {
+                          setSelectedDisasterForLogging(disaster);
+                          setShowLogHoursModal(true);
+                        }}
+                        className="text-green-600 hover:text-green-900"
+                      >
+                        Log Hours
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -324,6 +514,48 @@ const VolunteerLanding = () => {
         ) : (
           <div className="p-4 text-center text-gray-500">
             You are not currently assigned to any disasters.
+          </div>
+        )}
+      </div>
+
+      {/* Hours Log Section */}
+      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
+        <h2 className="text-xl font-bold mb-4">Your Hours Log</h2>
+        {loggedHours.length > 0 ? (
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Disaster</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hours</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {loggedHours.map((entry) => (
+                <tr key={entry.id}>
+                  <td className="px-6 py-4 whitespace-nowrap">{entry.disasterType}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{entry.date?.toLocaleDateString()}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{entry.hours}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 py-1 rounded-full text-xs ${
+                      entry.status === 'approved' ? 'bg-green-100 text-green-800' :
+                      entry.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                      'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {entry.status}
+                    </span>
+                    {entry.comments && (
+                      <div className="text-sm text-gray-500 mt-1">{entry.comments}</div>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <div className="p-4 text-center text-gray-500">
+            No hours logged yet
           </div>
         )}
       </div>
@@ -399,124 +631,18 @@ const VolunteerLanding = () => {
 
       {/* Disaster Details Popup */}
       {selectedDisaster && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">
-                {selectedDisaster.disasterType} in {selectedDisaster.district}
-              </h2>
-              <button onClick={() => setSelectedDisaster(null)} className="text-gray-500 hover:text-gray-700">
-                <X className="w-6 h-6" />
-              </button>
-            </div>
+        <DisasterDetailsPopup
+          selectedDisaster={selectedDisaster}
+          setSelectedDisaster={setSelectedDisaster}
+        />
+      )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div>
-                <h3 className="font-medium mb-2">Basic Information</h3>
-                <div className="space-y-2">
-                  <p><span className="font-semibold">DS Division:</span> {selectedDisaster.dsDivision}</p>
-                  <p><span className="font-semibold">Date Commenced:</span> {formatDate(selectedDisaster.dateCommenced)}</p>
-                  <p><span className="font-semibold">Date Ended:</span> {formatDate(selectedDisaster.dateEnded)}</p>
-                  <p><span className="font-semibold">Risk Level:</span> 
-                    <span className={`ml-2 px-2 py-1 rounded-full text-xs ${
-                      selectedDisaster.riskLevel === 'High' ? 'bg-red-100 text-red-800' :
-                      selectedDisaster.riskLevel === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-green-100 text-green-800'
-                    }`}>
-                      {selectedDisaster.riskLevel}
-                    </span>
-                  </p>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="font-medium mb-2">Human Impact</h3>
-                {selectedDisaster.humanEffect ? (
-                  <div className="space-y-2">
-                    <p><span className="font-semibold">Affected Families:</span> {selectedDisaster.humanEffect.affectedFamilies}</p>
-                    <p><span className="font-semibold">Affected People:</span> {selectedDisaster.humanEffect.affectedPeople}</p>
-                    <p><span className="font-semibold">Deaths:</span> {selectedDisaster.humanEffect.deaths}</p>
-                    <p><span className="font-semibold">Injured:</span> {selectedDisaster.humanEffect.injured}</p>
-                    <p><span className="font-semibold">Missing:</span> {selectedDisaster.humanEffect.missing}</p>
-                  </div>
-                ) : (
-                  <p className="text-gray-500">No human impact data available</p>
-                )}
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <h3 className="font-medium mb-2">Infrastructure Damage</h3>
-              {selectedDisaster.infrastructure ? (
-                <div className="space-y-2">
-                  <p><span className="font-semibold">Houses Fully Damaged:</span> {selectedDisaster.infrastructure.housesFullyDamaged}</p>
-                  <p><span className="font-semibold">Houses Partially Damaged:</span> {selectedDisaster.infrastructure.housesPartiallyDamaged}</p>
-                  <p><span className="font-semibold">Small Infrastructure Damages:</span> {selectedDisaster.infrastructure.smallInfrastructureDamages}</p>
-                  {selectedDisaster.infrastructure.criticalInfrastructureDamages?.length > 0 && (
-                    <div>
-                      <p className="font-semibold">Critical Infrastructure Damages:</p>
-                      <ul className="list-disc pl-5">
-                        {selectedDisaster.infrastructure.criticalInfrastructureDamages.map((item, index) => (
-                          <li key={index}>{item}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <p className="text-gray-500">No infrastructure damage data available</p>
-              )}
-            </div>
-
-            <div className="mb-6">
-              <h3 className="font-medium mb-2">Volunteer Requests</h3>
-              {selectedDisaster.volunteerRequests ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                  {Object.entries(selectedDisaster.volunteerRequests).map(([type, count]) => (
-                    <div key={type} className="bg-gray-100 p-3 rounded-lg">
-                      <p className="font-semibold">{type}</p>
-                      <p>Required: {count}</p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-500">No volunteer requests data available</p>
-              )}
-            </div>
-
-            {selectedDisaster.assignedVolunteers?.length > 0 && (
-              <div>
-                <h3 className="font-medium mb-2">Assigned Volunteers</h3>
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Red Cross</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned At</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {selectedDisaster.assignedVolunteers.map((volunteer, index) => (
-                        <tr key={index}>
-                          <td className="px-6 py-4 whitespace-nowrap">{volunteer.fullName}</td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            {volunteer.isRedCrossVolunteer ? (
-                              <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">Yes</span>
-                            ) : (
-                              <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs">No</span>
-                            )}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">{new Date(volunteer.assignedAt).toLocaleString()}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+      {/* Log Hours Modal */}
+      {showLogHoursModal && (
+        <LogHoursModal
+          disaster={selectedDisasterForLogging}
+          onClose={() => setShowLogHoursModal(false)}
+        />
       )}
     </div>
   );

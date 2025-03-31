@@ -46,6 +46,7 @@ import DisasterCatalouge from './views/respondant/disaster-catalouge/DisasterCat
 import AdminBlogManagement from './views/respondant/disaster-catalouge/AdminBlogManagement';
 import VolunteerLanding from './views/volunteer-user/volunteeruser-landing';
 import UserProfile from './views/respondant/UserProfile';
+import SOSPage from './views/respondant/SOSPage';
 
 
 
@@ -175,6 +176,15 @@ useEffect(() => {
                           element={
                               <ProtectedRoute allowedRoles={['Respondent']}>
                                   <RespondantLanding />
+                              </ProtectedRoute>
+                          }
+                      />
+
+<Route
+                          path="/sos"
+                          element={
+                              <ProtectedRoute allowedRoles={['Respondent']}>
+                                  <SOSPage />
                               </ProtectedRoute>
                           }
                       />

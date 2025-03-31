@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { db } from '../../../firebase';
-import { collection, getDocs, doc, setDoc, updateDoc, query, where, arrayUnion,arrayRemove ,getDoc } from "firebase/firestore";
-import { Search, Filter, Info, Check, X, Users, Shield, AlertTriangle, Clock } from 'lucide-react';
+import { db, auth } from '../../../firebase'; // Added auth to the import
+import { collection, getDocs, doc, setDoc, updateDoc, query, where, arrayUnion, arrayRemove, getDoc, onSnapshot } from "firebase/firestore";
+import { Search, Filter, Info, Check, X, Users, AlertTriangle, Clock } from 'lucide-react';
 
 const VOLUNTEER_CATEGORIES = {
   "Emergency Response": ["Search and Rescue (SAR)", "Medical Assistance", "Firefighting Support", "Evacuation Assistance", "Damage Assessment"],
@@ -27,6 +27,7 @@ const VolunteerAdminPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [approvedDisasters, setApprovedDisasters] = useState([]);
   const [cannotAttendDisasters, setCannotAttendDisasters] = useState([]);
+  const [pendingHours, setPendingHours] = useState([]);
   const [stats, setStats] = useState({
     totalVolunteers: 0,
     redCrossVolunteers: 0,
@@ -39,203 +40,246 @@ const VolunteerAdminPage = () => {
 
   const [volunteerSuggestions, setVolunteerSuggestions] = useState([]);
   const [defaultVolunteers, setDefaultVolunteers] = useState([]);
-const [searchQueryVolunteer, setSearchQueryVolunteer] = useState('');
+  const [searchQueryVolunteer, setSearchQueryVolunteer] = useState('');
 
-// Fix the useEffect to properly fetch volunteers that match the disaster district and division
-useEffect(() => {
-  if (selectedDisaster) {
-    const fetchDisasterDetails = async () => {
-      try {
-        // If the disaster is in verifiedVolunteer collection, get the latest data
-        if (selectedDisaster.volunteerStatus) {
-          const disasterDoc = await getDoc(doc(db, 'verifiedVolunteer', selectedDisaster.id));
-          if (disasterDoc.exists()) {
-            const updatedData = disasterDoc.data();
-            setSelectedDisaster(prev => ({...prev, ...updatedData}));
+  // Fix the useEffect to properly fetch volunteers that match the disaster district and division
+  useEffect(() => {
+    if (selectedDisaster) {
+      const fetchDisasterDetails = async () => {
+        try {
+          // If the disaster is in verifiedVolunteer collection, get the latest data
+          if (selectedDisaster.volunteerStatus) {
+            const disasterDoc = await getDoc(doc(db, 'verifiedVolunteer', selectedDisaster.id));
+            if (disasterDoc.exists()) {
+              const updatedData = disasterDoc.data();
+              setSelectedDisaster(prev => ({...prev, ...updatedData}));
+            }
           }
-        }
-        
-        // Fetch volunteers in the area regardless
-        const fetchDefaultVolunteers = async () => {
-          try {
-            // Create a query to get volunteers in the same district and division
-            const usersQuery = query(
-              collection(db, 'users'),
-              where('roles', 'array-contains', 'Volunteer'),
-              where('district', '==', selectedDisaster.district),
-              where('division', '==', selectedDisaster.dsDivision)
-            );
-        
-            const usersSnapshot = await getDocs(usersQuery);
-            const volunteers = [];
-        
-            usersSnapshot.forEach((doc) => {
-              const userData = doc.data();
-        
-              // Calculate similarity between volunteer skills and disaster needs
-              const similarity = calculateSimilarity(
-                userData.disasterCategories || [], 
-                selectedDisaster.disasterCategories || []
+          
+          // Fetch volunteers in the area regardless
+          const fetchDefaultVolunteers = async () => {
+            try {
+              // Create a query to get volunteers in the same district and division
+              const usersQuery = query(
+                collection(db, 'users'),
+                where('roles', 'array-contains', 'Volunteer'),
+                where('district', '==', selectedDisaster.district),
+                where('division', '==', selectedDisaster.dsDivision)
               );
-        
-              // Handle missing fields:
-              // - If `isVolunteering` is missing, treat it as `false` (available for assignment)
-              // - If `isRedCrossVolunteer` is missing, treat it as `false` (not a Red Cross volunteer)
-              const isVolunteering = userData.isVolunteering ?? false; // Default to false if field is missing
-              const isRedCrossVolunteer = userData.isRedCrossVolunteer ?? false; // Default to false if field is missing
-        
-              // Additional criteria checks (optional, depending on your requirements)
-              const hasTransportation = userData.hasTransportation ?? true; // Default to true if field is missing
-              const isPhysicallyFit = userData.isPhysicallyFit ?? true; // Default to true if field is missing
-        
-              // Only include volunteers who are not currently volunteering (or if the field is missing)
-              if (!isVolunteering) {
-                volunteers.push({ 
-                  userId: doc.id, 
-                  ...userData, 
-                  similarity,
-                  isRedCrossVolunteer,
-                  isVolunteering: isVolunteering // Include this field for clarity
-                });
-              }
-            });
-        
-            // Sort by similarity score (highest first), then by Red Cross affiliation
-            volunteers.sort((a, b) => {
-              if (b.similarity === a.similarity) {
-                return b.isRedCrossVolunteer - a.isRedCrossVolunteer; // Red Cross volunteers first
-              }
-              return b.similarity - a.similarity;
-            });
-        
-            setDefaultVolunteers(volunteers);
-          } catch (error) {
-            console.error("Error fetching volunteers:", error);
-          }
-        };
+          
+              const usersSnapshot = await getDocs(usersQuery);
+              const volunteers = [];
+          
+              usersSnapshot.forEach((doc) => {
+                const userData = doc.data();
+          
+                // Calculate similarity between volunteer skills and disaster needs
+                const similarity = calculateSimilarity(
+                  userData.disasterCategories || [], 
+                  selectedDisaster.disasterCategories || []
+                );
+          
+                // Handle missing fields:
+                // - If `isVolunteering` is missing, treat it as `false` (available for assignment)
+                // - If `isRedCrossVolunteer` is missing, treat it as `false` (not a Red Cross volunteer)
+                const isVolunteering = userData.isVolunteering ?? false; // Default to false if field is missing
+                const isRedCrossVolunteer = userData.isRedCrossVolunteer ?? false; // Default to false if field is missing
+          
+                // Additional criteria checks (optional, depending on your requirements)
+                const hasTransportation = userData.hasTransportation ?? true; // Default to true if field is missing
+                const isPhysicallyFit = userData.isPhysicallyFit ?? true; // Default to true if field is missing
+          
+                // Only include volunteers who are not currently volunteering (or if the field is missing)
+                if (!isVolunteering) {
+                  volunteers.push({ 
+                    userId: doc.id, 
+                    ...userData, 
+                    similarity,
+                    isRedCrossVolunteer,
+                    isVolunteering: isVolunteering // Include this field for clarity
+                  });
+                }
+              });
+          
+              // Sort by similarity score (highest first), then by Red Cross affiliation
+              volunteers.sort((a, b) => {
+                if (b.similarity === a.similarity) {
+                  return b.isRedCrossVolunteer - a.isRedCrossVolunteer; // Red Cross volunteers first
+                }
+                return b.similarity - a.similarity;
+              });
+          
+              setDefaultVolunteers(volunteers);
+            } catch (error) {
+              console.error("Error fetching volunteers:", error);
+            }
+          };
 
-        fetchDefaultVolunteers();
+          fetchDefaultVolunteers();
+        } catch (error) {
+          console.error("Error fetching disaster details:", error);
+        }
+      };
+
+      fetchDisasterDetails();
+    }
+  }, [selectedDisaster?.id]);
+
+  useEffect(() => {
+    const q = query(collection(db, 'volunteerHours'), where('status', '==', 'pending'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const hours = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        date: doc.data().date?.toDate(),
+        createdAt: doc.data().createdAt?.toDate()
+      }));
+      setPendingHours(hours);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Add approval handlers
+  const handleApproveHours = async (hourEntry) => {
+    try {
+      await updateDoc(doc(db, 'volunteerHours', hourEntry.id), {
+        status: 'approved',
+        reviewedBy: auth.currentUser?.displayName || 'Admin', // Fallback to 'Admin' if displayName is not available
+        reviewedAt: new Date()
+      });
+    } catch (error) {
+      console.error('Error approving hours:', error);
+      alert('Failed to approve hours');
+    }
+  };
+
+  const handleRejectHours = async (hourEntry) => {
+    const comments = prompt('Enter rejection reason:');
+    if (comments) {
+      try {
+        await updateDoc(doc(db, 'volunteerHours', hourEntry.id), {
+          status: 'rejected',
+          comments,
+          reviewedBy: auth.currentUser?.displayName || 'Admin', // Fallback to 'Admin' if displayName is not available
+          reviewedAt: new Date()
+        });
       } catch (error) {
-        console.error("Error fetching disaster details:", error);
+        console.error('Error rejecting hours:', error);
+        alert('Failed to reject hours');
       }
-    };
+    }
+  };
 
-    fetchDisasterDetails();
-  }
-}, [selectedDisaster?.id]);
-
-// Improved similarity calculation function
-const calculateSimilarity = (userCategories, disasterCategories) => {
-  // Handle case where either array is empty or undefined
-  if (!userCategories || !disasterCategories || 
-      userCategories.length === 0 || disasterCategories.length === 0) {
-    return 0;
-  }
-  
-  // Count matching categories
-  const commonCategories = userCategories.filter(category => 
-    disasterCategories.includes(category)
-  );
-  
-  // Calculate percentage match
-  const similarityScore = Math.round((commonCategories.length / disasterCategories.length) * 100);
-  return similarityScore;
-};
-
-// Improved volunteer search function
-const handleSearchVolunteers = (query) => {
-  setSearchQueryVolunteer(query);
-  
-  if (!query.trim()) {
-    setVolunteerSuggestions([]);
-    return;
-  }
-  
-  const filteredVolunteers = defaultVolunteers.filter(volunteer =>
-    volunteer.fullName.toLowerCase().includes(query.toLowerCase())
-  );
-  
-  setVolunteerSuggestions(filteredVolunteers);
-};
-
-// Enhanced volunteer assignment function
-const handleAssignVolunteer = async (volunteer) => {
-  try {
-    // Update the user document to mark as volunteering
-    await updateDoc(doc(db, 'users', volunteer.userId), {
-      isVolunteering: true, // Set to true when assigned
-      assignedDisasterIds: arrayUnion(selectedDisaster.id)
-    });
-
-    // Update the disaster document to add the volunteer
-    await updateDoc(doc(db, 'verifiedVolunteer', selectedDisaster.id), {
-      assignedVolunteers: arrayUnion({
-        userId: volunteer.userId,
-        fullName: volunteer.fullName,
-        isRedCrossVolunteer: volunteer.isRedCrossVolunteer ?? false, // Handle missing field
-        assignedAt: new Date().toISOString()
-      })
-    });
-
-    // Update local state immediately
-    setDefaultVolunteers(prev => 
-      prev.map(v => v.userId === volunteer.userId ? { ...v, isVolunteering: true } : v)
-    );
-
-    setVolunteerSuggestions(prev => 
-      prev.map(v => v.userId === volunteer.userId ? { ...v, isVolunteering: true } : v)
-    );
-
-    alert('Volunteer successfully assigned to this disaster!');
-  } catch (error) {
-    console.error('Error assigning volunteer: ', error);
-    alert('Failed to assign volunteer. Please try again.');
-  }
-};
-
-const handleUnassignVolunteer = async (volunteer) => {
-  try {
-    // First, update the user document to remove volunteer status
-    await updateDoc(doc(db, 'users', volunteer.userId), {
-      isVolunteering: false,
-      assignedDisasterIds: arrayRemove(selectedDisaster.id)
-    });
+  // Improved similarity calculation function
+  const calculateSimilarity = (userCategories, disasterCategories) => {
+    // Handle case where either array is empty or undefined
+    if (!userCategories || !disasterCategories || 
+        userCategories.length === 0 || disasterCategories.length === 0) {
+      return 0;
+    }
     
-    // Then update the disaster document to remove the volunteer
-    await updateDoc(doc(db, 'verifiedVolunteer', selectedDisaster.id), {
-      assignedVolunteers: arrayRemove({
-        userId: volunteer.userId,
-        fullName: volunteer.fullName,
-        isRedCrossVolunteer: volunteer.isRedCrossVolunteer || false,
-        assignedAt: volunteer.assignedAt
-      })
-    });
-    
-    // Update local state to reflect changes
-    setSelectedDisaster(prev => ({
-      ...prev,
-      assignedVolunteers: prev.assignedVolunteers 
-        ? prev.assignedVolunteers.filter(v => v.userId !== volunteer.userId) 
-        : []
-    }));
-    
-    // Update the volunteer's status in the local state
-    setDefaultVolunteers(prev => 
-      prev.map(v => v.userId === volunteer.userId ? {...v, isVolunteering: false} : v)
+    // Count matching categories
+    const commonCategories = userCategories.filter(category => 
+      disasterCategories.includes(category)
     );
     
-    setVolunteerSuggestions(prev => 
-      prev.map(v => v.userId === volunteer.userId ? {...v, isVolunteering: false} : v)
+    // Calculate percentage match
+    const similarityScore = Math.round((commonCategories.length / disasterCategories.length) * 100);
+    return similarityScore;
+  };
+
+  // Improved volunteer search function
+  const handleSearchVolunteers = (query) => {
+    setSearchQueryVolunteer(query);
+    
+    if (!query.trim()) {
+      setVolunteerSuggestions([]);
+      return;
+    }
+    
+    const filteredVolunteers = defaultVolunteers.filter(volunteer =>
+      volunteer.fullName.toLowerCase().includes(query.toLowerCase())
     );
     
-    alert('Volunteer successfully unassigned from this disaster!');
-  } catch (error) {
-    console.error('Error unassigning volunteer: ', error);
-    alert('Failed to unassign volunteer. Please try again.');
-  }
-};
+    setVolunteerSuggestions(filteredVolunteers);
+  };
 
+  // Enhanced volunteer assignment function
+  const handleAssignVolunteer = async (volunteer) => {
+    try {
+      // Update the user document to mark as volunteering
+      await updateDoc(doc(db, 'users', volunteer.userId), {
+        isVolunteering: true, // Set to true when assigned
+        assignedDisasterIds: arrayUnion(selectedDisaster.id)
+      });
 
+      // Update the disaster document to add the volunteer
+      await updateDoc(doc(db, 'verifiedVolunteer', selectedDisaster.id), {
+        assignedVolunteers: arrayUnion({
+          userId: volunteer.userId,
+          fullName: volunteer.fullName,
+          isRedCrossVolunteer: volunteer.isRedCrossVolunteer ?? false, // Handle missing field
+          assignedAt: new Date().toISOString()
+        })
+      });
+
+      // Update local state immediately
+      setDefaultVolunteers(prev => 
+        prev.map(v => v.userId === volunteer.userId ? { ...v, isVolunteering: true } : v)
+      );
+
+      setVolunteerSuggestions(prev => 
+        prev.map(v => v.userId === volunteer.userId ? { ...v, isVolunteering: true } : v)
+      );
+
+      alert('Volunteer successfully assigned to this disaster!');
+    } catch (error) {
+      console.error('Error assigning volunteer: ', error);
+      alert('Failed to assign volunteer. Please try again.');
+    }
+  };
+
+  const handleUnassignVolunteer = async (volunteer) => {
+    try {
+      // First, update the user document to remove volunteer status
+      await updateDoc(doc(db, 'users', volunteer.userId), {
+        isVolunteering: false,
+        assignedDisasterIds: arrayRemove(selectedDisaster.id)
+      });
+      
+      // Then update the disaster document to remove the volunteer
+      await updateDoc(doc(db, 'verifiedVolunteer', selectedDisaster.id), {
+        assignedVolunteers: arrayRemove({
+          userId: volunteer.userId,
+          fullName: volunteer.fullName,
+          isRedCrossVolunteer: volunteer.isRedCrossVolunteer || false,
+          assignedAt: volunteer.assignedAt
+        })
+      });
+      
+      // Update local state to reflect changes
+      setSelectedDisaster(prev => ({
+        ...prev,
+        assignedVolunteers: prev.assignedVolunteers 
+          ? prev.assignedVolunteers.filter(v => v.userId !== volunteer.userId) 
+          : []
+      }));
+      
+      // Update the volunteer's status in the local state
+      setDefaultVolunteers(prev => 
+        prev.map(v => v.userId === volunteer.userId ? {...v, isVolunteering: false} : v)
+      );
+      
+      setVolunteerSuggestions(prev => 
+        prev.map(v => v.userId === volunteer.userId ? {...v, isVolunteering: false} : v)
+      );
+      
+      alert('Volunteer successfully unassigned from this disaster!');
+    } catch (error) {
+      console.error('Error unassigning volunteer: ', error);
+      alert('Failed to unassign volunteer. Please try again.');
+    }
+  };
 
   const itemsPerPage = 12;
 
@@ -770,6 +814,53 @@ const handleUnassignVolunteer = async (volunteer) => {
         )}
       </div>
 
+      <div className="mt-12">
+        <h2 className="text-xl font-bold mb-6">Pending Hours Approval</h2>
+        {pendingHours.length > 0 ? (
+          <div className="bg-white border rounded-lg overflow-hidden">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Volunteer</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Disaster</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Hours</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {pendingHours.map((entry) => (
+                  <tr key={entry.id}>
+                    <td className="px-6 py-4 whitespace-nowrap">{entry.volunteerName}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{entry.disasterType}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{entry.date?.toLocaleDateString()}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{entry.hours}</td>
+                    <td className="px-6 py-4 whitespace-nowrap flex gap-2">
+                      <button
+                        onClick={() => handleApproveHours(entry)}
+                        className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+                      >
+                        Approve
+                      </button>
+                      <button
+                        onClick={() => handleRejectHours(entry)}
+                        className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                      >
+                        Reject
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="bg-white border rounded-lg p-8 text-center text-gray-500">
+            No pending hours to approve
+          </div>
+        )}
+      </div>
+
       {/* Cannot Attend Table */}
       <div className="mt-12">
         <h2 className="text-xl font-bold mb-6">Cannot Attend Disasters</h2>
@@ -845,216 +936,203 @@ const handleUnassignVolunteer = async (volunteer) => {
         )}
       </div>
 
-
       {/* Popup for Advanced Details */}
-{/* Popup for Advanced Details */}
-{selectedDisaster && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-    <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">{selectedDisaster.disasterType} in {selectedDisaster.district}</h2>
-        {selectedDisaster.volunteerStatus && (
-          <span className={`px-3 py-1 rounded-full text-sm ${
-            selectedDisaster.volunteerStatus === 'Approved' 
-              ? 'bg-green-100 text-green-800' 
-              : 'bg-red-100 text-red-800'
-          }`}>
-            {selectedDisaster.volunteerStatus}
-          </span>
-        )}
-      </div>
+      {selectedDisaster && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">{selectedDisaster.disasterType} in {selectedDisaster.district}</h2>
+              {selectedDisaster.volunteerStatus && (
+                <span className={`px-3 py-1 rounded-full text-sm ${
+                  selectedDisaster.volunteerStatus === 'Approved' 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-red-100 text-red-800'
+                }`}>
+                  {selectedDisaster.volunteerStatus}
+                </span>
+              )}
+            </div>
 
-      {/* Disaster Details Table */}
-      <table className="w-full mb-6 border-collapse border border-gray-200">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="p-2 border border-gray-200 text-left">Attribute</th>
-            <th className="p-2 border border-gray-200 text-left">Value</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td className="p-2 border border-gray-200">DS Division</td>
-            <td className="p-2 border border-gray-200">{selectedDisaster.dsDivision}</td>
-          </tr>
-          <tr>
-            <td className="p-2 border border-gray-200">Risk Level</td>
-            <td className="p-2 border border-gray-200">{selectedDisaster.riskLevel}</td>
-          </tr>
-          <tr>
-            <td className="p-2 border border-gray-200">Date Commenced</td>
-            <td className="p-2 border border-gray-200">{new Date(selectedDisaster.dateCommenced).toLocaleString()}</td>
-          </tr>
-          {selectedDisaster.disasterCategories && (
-            <tr>
-              <td className="p-2 border border-gray-200">Disaster Categories</td>
-              <td className="p-2 border border-gray-200">
-                {selectedDisaster.disasterCategories.join(", ")}
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-
-      {/* Volunteer Requests Table */}
-      {selectedDisaster.volunteerRequests && Object.keys(selectedDisaster.volunteerRequests).length > 0 && (
-        <>
-          <h3 className="font-medium text-lg mb-4">Volunteer Requests</h3>
-          <table className="w-full border-collapse border border-gray-200">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="p-2 border border-gray-200 text-left">Volunteer Type</th>
-                <th className="p-2 border border-gray-200 text-left">Count</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.entries(selectedDisaster.volunteerRequests).map(([type, count]) => (
-                <tr key={type}>
-                  <td className="p-2 border border-gray-200">{type}</td>
-                  <td className="p-2 border border-gray-200">{count}</td>
+            {/* Disaster Details Table */}
+            <table className="w-full mb-6 border-collapse border border-gray-200">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="p-2 border border-gray-200 text-left">Attribute</th>
+                  <th className="p-2 border border-gray-200 text-left">Value</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </>
-      )}
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="p-2 border border-gray-200">DS Division</td>
+                  <td className="p-2 border border-gray-200">{selectedDisaster.dsDivision}</td>
+                </tr>
+                <tr>
+                  <td className="p-2 border border-gray-200">Risk Level</td>
+                  <td className="p-2 border border-gray-200">{selectedDisaster.riskLevel}</td>
+                </tr>
+                <tr>
+                  <td className="p-2 border border-gray-200">Date Commenced</td>
+                  <td className="p-2 border border-gray-200">{new Date(selectedDisaster.dateCommenced).toLocaleString()}</td>
+                </tr>
+                {selectedDisaster.disasterCategories && (
+                  <tr>
+                    <td className="p-2 border border-gray-200">Disaster Categories</td>
+                    <td className="p-2 border border-gray-200">
+                      {selectedDisaster.disasterCategories.join(", ")}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
 
-      {/* Assigned Volunteers Section */}
-      {selectedDisaster.volunteerStatus === 'Approved' && (
-        <>
-          <div className="mt-6">
-            <h3 className="font-medium text-lg mb-4">Assigned Volunteers</h3>
-            <div className="border rounded-lg overflow-hidden">
-              {selectedDisaster.assignedVolunteers && selectedDisaster.assignedVolunteers.length > 0 ? (
-                <table className="w-full border-collapse">
+            {/* Volunteer Requests Table */}
+            {selectedDisaster.volunteerRequests && Object.keys(selectedDisaster.volunteerRequests).length > 0 && (
+              <>
+                <h3 className="font-medium text-lg mb-4">Volunteer Requests</h3>
+                <table className="w-full border-collapse border border-gray-200">
                   <thead>
                     <tr className="bg-gray-100">
-                      <th className="p-2 text-left">Name</th>
-                      <th className="p-2 text-left">Status</th>
-                      <th className="p-2 text-left">Assigned On</th>
-                      <th className="p-2 text-left">Actions</th>
+                      <th className="p-2 border border-gray-200 text-left">Volunteer Type</th>
+                      <th className="p-2 border border-gray-200 text-left">Count</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {selectedDisaster.assignedVolunteers.map((volunteer) => (
-                      <tr key={volunteer.userId} className="border-t">
-                        <td className="p-2">
-                          {volunteer.fullName}
-                          {volunteer.isRedCrossVolunteer && 
-                            <span className="ml-2 text-red-600 font-bold">✚</span>
-                          }
-                        </td>
-                        <td className="p-2">
-                          <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
-                            Active
-                          </span>
-                        </td>
-                        <td className="p-2">
-                          {volunteer.assignedAt ? new Date(volunteer.assignedAt).toLocaleDateString() : 'N/A'}
-                        </td>
-                        <td className="p-2">
-                          <button
-                            onClick={() => handleUnassignVolunteer(volunteer)}
-                            className="px-3 py-1 bg-red-100 text-red-800 rounded hover:bg-red-200 transition-colors"
-                          >
-                            Unassign
-                          </button>
-                        </td>
+                    {Object.entries(selectedDisaster.volunteerRequests).map(([type, count]) => (
+                      <tr key={type}>
+                        <td className="p-2 border border-gray-200">{type}</td>
+                        <td className="p-2 border border-gray-200">{count}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
-              ) : (
-                <div className="p-4 text-center text-gray-500">
-                  No volunteers have been assigned to this disaster yet.
-                </div>
-              )}
-            </div>
-          </div>
+              </>
+            )}
 
-          {/* Volunteer Assignment Section */}
-          <div className="mt-6">
-            <h3 className="font-medium text-lg mb-4">Assign New Volunteers</h3>
-            <div className="relative mb-4">
-              <div className="flex items-center bg-white border rounded-lg overflow-hidden">
-                <Search className="w-5 h-5 text-gray-500 mx-3" />
-                <input
-                  type="text"
-                  placeholder="Search volunteers by name..."
-                  className="flex-1 p-2 outline-none"
-                  value={searchQueryVolunteer}
-                  onChange={(e) => handleSearchVolunteers(e.target.value)}
-                />
-              </div>
-            </div>
-            
-            {/* Available Volunteers List */}
-            <div className="border rounded-lg max-h-60 overflow-y-auto">
-              {(searchQueryVolunteer ? volunteerSuggestions : defaultVolunteers).length > 0 ? (
-                (searchQueryVolunteer ? volunteerSuggestions : defaultVolunteers).map((volunteer) => (
-                  <div
-                    key={volunteer.userId}
-                    className="p-3 border-b hover:bg-gray-50 flex justify-between items-center"
-                  >
-                    <div>
-                      <span className="font-medium">{volunteer.fullName}</span>
-                      {volunteer.isRedCrossVolunteer && 
-                        <span className="ml-2 text-red-600 font-bold">✚</span>
-                      }
-                      <div className="text-sm text-gray-500">
-                        {volunteer.mobileNumber || "No contact number"}
+            {/* Assigned Volunteers Section */}
+            {selectedDisaster.volunteerStatus === 'Approved' && (
+              <>
+                <div className="mt-6">
+                  <h3 className="font-medium text-lg mb-4">Assigned Volunteers</h3>
+                  <div className="border rounded-lg overflow-hidden">
+                    {selectedDisaster.assignedVolunteers && selectedDisaster.assignedVolunteers.length > 0 ? (
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr className="bg-gray-100">
+                            <th className="p-2 text-left">Name</th>
+                            <th className="p-2 text-left">Status</th>
+                            <th className="p-2 text-left">Assigned On</th>
+                            <th className="p-2 text-left">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {selectedDisaster.assignedVolunteers.map((volunteer) => (
+                            <tr key={volunteer.userId} className="border-t">
+                              <td className="p-2">
+                                {volunteer.fullName}
+                                {volunteer.isRedCrossVolunteer && 
+                                  <span className="ml-2 text-red-600 font-bold">✚</span>
+                                }
+                              </td>
+                              <td className="p-2">
+                                <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
+                                  Active
+                                </span>
+                              </td>
+                              <td className="p-2">
+                                {volunteer.assignedAt ? new Date(volunteer.assignedAt).toLocaleDateString() : 'N/A'}
+                              </td>
+                              <td className="p-2">
+                                <button
+                                  onClick={() => handleUnassignVolunteer(volunteer)}
+                                  className="px-3 py-1 bg-red-100 text-red-800 rounded hover:bg-red-200 transition-colors"
+                                >
+                                  Unassign
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    ) : (
+                      <div className="p-4 text-center text-gray-500">
+                        No volunteers have been assigned to this disaster yet.
                       </div>
-                      {/* <div className="mt-1">
-                        <span className={`px-2 py-1 rounded-full text-xs ${
-                          volunteer.similarity > 70 
-                            ? 'bg-green-100 text-green-800' 
-                            : volunteer.similarity > 40
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-gray-100 text-gray-800'
-                        }`}>
-                          {volunteer.similarity}% match
-                        </span>
-                      </div> */}
-                    </div>
-                    <button
-                      onClick={() => handleAssignVolunteer(volunteer)}
-                      disabled={volunteer.isVolunteering}
-                      className={`px-3 py-1 rounded ${
-                        volunteer.isVolunteering
-                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                          : 'bg-blue-500 text-white hover:bg-blue-600'
-                      }`}
-                    >
-                      {volunteer.isVolunteering ? 'Assigned' : 'Assign'}
-                    </button>
+                    )}
                   </div>
-                ))
-              ) : (
-                <div className="p-4 text-center text-gray-500">
-                  No matching volunteers found in {selectedDisaster.district}, {selectedDisaster.dsDivision}
                 </div>
-              )}
+
+                {/* Volunteer Assignment Section */}
+                <div className="mt-6">
+                  <h3 className="font-medium text-lg mb-4">Assign New Volunteers</h3>
+                  <div className="relative mb-4">
+                    <div className="flex items-center bg-white border rounded-lg overflow-hidden">
+                      <Search className="w-5 h-5 text-gray-500 mx-3" />
+                      <input
+                        type="text"
+                        placeholder="Search volunteers by name..."
+                        className="flex-1 p-2 outline-none"
+                        value={searchQueryVolunteer}
+                        onChange={(e) => handleSearchVolunteers(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Available Volunteers List */}
+                  <div className="border rounded-lg max-h-60 overflow-y-auto">
+                    {(searchQueryVolunteer ? volunteerSuggestions : defaultVolunteers).length > 0 ? (
+                      (searchQueryVolunteer ? volunteerSuggestions : defaultVolunteers).map((volunteer) => (
+                        <div
+                          key={volunteer.userId}
+                          className="p-3 border-b hover:bg-gray-50 flex justify-between items-center"
+                        >
+                          <div>
+                            <span className="font-medium">{volunteer.fullName}</span>
+                            {volunteer.isRedCrossVolunteer && 
+                              <span className="ml-2 text-red-600 font-bold">✚</span>
+                            }
+                            <div className="text-sm text-gray-500">
+                              {volunteer.mobileNumber || "No contact number"}
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => handleAssignVolunteer(volunteer)}
+                            disabled={volunteer.isVolunteering}
+                            className={`px-3 py-1 rounded ${
+                              volunteer.isVolunteering
+                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                : 'bg-blue-500 text-white hover:bg-blue-600'
+                            }`}
+                          >
+                            {volunteer.isVolunteering ? 'Assigned' : 'Assign'}
+                          </button>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-4 text-center text-gray-500">
+                        No matching volunteers found in {selectedDisaster.district}, {selectedDisaster.dsDivision}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Close Button */}
+            <div className="mt-6 flex justify-end">
+              <button
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                onClick={() => {
+                  setSelectedDisaster(null);
+                  setSearchQueryVolunteer('');
+                  setVolunteerSuggestions([]);
+                }}
+              >
+                Close
+              </button>
             </div>
           </div>
-        </>
+        </div>
       )}
-
-      {/* Close Button */}
-      <div className="mt-6 flex justify-end">
-        <button
-          className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-          onClick={() => {
-            setSelectedDisaster(null);
-            setSearchQueryVolunteer('');
-            setVolunteerSuggestions([]);
-          }}
-        >
-          Close
-        </button>
-      </div>
-    </div>
-  </div>
-)}
     </div>
   );
 };
