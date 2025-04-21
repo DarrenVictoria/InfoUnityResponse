@@ -184,7 +184,9 @@ const NavigationBar = () => {
 
         <div className="px-3 pt-4 space-y-2">
           {/* SOS Button */}
-          <button className="w-full px-4 py-2 text-red-600 font-medium rounded-md border-2 border-red-600 hover:bg-red-50 flex items-center justify-center">
+          <button 
+            onClick={() => window.location.assign("/sos")}
+            className="w-full px-4 py-2 text-red-600 font-medium rounded-md border-2 border-red-600 hover:bg-red-50 flex items-center justify-center">
             <AlertTriangle className="h-4 w-4 mr-1" />
             {t("nav.sos")}
           </button>
@@ -311,7 +313,7 @@ const NavigationBar = () => {
       ))}
 
       <a
-        href="#"
+        href="/volunteer/home"
         className={`
         flex items-center
         ${
@@ -447,27 +449,29 @@ const NavigationBar = () => {
         </div>
 
         {/* Right Section */}
-        <div className="hidden lg:flex items-center space-x-4">
-          {renderLanguageSelector()}
+          <div className="hidden lg:flex items-center space-x-4">
+            {renderLanguageSelector()}
 
-          <button className="px-1 py-1 text-red-600 font-medium rounded-md border-2 border-red-600 hover:bg-red-50 flex items-center transition-colors">
-            <AlertTriangle className="h-4 w-4 mr-1" />
-            <span className="hidden sm:inline">{t("nav.sos")}</span>
-          </button>
-
-          {user ? (
-            renderProfileDropdown()
-          ) : (
-            <button
-              onClick={() => (window.location.href = "/login")}
-              className="px-4 py-2 bg-blue-900 text-white rounded-md hover:bg-blue-800 transition-colors"
-            >
-              {t("nav.login")}
+            <button 
+              onClick={() => window.location.assign("/sos")}
+              className="px-1 py-1 text-red-600 font-medium rounded-md border-2 border-red-600 hover:bg-red-50 flex items-center transition-colors">
+              <AlertTriangle className="h-4 w-4 mr-1" />
+              <span className="hidden sm:inline">{t("nav.sos")}</span>
             </button>
-          )}
-        </div>
 
-        {/* Mobile menu button */}
+            {user ? (
+              renderProfileDropdown()
+            ) : (
+              <button
+                onClick={() => (window.location.href = "/login")}
+                className="px-4 py-2 bg-blue-900 text-white rounded-md hover:bg-blue-800 transition-colors"
+              >
+                {t("nav.login")}
+              </button>
+            )}
+          </div>
+
+          {/* Mobile menu button */}
         <div className="lg:hidden flex items-center">
           <button
             onClick={() => {

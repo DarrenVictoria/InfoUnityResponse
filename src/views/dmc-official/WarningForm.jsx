@@ -26,7 +26,8 @@ const WarningForm = () => {
     windSpeed: '',
     waveHeight: '',
     incidentType: '',
-    warningMessage: ''
+    warningMessage: '',
+    language: 'en'
   });
   const [warnings, setWarnings] = useState([]);
   const [selectedWarning, setSelectedWarning] = useState(null);
@@ -137,6 +138,22 @@ const [manualCoordinates, setManualCoordinates] = useState({ latitude: null, lon
       ...prev,
       [name]: value
     }));
+
+     // When warningMessage changes, update both warningMessage and translate fields
+     if (name === 'warningMessage') {
+      setFormData(prev => ({
+        ...prev,
+        warningMessage: value,
+        translate: value  // Copy the same content to translate field
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+
+
     // Clear error when field is modified
     if (errors[name]) {
       setErrors(prev => ({
@@ -195,7 +212,9 @@ const [manualCoordinates, setManualCoordinates] = useState({ latitude: null, lon
           windSpeed: formData.windSpeed ? Number(formData.windSpeed) : null,
           waveHeight: formData.waveHeight ? Number(formData.waveHeight) : null,
           latitude: formData.latitude || manualCoordinates.latitude, // Use manual coordinates if geocoding failed
-          longitude: formData.longitude || manualCoordinates.longitude // Use manual coordinates if geocoding failed
+          longitude: formData.longitude || manualCoordinates.longitude, // Use manual coordinates if geocoding failed
+          language: "en",
+          translate: formData.warningMessage
         };
   
         if (selectedWarning) {
@@ -210,6 +229,7 @@ const [manualCoordinates, setManualCoordinates] = useState({ latitude: null, lon
             ...warningData,
             createdAt: serverTimestamp(),
             status: 'active',
+            language: "en"
           });
           console.log('Warning added with ID:', docRef.id);
           alert('Warning issued successfully!');

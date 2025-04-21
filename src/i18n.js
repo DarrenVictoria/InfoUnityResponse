@@ -45,7 +45,6 @@ const resources = {
         "Enable swift, coordinated response to minimize disaster impact. Facilitated by volunteer management, missing person registry, and resource allocation features.",
       "section.whatFor": "WHAT ARE YOU HERE FOR?",
       "button.reportDisaster": "Report a Disaster",
-
       // Action Buttons
       "action.realtimeMaps": "Realtime Maps",
       "action.supportChatbot": "Support Chatbot",
@@ -53,18 +52,15 @@ const resources = {
       "action.missingRegistry": "Missing Person Registry",
       "action.resources": "Resource Locator",
       "action.donate": "Donate",
-
       // Who Are We Section
       "whoWeAre.title": "WHO WE ARE AT INFO UNITY RESPONSE ?",
       "whoWeAre.partnership": "In Partnership With",
-
       // Emergency Response Grid
       "emergency.stayInformed": "STAY INFORMED",
       "emergency.drought": "RESPONSE TO DROUGHTS",
       "emergency.tsunami": "RESPONSE TO TSUNAMIS",
       "emergency.flood": "RESPONSE TO RAIN / FLOOD",
       "emergency.landslide": "RESPONSE TO LANDSLIDES",
-
       // Latest Updates Section
       "updates.latestUpdates": "LATEST UPDATES",
       "updates.scrollLeft": "Scroll left",
@@ -79,22 +75,18 @@ const resources = {
       "updates.damageLevel": "Damage Level",
       "updates.evacuationStatus": "Evacuation Status",
       "updates.createdBy": "Created by",
-
       // Status translations
       "updates.status.approved": "Approved",
       "updates.status.pending": "Pending",
       "updates.status.rejected": "Rejected",
-
       // Damage level translations
       "updates.damageLevels.severe": "Severe",
       "updates.damageLevels.moderate": "Moderate",
       "updates.damageLevels.minor": "Minor",
-
       // Evacuation status translations
       "updates.evacuationStatuses.required": "Required",
       "updates.evacuationStatuses.recommended": "Recommended",
       "updates.evacuationStatuses.notRequired": "Not Required",
-
       //Info Section Accordian
       "logo.alt": "InfoUnity Response Logo",
       "logo.partner1": "Red Cross Logo",
@@ -119,7 +111,6 @@ const resources = {
         "How does InfoUnity Response leverage technology?",
       "whoWeAre.technology.content":
         "InfoUnity Response stays at the forefront of disaster management by strategically leveraging cutting-edge technologies. We utilize machine learning algorithms for disaster impact prediction and resource allocation, allowing for proactive rather than reactive responses. Our use of real-time data synchronization through Firebase ensures that all users have access to the most current information, critical in rapidly evolving disaster scenarios. The implementation of a Progressive Web App architecture allows our platform to function effectively even in low-connectivity areas often encountered during disasters. We incorporate AI-driven chatbots to provide immediate, contextual assistance to users, and employ geospatial technologies for accurate mapping and location-based services. By continuously exploring emerging technologies like improved natural language processing, advanced data analytics, and potentially augmented reality for on-ground assistance, we ensure that InfoUnity Response remains a technological leader in the disaster management field.",
-
       //Login
       "logo.alt": "Logo",
       email: "Email",
@@ -127,7 +118,6 @@ const resources = {
       as: "as",
       dontHaveAccount: "Don't have an account?",
       register: "Register",
-
       registerAsRespondent: "Register as a Respondent",
       nicNumber: "NIC Number",
       fullName: "Full Name",
@@ -145,15 +135,12 @@ const resources = {
       fullName: "Full Name",
       mobileNumber: "Mobile Number",
       alreadyHaveAccount: "Already have an account?",
-
       locationValidationError: "District and Division are required.",
-      nicValidationError:
-        "NIC number must be alphanumeric and between 1 to 13 characters.",
+      nicValidationError: "NIC number must be alphanumeric and between 1 to 13 characters.",
       mobileValidationError: "Mobile number must be exactly 9 digits.",
       emailValidationError: "Invalid email format.",
       passwordValidationError: "Password must be at least 6 characters long.",
       redCrossVolunteer: "Are you a Red Cross Volunteer?",
-
       //Register
       "disasterCategories": "Disaster Categories",
       "Emergency Response": "Emergency Response",
@@ -185,7 +172,6 @@ const resources = {
       "Animal Evacuation & Shelter": "Animal Evacuation & Shelter",
       "Wildlife Conservation": "Wildlife Conservation",
       "searchDisasterCategories": "Search disaster categories...",
-
       // Emergency response page
       "emergency.responseTitle": "Disaster Response Center",
       "emergency.latestArticles": "Latest Articles",
@@ -195,13 +181,12 @@ const resources = {
       "emergency.flood": "Flood",
       "emergency.landslide": "Landslide",
       "emergency.noArticles": "No articles available at this time",
-
+      "warnings.windSpeed": "Wind Speed",
       // Common elements
       "common.previous": "Previous",
       "common.next": "Next",
       "common.readMore": "Read More",
       "common.loading": "Loading...",
-
       // Admin section
       "admin.articleManagement": "Disaster Articles Management",
       "admin.createArticle": "Create New Article",
@@ -234,7 +219,6 @@ const resources = {
       "admin.featured": "Featured Article",
       "admin.tags": "Tags",
       "admin.addTag": "Add Tag",
-
       // Article view
       "article.shareArticle": "Share this Article",
       "article.relatedArticles": "Related Articles",
@@ -243,10 +227,77 @@ const resources = {
       "article.publishedOn": "Published on {{date}}",
       "article.lastUpdated": "Last updated {{date}}",
       "article.by": "By {{author}}",
-      "article.backToArticles": "Back to Articles"
-
-
-
+      "article.backToArticles": "Back to Articles",
+      "updates": {
+        "all": "All",
+        "warnings": "Warnings",
+        "reports": "Reports",
+        "latestUpdates": "Latest Updates",
+        "scrollLeft": "Scroll left",
+        "scrollRight": "Scroll right",
+        "untitledDisaster": "Untitled Disaster",
+        "untitledWarning": "Untitled Warning",
+        "noDescription": "No description provided",
+        "unknownLocation": "Location unknown",
+        "anonymous": "Anonymous",
+        "magnitude": "Magnitude",
+        "casualties": "Casualties",
+        "damageLevel": "Damage Level",
+        "evacuationStatus": "Evacuation Status",
+        "createdBy": "Created by",
+        "issuedBy": "Issued by",
+        "deaths": "Deaths",
+        "injured": "Injured",
+        "missing": "Missing",
+        "affected": "Affected",
+        "infrastructure": "Infrastructure Damage",
+        "foodType": "Food Type",
+        "noUpdatesAvailable": "No updates available",
+        "disasterReport": "Disaster Report",
+        "status": {
+          "approved": "Approved",
+          "pending": "Pending",
+          "rejected": "Rejected"
+        },
+        "damageLevels": {
+          "severe": "Severe",
+          "moderate": "Moderate",
+          "minor": "Minor"
+        },
+        "evacuationStatuses": {
+          "required": "Required",
+          "recommended": "Recommended",
+          "notRequired": "Not Required"
+        }
+      },
+      "warnings.severity": "Severity",
+      "warnings.warning": "Warning",
+      "warnings.severity.severity": "Severity",
+      "warnings.severity.low": "Low",
+      "warnings.severity.medium": "Medium",
+      "warnings.severity.high": "High",
+      "warnings.severity.red": "Red Alert",
+      "updates.disasterReport": "Disaster Report",
+      "warnings.validity": "Validity Period",
+      "warnings.from": "From",
+      "warnings.until": "Until",
+      "updates.issuedBy": "Issued by",
+      "updates.all": "All",
+      "updates.warnings": "Warnings",
+      "updates.reports": "Reports",
+      "warnings": {
+        "warning": "Warning",
+        "validity": "Validity Period",
+        "from": "From",
+        "until": "Until",
+        "windSpeed": "Wind Speed",
+        "severity": {
+          "low": "Low",
+          "medium": "Medium",
+          "high": "High",
+          "red": "Red Alert"
+        }
+      },
     },
   },
   si: {
@@ -297,7 +348,6 @@ const resources = {
         "ආපදා බලපෑම අවම කිරීම සඳහා ක්ෂණික, සම්බන්ධීකරණ ප්‍රතිචාරයක් සක්‍රීය කරන්න. ස්වේච්ඡා කළමනාකරණය, අතුරුදහන් පුද්ගල ලේඛනය සහ සම්පත් වෙන්කිරීමේ විශේෂාංග මගින් පහසුකම් සපයනු ලැබේ.",
       "section.whatFor": "ඔබ මෙහි සිටින්නේ කුමක් සඳහාද?",
       "button.reportDisaster": "ආපදාවක් වාර්තා කරන්න",
-
       // Action Buttons
       "action.realtimeMaps": "තත්කාලීන සිතියම්",
       "action.supportChatbot": "සහාය චැට්බෝට්",
@@ -305,11 +355,9 @@ const resources = {
       "action.missingRegistry": "අතුරුදහන් පුද්ගල ලේඛනය",
       "action.resources": "සම්පත් සොයන්න",
       "action.donate": "පරිත්‍යාග",
-
       // Who Are We Section
       "whoWeAre.title": "තොරතුරු සමගිය ප්‍රතිචාරයෙහි අපි කවුද?",
       "whoWeAre.partnership": "හවුල්කාරිත්වය සමඟ",
-
       // Emergency Response Grid
       "emergency.stayInformed": "දැනුවත්ව සිටින්න",
       "emergency.drought": "නියඟයට ප්‍රතිචාර",
@@ -330,22 +378,18 @@ const resources = {
       "updates.damageLevel": "හානි මට්ටම",
       "updates.evacuationStatus": "ඉවත් කිරීමේ තත්ත්වය",
       "updates.createdBy": "නිර්මාණය කළේ",
-
       // Status translations
       "updates.status.approved": "අනුමත කරන ලදී",
       "updates.status.pending": "විභාග වෙමින් පවතී",
       "updates.status.rejected": "ප්‍රතික්ෂේප කරන ලදී",
-
       // Damage level translations
       "updates.damageLevels.severe": "දරුණු",
       "updates.damageLevels.moderate": "මධ්‍යස්ථ",
       "updates.damageLevels.minor": "සුළු",
-
       // Evacuation status translations
       "updates.evacuationStatuses.required": "අවශ්‍යයි",
       "updates.evacuationStatuses.recommended": "නිර්දේශිතයි",
       "updates.evacuationStatuses.notRequired": "අවශ්‍ය නැත",
-
       "logo.alt": "තොරතුරු සමගිය ලාංඡනය",
       "logo.partner1": "රතු කුරුස ලාංඡනය",
       "logo.partner2": "ආපදා කළමනාකරණ මධ්යස්ථාන ලාංඡනය",
@@ -367,14 +411,12 @@ const resources = {
         "තොරතුරු සමගිය ප්‍රතිචාරය තාක්ෂණය උපයෝගී කර ගන්නේ කෙසේද?",
       "whoWeAre.technology.content":
         "තොරතුරු සමගිය ප්‍රතිචාරය නවීනතම තාක්ෂණයන් උපායශීලීව භාවිතා කිරීමෙන් ආපදා කළමනාකරණයේ පෙරමුණේ සිටියි. ප්‍රතිචාරාත්මක වෙනුවට පුරෝක්‍රියාකාරී ප්‍රතිචාර සඳහා ඉඩ සලසමින්, ආපදා බලපෑම් පුරෝකථනය සහ සම්පත් වෙන්කිරීම සඳහා අපි යන්ත්‍ර ඉගෙනුම් ඇල්ගොරිතම භාවිතා කරමු. Firebase හරහා තත්‍ය කාලීන දත්ත සමමුහුර්තකරණය භාවිතා කිරීම මගින් සියලුම පරිශීලකයින්ට නවතම තොරතුරු වෙත ප්‍රවේශය ඇති බව සහතික කරයි. ප්‍රගතිශීලී වෙබ් යෙදුම් නිර්මාණ ශිල්පය ක්‍රියාත්මක කිරීම මගින් ආපදා අවස්ථාවලදී නිතර මුහුණ දෙන අඩු සම්බන්ධතා ප්‍රදේශවලදී පවා අපගේ වේදිකාව සඵලදායීව ක්‍රියා කිරීමට ඉඩ සලසයි.",
-
       "logo.alt": "තොරතුරු සමගිය ලාංඡනය",
       email: "ඊ-මේල්",
       password: "රහස් පදය",
       as: "විධායකය ලෙස",
       dontHaveAccount: "ගිණුමක් නැද්ද?",
       register: "ලියාපදිංචි වන්න",
-
       registerAsRespondent: "ප්‍රතිචාරකයෙක් ලෙස ලියාපදිංචි වන්න",
       nicNumber: "එන්.අයි.සී අංකය",
       fullName: "සම්පූර්ණ නම",
@@ -391,7 +433,6 @@ const resources = {
       mobileNumber: "ජංගම දුරකථන අංකය",
       email: "ඊ-තැපැල්",
       password: "මුරපදය",
-
       alreadyHaveAccount: "කැරැඳි ගිණුමක් ඇතිද?",
       login: "ඇතුල්වීම",
       locationValidationError: "දිස්ත්‍රික්කය සහ වෙන්දේසිය අවශ්‍යයි.",
@@ -440,13 +481,11 @@ const resources = {
       "emergency.flood": "ගංවතුර",
       "emergency.landslide": "නාය යාම",
       "emergency.noArticles": "මේ වන විට ලිපි නොමැත",
-
       // Common elements
       "common.previous": "පෙර",
       "common.next": "ඊළඟ",
       "common.readMore": "තව කියවන්න",
       "common.loading": "පූරණය වෙමින්...",
-
       // Admin section
       "admin.articleManagement": "ආපදා ලිපි කළමනාකරණය",
       "admin.createArticle": "නව ලිපියක් සාදන්න",
@@ -479,7 +518,6 @@ const resources = {
       "admin.featured": "විශේෂාංග ලිපිය",
       "admin.tags": "ටැග",
       "admin.addTag": "ටැග් එකතු කරන්න",
-
       // Article view
       "article.shareArticle": "මෙම ලිපිය බෙදා ගන්න",
       "article.relatedArticles": "සම්බන්ධිත ලිපි",
@@ -488,9 +526,78 @@ const resources = {
       "article.publishedOn": "{{date}} දින ප්‍රකාශිතයි",
       "article.lastUpdated": "අවසන් යාවත්කාලීන කිරීම {{date}}",
       "article.by": "{{author}} විසිනි",
-      "article.backToArticles": "ලිපි වෙත ආපසු"
-
-
+      "article.backToArticles": "ලිපි වෙත ආපසු",
+      "warnings.severity": "දරුණු බව",
+      "warnings.warning": "අනතුරු ඇඟවීම",
+      "warnings.severity.severity": "දරුණු තත්ත්වය",
+      "warnings.severity.low": "අඩු",
+      "warnings.severity.medium": "මධ්‍යස්ථ",
+      "warnings.severity.high": "ඉහළ",
+      "warnings.severity.red": "රතු ඇඟවීම",
+      "updates.disasterReport": "ආපදා වාර්තාව",
+      "warnings.validity": "වලංගු කාලය",
+      "warnings.from": "සිට",
+      "warnings.until": "තෙක්",
+      "updates.issuedBy": "නිකුත් කළේ",
+      "updates.all": "සියල්ල",
+      "updates.warnings": "අනතුරු ඇඟවීම්",
+      "updates.reports": "වාර්තා",
+      "warnings.windSpeed": "සුළං වේගය",
+      "updates": {
+        "all": "සියල්ල",
+        "warnings": "අනතුරු ඇඟවීම්",
+        "reports": "වාර්තා",
+        "latestUpdates": "නවතම යාවත්කාලීන",
+        "scrollLeft": "වමට අනුචලනය කරන්න",
+        "scrollRight": "දකුණට අනුචලනය කරන්න",
+        "untitledDisaster": "නම් නොකළ ආපදාව",
+        "untitledWarning": "නම් නොකළ අනතුරු ඇඟවීම",
+        "noDescription": "විස්තරයක් සපයා නැත",
+        "unknownLocation": "ස්ථානය නොදනී",
+        "anonymous": "නිර්නාමික",
+        "magnitude": "ප්‍රමාණය",
+        "casualties": "අනතුරු",
+        "damageLevel": "හානි මට්ටම",
+        "evacuationStatus": "ඉවත් කිරීමේ තත්ත්වය",
+        "createdBy": "නිර්මාණය කළේ",
+        "issuedBy": "නිකුත් කළේ",
+        "deaths": "මරණ",
+        "injured": "ආබාධිත",
+        "missing": "තිරිඳු",
+        "affected": "බලපෑම් කළ",
+        "infrastructure": "ජන්මන හානි",
+        "foodType": "ආහාර වර්ගය",
+        "noUpdatesAvailable": "යාවත්කාලීන කිරීම් නොමැත",
+        "disasterReport": "ආපදා වාර්තාව",
+        "status": {
+          "approved": "අනුමත කරන ලදී",
+          "pending": "පොරොත්තුවෙන්",
+          "rejected": "ප්‍රතික්ෂේප කරන ලදී"
+        },
+        "damageLevels": {
+          "severe": "දරුණු",
+          "moderate": "මධ්‍යස්ථ",
+          "minor": "සුළු"
+        },
+        "evacuationStatuses": {
+          "required": "අවශ්‍යයි",
+          "recommended": "නිර්දේශිතයි",
+          "notRequired": "අවශ්‍ය නැත"
+        }
+      },
+      "warnings": {
+        "warning": "අනතුරු ඇඟවීම",
+        "validity": "වලංගු කාලය",
+        "from": "සිට",
+        "until": "තෙක්",
+        "windSpeed": "සුළං වේගය",
+        "severity": {
+          "low": "අඩු",
+          "medium": "මධ්‍යම",
+          "high": "ඉහළ",
+          "red": "රතු ඇඟවීම"
+        }
+      },
     },
   },
   ta: {
@@ -528,7 +635,6 @@ const resources = {
       "Medium Risk": "மிதமான அபாயம்",
       "Low Risk": "குறைந்த அபாயம்",
       "Loading...": "நகர்த்துகிறது...",
-
       // Info Unity Section
       "section.information.title": "தகவல்",
       "section.information.description":
@@ -541,7 +647,6 @@ const resources = {
         "பேரிடர் தாக்கத்தை குறைக்க விரைவான, ஒருங்கிணைந்த பதிலை செயல்படுத்துங்கள். தன்னார்வலர் மேலாண்மை, காணாமல் போனவர் பதிவேடு மற்றும் வள ஒதுக்கீடு அம்சங்களால் வசதி செய்யப்படுகிறது.",
       "section.whatFor": "நீங்கள் இங்கே எதற்காக இருக்கிறீர்கள்?",
       "button.reportDisaster": "பேரிடரை புகாரளிக்கவும்",
-
       // Action Buttons
       "action.realtimeMaps": "நிகழ்நேர வரைபடங்கள்",
       "action.supportChatbot": "ஆதரவு சாட்போட்",
@@ -549,11 +654,9 @@ const resources = {
       "action.missingRegistry": "காணாமல் போனவர் பதிவேடு",
       "action.resources": "வளங்களை கண்டுபிடிக்க",
       "action.donate": "நன்கொடை",
-
       // Who Are We Section
       "whoWeAre.title": "தகவல் ஒற்றுமை பதிலில் நாங்கள் யார்?",
       "whoWeAre.partnership": "கூட்டாண்மையுடன்",
-
       // Emergency Response Grid
       "emergency.stayInformed": "தெரிந்து கொள்ளுங்கள்",
       "emergency.drought": "வறட்சிக்கு பதில்",
@@ -574,17 +677,14 @@ const resources = {
       "updates.damageLevel": "சேத அளவு",
       "updates.evacuationStatus": "வெளியேற்ற நிலை",
       "updates.createdBy": "உருவாக்கியவர்",
-
       // Status translations
       "updates.status.approved": "அங்கீகரிக்கப்பட்டது",
       "updates.status.pending": "நிலுவையில் உள்ளது",
       "updates.status.rejected": "நிராகரிக்கப்பட்டது",
-
       // Damage level translations
       "updates.damageLevels.severe": "கடுமையான",
       "updates.damageLevels.moderate": "மிதமான",
       "updates.damageLevels.minor": "சிறிய",
-
       // Evacuation status translations
       "updates.evacuationStatuses.required": "தேவை",
       "updates.evacuationStatuses.recommended": "பரிந்துரைக்கப்படுகிறது",
@@ -595,33 +695,27 @@ const resources = {
       "whoWeAre.vision.title": "தகவல் ஒற்றுமை பதிலின் ஒட்டுமொத்த பார்வை என்ன?",
       "whoWeAre.vision.content":
         "தகவல் ஒற்றுமை பதில் பேரழிவுகளின் போது சமூகங்கள் தாங்கிக்கொள்ளக்கூடிய, முக்கியமான தகவல்கள் மற்றும் வளங்களுக்கான தடையற்ற அணுகல் மூலம் அதிகாரம் பெற்ற எதிர்காலத்தை கண்டுகிறது. பேரழிவுகளால் பாதிக்கப்பட்டவர்களுக்கும் அவற்றுக்கு பதிலளிப்பவர்களுக்கும் இடையிலான இடைவெளியை நிரப்பும் ஒருங்கிணைந்த தளத்தை உருவாக்குவதன் மூலம் பேரிடர் மேலாண்மையை புரட்சிகரமாக்க நாங்கள் நோக்கமாக கொண்டுள்ளோம்.",
-
       "whoWeAre.mission.title":
         "தகவல் ஒற்றுமை பதிலின் பணி அதன் தொழில்நுட்ப செயல்பாட்டுடன் எவ்வாறு இணைகிறது?",
       "whoWeAre.mission.content":
         "தகவல் ஒற்றுமை பதிலின் பணி என்பது பேரிடர் தொடர்பான தகவல்களை ஒருங்கிணைக்கும், பதில் முயற்சிகளை ஒருங்கிணைக்கும், மற்றும் நெருக்கடியின் போது விரைவாகவும் திறம்படவும் செயல்பட சமூகங்களுக்கு அதிகாரமளிக்கும் விரிவான, பயனர் நட்பு தளத்தை வழங்குவதாகும். சாதனங்கள் மற்றும் நெட்வொர்க் நிலைமைகள் முழுவதும் அணுகக்கூடிய முற்போக்கு வலை பயன்பாட்டை (PWA) உருவாக்குவதற்கான எங்கள் தொழில்நுட்ப அணுகுமுறையுடன் இந்த பணி சரியாக பொருந்துகிறது.",
-
       "whoWeAre.brand.title": "தகவல் ஒற்றுமை பதில் பிராண்ட் எதை குறிக்கிறது?",
       "whoWeAre.brand.content":
         "தகவல் ஒற்றுமை பதில் பிராண்ட் எதிர்மறையான சூழ்நிலையில் நம்பிக்கை, புதுமை மற்றும் சமூக அதிகாரமளித்தலை குறிக்கிறது. தகவல்களும் மக்களும் ஒன்றிணையும்போது, எந்த சவாலுக்கும் திறம்பட பதிலளிக்க முடியும் என்ற கருத்தை எங்கள் பிராண்ட் உள்ளடக்குகிறது.",
-
       "whoWeAre.responsibilities.title":
         "முக்கிய பொறுப்புகள் மற்றும் கடமைகள் என்ன?",
       "whoWeAre.responsibilities.content":
         "தகவல் ஒற்றுமை பதில் அதன் பயனர்கள் மற்றும் அது சேவை செய்யும் சமூகங்களுக்கு குறிப்பிடத்தக்க பொறுப்பைக் கொண்டுள்ளது. பேரிடர்களின் போது உயிர்கள் அதை நம்பியிருக்கலாம் என்பதால், நாங்கள் வழங்கும் தகவல்களின் துல்லியம் மற்றும் நேரத்தை உறுதிப்படுத்துவது எங்கள் முதன்மை கடமையாகும்.",
-
       "whoWeAre.technology.title":
         "தகவல் ஒற்றுமை பதில் தொழில்நுட்பத்தை எவ்வாறு பயன்படுத்துகிறது?",
       "whoWeAre.technology.content":
         "தகவல் ஒற்றுமை பதில் நவீன தொழில்நுட்பங்களை உத்திபூர்வமாக பயன்படுத்துவதன் மூலம் பேரிடர் மேலாண்மையின் முன்னணியில் இருக்கிறது. எதிர்வினை பதிலுக்கு பதிலாக முன்னெச்சரிக்கை பதில்களை அனுமதிக்க, பேரிடர் தாக்க முன்கணிப்பு மற்றும் வள ஒதுக்கீட்டிற்கு இயந்திர கற்றல் வழிமுறைகளை நாங்கள் பயன்படுத்துகிறோம்.",
-
       "logo.alt": "தகவல் ஒற்றுமை லோகோ",
       email: "மின்னஞ்சல்",
       password: "கடவுச்சொல்",
       as: "படி",
       dontHaveAccount: "கணக்கு இல்லையா?",
       register: "பதிவு செய்யவும்",
-
       registerAsRespondent: "ஒரு பதிலளிப்பாளராக பதிவு செய்யவும்",
       nicNumber: "என்ஐசி எண்",
       fullName: "முழு பெயர்",
@@ -685,13 +779,11 @@ const resources = {
       "emergency.flood": "வெள்ளம்",
       "emergency.landslide": "மண்சரிவு",
       "emergency.noArticles": "இந்த நேரத்தில் கட்டுரைகள் எதுவும் கிடைக்கவில்லை",
-
       // Common elements
       "common.previous": "முந்தைய",
       "common.next": "அடுத்து",
       "common.readMore": "மேலும் படிக்க",
       "common.loading": "ஏற்றுகிறது...",
-
       // Admin section
       "admin.articleManagement": "பேரிடர் கட்டுரைகள் நிர்வாகம்",
       "admin.createArticle": "புதிய கட்டுரையை உருவாக்கவும்",
@@ -724,7 +816,6 @@ const resources = {
       "admin.featured": "சிறப்பு கட்டுரை",
       "admin.tags": "குறிச்சொற்கள்",
       "admin.addTag": "குறிச்சொல் சேர்க்க",
-
       // Article view
       "article.shareArticle": "இந்த கட்டுரையை பகிர",
       "article.relatedArticles": "தொடர்புடைய கட்டுரைகள்",
@@ -733,8 +824,78 @@ const resources = {
       "article.publishedOn": "{{date}} அன்று வெளியிடப்பட்டது",
       "article.lastUpdated": "கடைசியாக புதுப்பிக்கப்பட்டது {{date}}",
       "article.by": "{{author}} எழுதியது",
-      "article.backToArticles": "கட்டுரைகளுக்கு திரும்பு"
-
+      "article.backToArticles": "கட்டுரைகளுக்கு திரும்பு",
+      "warnings.severity": "கடுமை",
+      "warnings.warning": "எச்சரிக்கை",
+      "warnings.severity.severity": "கடுமை நிலை",
+      "warnings.severity.low": "குறைந்த",
+      "warnings.severity.medium": "நடுத்தர",
+      "warnings.severity.high": "உயர்",
+      "warnings.severity.red": "சிவப்பு எச்சரிக்கை",
+      "updates.disasterReport": "பேரிடர் அறிக்கை",
+      "warnings.validity": "செல்லுபடியாகும் காலம்",
+      "warnings.from": "இருந்து",
+      "warnings.until": "வரை",
+      "updates.issuedBy": "வெளியிட்டது",
+      "updates.all": "அனைத்து",
+      "updates.warnings": "எச்சரிக்கைகள்",
+      "updates.reports": "அறிக்கைகள்",
+      "warnings.windSpeed": "காற்று வேகம்",
+      "updates": {
+        "all": "அனைத்தும்",
+        "warnings": "எச்சரிக்கைகள்",
+        "reports": "அறிக்கைகள்",
+        "latestUpdates": "சமீபத்திய புதுப்பிப்புகள்",
+        "scrollLeft": "இடது பக்கம் உருட்டவும்",
+        "scrollRight": "வலது பக்கம் உருட்டவும்",
+        "untitledDisaster": "தலைப்பில்லாத பேரிடர்",
+        "untitledWarning": "தலைப்பில்லாத எச்சரிக்கை",
+        "noDescription": "விளக்கம் எதுவும் இல்லை",
+        "unknownLocation": "இடம் தெரியவில்லை",
+        "anonymous": "அநாமதேய",
+        "magnitude": "அளவு",
+        "casualties": "உயிரிழப்புகள்",
+        "damageLevel": "சேத அளவு",
+        "evacuationStatus": "வெளியேற்ற நிலை",
+        "createdBy": "உருவாக்கியவர்",
+        "issuedBy": "வெளியிட்டவர்",
+        "deaths": "இறப்புகள்",
+        "injured": "காயமடைந்தவர்கள்",
+        "missing": "காணாமல் போனவர்கள்",
+        "affected": "பாதிக்கப்பட்டவர்கள்",
+        "infrastructure": "உள்கட்டமைப்பு சேதம்",
+        "foodType": "உணவு வகை",
+        "noUpdatesAvailable": "புதுப்பிப்புகள் இல்லை",
+        "disasterReport": "பேரிடர் அறிக்கை",
+        "status": {
+          "approved": "அங்கீகரிக்கப்பட்டது",
+          "pending": "நிலுவையில்",
+          "rejected": "நிராகரிக்கப்பட்டது"
+        },
+        "damageLevels": {
+          "severe": "கடுமையான",
+          "moderate": "மிதமான",
+          "minor": "சிறிய"
+        },
+        "evacuationStatuses": {
+          "required": "தேவை",
+          "recommended": "பரிந்துரைக்கப்படுகிறது",
+          "notRequired": "தேவையில்லை"
+        }
+      },
+      "warnings": {
+        "warning": "எச்சரிக்கை",
+        "validity": "செல்லுபடியாகும் காலம்",
+        "from": "இருந்து",
+        "until": "வரை",
+        "windSpeed": "காற்று வேகம்",
+        "severity": {
+          "low": "குறைந்த",
+          "medium": "நடுத்தர",
+          "high": "உயர்",
+          "red": "சிவப்பு எச்சரிக்கை"
+        }
+      }
     },
   },
 };

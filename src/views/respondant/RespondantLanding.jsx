@@ -6,7 +6,7 @@ import { db } from '../../../firebase';
 import backgroundImage from '../../assets/hero-background.jpg';
 import NavigationBar from '../../utils/Navbar';
 import { useTranslation } from 'react-i18next';
-import LatestUpdates from '../../utils/LatestUpdates';
+import DisasterUpdatesComponent from '../../utils/LatestUpdates';
 import { Link } from 'react-router-dom';
 
 
@@ -28,7 +28,7 @@ const RespondantLanding = () => {
       <NavigationBar />
       <Hero t={t} />
       <InfoUnitySection />
-      <LatestUpdates />
+      <DisasterUpdatesComponent />
       <WhoAreWe />
       <EmergencyResponseGrid />
      
@@ -367,12 +367,12 @@ const ActionButtonsSection = () => {
     {
       label: t('action.volunteer'),
       icon: <Heart size={24} color="darkorange" />,
-      path: "/volunteer"
+      path: "/volunteer/home"
     },
     {
       label: t('action.missingRegistry'),
       icon: <Search size={24} color="lightblue" />,
-      path: "/missing-persons"
+      path: "/missingperson"
     },
     {
       label: t('action.resources'),

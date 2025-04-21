@@ -36,7 +36,8 @@ messaging.onBackgroundMessage((payload) => {
     const notificationTitle = payload.notification.title;
     const notificationOptions = {
         body: payload.notification.body,
-        icon: '/logo-192x192.png'
+        icon: '/logo-192x192.png',
+        data: payload.data,
     };
 
     self.registration.showNotification(notificationTitle, notificationOptions);
@@ -49,4 +50,14 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
     event.waitUntil(clients.claim());
+});
+
+self.addEventListener('notificationclick', (event) => {
+    const notification = event.notification;
+    notification.close();
+
+    if (notification.data.type === 'missingPersonMatch') {
+        const url = `/missing-persons/${notification.data.missingPersonId}`;
+        event.waitUntil(clients.openWindow(url));
+    }
 });

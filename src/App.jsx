@@ -42,6 +42,7 @@ import ResourceLocator from './views/respondant/ResourceLocator';
 import VolunteerAdminPage from './views/volunteer-admin/volunteeradmin-landing';
 import MissingPersonRegistry from './views/respondant/missingperson-module/MissingPersonRegistry';
 import DroughtDisasterSupportPage from './views/respondant/disaster-pages/DroughtPage';
+import TsunamiDisasterSupportPage from './views/respondant/disaster-pages/TsunamiPage';
 import DisasterCatalouge from './views/respondant/disaster-catalouge/DisasterCatalouge';
 import AdminBlogManagement from './views/respondant/disaster-catalouge/AdminBlogManagement';
 import VolunteerLanding from './views/volunteer-user/volunteeruser-landing';
@@ -235,7 +236,7 @@ useEffect(() => {
                       />
 
 <Route
-                          path="/help/flood"
+                          path="/help/floods"
                           element={
                               <ProtectedRoute allowedRoles={['Respondent']}>
                                   <FloodDisasterSupportPage/>
@@ -244,7 +245,7 @@ useEffect(() => {
                       />
 
 <Route
-                          path="/help/landslide"
+                          path="/help/landslides"
                           element={
                               <ProtectedRoute allowedRoles={['Respondent']}>
                                   <LandslideDisasterSupportPage/>
@@ -257,6 +258,15 @@ useEffect(() => {
                           element={
                               <ProtectedRoute allowedRoles={['Respondent']}>
                                   <DroughtDisasterSupportPage/>
+                              </ProtectedRoute>
+                          }
+                      />
+
+<Route
+                          path="/help/tsunamis"
+                          element={
+                              <ProtectedRoute allowedRoles={['Respondent']}>
+                                  <TsunamiDisasterSupportPage/>
                               </ProtectedRoute>
                           }
                       />
