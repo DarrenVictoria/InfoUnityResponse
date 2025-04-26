@@ -33,6 +33,7 @@ jobs:
       - name: Build
         run: npm run build
         env:
+          NODE_OPTIONS: --max-old-space-size=4096
           VITE_APP_VERSION: ${{ github.sha }}
           VITE_WEATHER_API_KEY: ${{ secrets.VITE_WEATHER_API_KEY }}
           VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
