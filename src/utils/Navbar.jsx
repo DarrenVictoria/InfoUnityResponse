@@ -435,7 +435,7 @@ const NavigationBar = () => {
       <div className="max-w-[1920px] mx-auto px-4 lg:px-6 flex items-center justify-between h-16">
           <div
             className="flex items-center flex-shrink-0 cursor-pointer"
-            onClick={() => (window.location.href = "/home")}
+            onClick={() => (window.location.href = "/")}
           >
             <img src="/favicon-32x32.png" alt="Logo" className="h-10 w-10" />
             <span className="ml-2 text-lg font-bold text-black">
