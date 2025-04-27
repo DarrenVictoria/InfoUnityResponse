@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
-import { MapPin, Upload, AlertCircle, Loader, PlusCircle, XCircle } from 'lucide-react';
-import { db, storage } from '../../../firebase';
+import React, { useState, useEffect } from 'react';
+import { MapPin, Upload, AlertCircle, Loader, PlusCircle, XCircle, WifiOff, RefreshCw } from 'lucide-react';
+import { db as firestore, storage } from '../../../firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useAuth } from '../../hooks/useAuth';
 import LocationSelectorPin from '../../components/LocationSelectorPin';
 import LocationSelector from '../../components/LocationSelector';
+import { saveReportOffline, saveFileForOfflineUpload } from '../../utils/offlineStorage';
+import { useConnectivity } from '../../hooks/useConnectivity';
 
 const DISASTER_TYPES = [
   "Flood", "Landslide", "Drought", "Cyclone", "Tsunami",
@@ -15,6 +17,7 @@ const DISASTER_TYPES = [
 
 export default function PublicDisasterReport() {
   const { user } = useAuth();
+  const { isOnline, isSyncing, syncStatus, synchronizePendingReports } = useConnectivity();
   const [formData, setFormData] = useState({
     disasterType: '',
     district: '',
@@ -24,8 +27,8 @@ export default function PublicDisasterReport() {
     latitude: null,
     longitude: null,
     locationName: '',
-    reportType: 'single', // 'single' or 'multiple'
-    beneficiaries: [], // [{name: '', idNumber: ''}]
+    reportType: 'single',
+    beneficiaries: [],
     reporterName: '',
     reporterIdNumber: ''
   });
@@ -33,6 +36,32 @@ export default function PublicDisasterReport() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [pendingFiles, setPendingFiles] = useState([]);
+  const [offlineImageIds, setOfflineImageIds] = useState([]);
+  const [cachedForm, setCachedForm] = useState(null);
+
+  // Load cached form data when component mounts
+  useEffect(() => {
+    const savedForm = localStorage.getItem('disasterReportForm');
+    if (savedForm) {
+      try {
+        const parsedForm = JSON.parse(savedForm);
+        setFormData(parsedForm);
+        setCachedForm(parsedForm);
+      } catch (err) {
+        console.error('Error parsing saved form:', err);
+      }
+    }
+  }, []);
+
+  // Save form data to localStorage when it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('disasterReportForm', JSON.stringify(formData));
+    } catch (err) {
+      console.error('Error saving form to localStorage:', err);
+    }
+  }, [formData]);
 
   const handleImageUpload = async (files) => {
     if (!user) {
@@ -41,31 +70,70 @@ export default function PublicDisasterReport() {
     }
   
     setUploading(true);
-    const uploadPromises = [];
-  
-    for (const file of files) {
-      const uniqueFileName = `${Date.now()}_${file.name}`;
-      const storageRef = ref(storage, `disaster-evidence/${user.uid}/${uniqueFileName}`);
-  
-      const uploadTask = uploadBytes(storageRef, file)
-        .then((snapshot) => getDownloadURL(snapshot.ref))
-        .catch((error) => {
-          console.error("Upload error:", error);
-          throw error;
-        });
-  
-      uploadPromises.push(uploadTask);
-    }
-  
+    
     try {
-      const urls = await Promise.all(uploadPromises);
-      setFormData(prev => ({ ...prev, images: [...prev.images, ...urls] }));
+      if (isOnline) {
+        // Online mode - upload directly to Firebase
+        const uploadPromises = [];
+        
+        for (const file of files) {
+          const uniqueFileName = `${Date.now()}_${file.name}`;
+          const storageRef = ref(storage, `disaster-evidence/${user.uid}/${uniqueFileName}`);
+        
+          const uploadTask = uploadBytes(storageRef, file)
+            .then((snapshot) => getDownloadURL(snapshot.ref))
+            .catch((error) => {
+              console.error("Upload error:", error);
+              throw error;
+            });
+        
+          uploadPromises.push(uploadTask);
+        }
+        
+        const urls = await Promise.all(uploadPromises);
+        setFormData(prev => ({ ...prev, images: [...prev.images, ...urls] }));
+      } else {
+        // Offline mode - store files for later upload
+        const newPendingFiles = [...pendingFiles];
+        const newOfflineImageIds = [...offlineImageIds];
+        
+        for (const file of files) {
+          // Store file in IndexedDB
+          const id = await saveFileForOfflineUpload(file, file.name, user.uid);
+          newOfflineImageIds.push(id);
+          
+          // Add to pending files list for UI display
+          newPendingFiles.push({
+            id,
+            name: file.name,
+            size: file.size,
+            type: file.type,
+            preview: URL.createObjectURL(file)
+          });
+        }
+        
+        setPendingFiles(newPendingFiles);
+        setOfflineImageIds(newOfflineImageIds);
+        setFormData(prev => ({ 
+          ...prev, 
+          offlineImageIds: newOfflineImageIds 
+        }));
+      }
     } catch (err) {
       console.error("Upload error:", err);
-      setError("Failed to upload images. Please try again.");
+      setError("Failed to handle images. Please try again.");
     } finally {
       setUploading(false);
     }
+  };
+
+  const removePendingFile = (id) => {
+    setPendingFiles(prev => prev.filter(file => file.id !== id));
+    setOfflineImageIds(prev => prev.filter(fileId => fileId !== id));
+    setFormData(prev => ({
+      ...prev,
+      offlineImageIds: prev.offlineImageIds?.filter(fileId => fileId !== id) || []
+    }));
   };
 
   const addBeneficiary = () => {
@@ -100,6 +168,27 @@ export default function PublicDisasterReport() {
     }));
   };
 
+  const clearForm = () => {
+    setFormData({
+      disasterType: '',
+      district: '',
+      dsDivision: '',
+      description: '',
+      images: [],
+      latitude: null,
+      longitude: null,
+      locationName: '',
+      reportType: 'single',
+      beneficiaries: [],
+      reporterName: '',
+      reporterIdNumber: ''
+    });
+    setPendingFiles([]);
+    setOfflineImageIds([]);
+    localStorage.removeItem('disasterReportForm');
+    setCachedForm(null);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -130,25 +219,17 @@ export default function PublicDisasterReport() {
         status: 'pending'
       };
 
-      await addDoc(collection(db, 'crowdsourcedReports'), reportData);
-      setSuccessMessage('Report submitted successfully!');
-      
-      // Reset form
-      setFormData({
-        disasterType: '',
-        district: '',
-        dsDivision: '',
-        description: '',
-        images: [],
-        latitude: null,
-        longitude: null,
-        locationName: '',
-        reportType: 'single',
-        beneficiaries: [],
-        reporterName: '',
-        reporterIdNumber: ''
-      });
-
+      if (isOnline) {
+        // Online submission
+        await addDoc(collection(firestore, 'crowdsourcedReports'), reportData);
+        setSuccessMessage('Report submitted successfully!');
+        clearForm();
+      } else {
+        // Offline submission - save to IndexedDB
+        await saveReportOffline(reportData);
+        setSuccessMessage('Report saved offline. It will be submitted when you reconnect to the internet.');
+        clearForm();
+      }
     } catch (err) {
       console.error('Error submitting report:', err);
       setError('Failed to submit report. Please try again.');
@@ -157,9 +238,68 @@ export default function PublicDisasterReport() {
     }
   };
 
+  const handleSyncClick = async () => {
+    if (isOnline) {
+      try {
+        const result = await synchronizePendingReports();
+        if (result.success) {
+          setSuccessMessage(result.message);
+        } else {
+          setError(result.message);
+        }
+      } catch (err) {
+        setError('Failed to synchronize data.');
+      }
+    } else {
+      setError('Cannot synchronize while offline.');
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Report a Disaster</h1>
+      <h1 className="text-2xl font-bold mb-2">Report a Disaster</h1>
+      
+      {/* Connectivity Status */}
+      <div className={`mb-4 p-3 rounded-lg ${isOnline ? 'bg-green-50' : 'bg-amber-50'}`}>
+        <div className="flex items-center gap-2">
+          {isOnline ? (
+            <span className="text-green-700 flex items-center">
+              <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+              Online Mode
+            </span>
+          ) : (
+            <span className="text-amber-700 flex items-center">
+              <WifiOff className="w-4 h-4 mr-2" />
+              Offline Mode - Your report will be saved locally and uploaded when you're back online
+            </span>
+          )}
+          
+          {!isOnline && (
+            <button 
+              className="ml-auto text-blue-600 flex items-center gap-1 text-sm"
+              onClick={handleSyncClick}
+              disabled={isSyncing}
+            >
+              <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
+              Sync when online
+            </button>
+          )}
+        </div>
+        
+        {isSyncing && (
+          <div className="mt-2">
+            <div className="w-full bg-gray-200 rounded-full h-2.5">
+              <div 
+                className="bg-blue-600 h-2.5 rounded-full" 
+                style={{ width: `${syncStatus.total ? (syncStatus.completed / syncStatus.total) * 100 : 0}%` }}
+              ></div>
+            </div>
+            <p className="text-xs text-gray-600 mt-1">
+              Syncing {syncStatus.completed} of {syncStatus.total} items...
+            </p>
+          </div>
+        )}
+      </div>
 
       {error && (
         <div className="flex items-center gap-2 bg-red-100 text-red-600 p-3 rounded-lg mb-6">
@@ -167,9 +307,22 @@ export default function PublicDisasterReport() {
           <span>{error}</span>
         </div>
       )}
+      
       {successMessage && (
         <div className="bg-green-100 text-green-600 p-3 rounded-lg mb-6">
           {successMessage}
+        </div>
+      )}
+
+      {cachedForm && (
+        <div className="bg-blue-50 p-3 rounded-lg mb-6">
+          <p className="text-blue-700">You have a saved form. Continue filling it or start a new one.</p>
+          <button 
+            className="mt-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm"
+            onClick={clearForm}
+          >
+            Clear saved form
+          </button>
         </div>
       )}
 
@@ -199,10 +352,16 @@ export default function PublicDisasterReport() {
                 dsDivision: division
               }));
             }}
+            selectedDistrict={formData.district}
+            selectedDivision={formData.dsDivision}
           />
         </div>
 
-        <LocationSelectorPin onLocationSelect={handleLocationSelect} />
+        <LocationSelectorPin 
+          onLocationSelect={handleLocationSelect}
+          initialLatitude={formData.latitude}
+          initialLongitude={formData.longitude}
+        />
 
         <div>
           <label className="block text-sm font-medium mb-1">Report Type *</label>
@@ -302,12 +461,64 @@ export default function PublicDisasterReport() {
             type="file"
             multiple
             accept="image/*,video/*"
-            capture="environment" // Use 'environment' for rear camera, 'user' for front camera
+            capture="environment"
             onChange={(e) => handleImageUpload(Array.from(e.target.files))}
             className="w-full px-4 py-2 border rounded-lg"
             disabled={uploading}
           />
           {uploading && <p className="text-sm text-gray-600 mt-2">Uploading...</p>}
+          
+          {/* Display pending files for offline mode */}
+          {pendingFiles.length > 0 && (
+            <div className="mt-2">
+              <p className="text-sm font-medium">Pending Files (will be uploaded when online):</p>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-1">
+                {pendingFiles.map(file => (
+                  <div key={file.id} className="border rounded p-2 relative">
+                    {file.type.startsWith('image/') ? (
+                      <img src={file.preview} alt={file.name} className="w-full h-24 object-cover" />
+                    ) : (
+                      <div className="w-full h-24 bg-gray-100 flex items-center justify-center">
+                        <span className="text-xs text-gray-500">{file.type}</span>
+                      </div>
+                    )}
+                    <p className="text-xs truncate mt-1">{file.name}</p>
+                    <button
+                      type="button"
+                      onClick={() => removePendingFile(file.id)}
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1"
+                    >
+                      <XCircle className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Display already uploaded images */}
+          {formData.images && formData.images.length > 0 && (
+            <div className="mt-2">
+              <p className="text-sm font-medium">Uploaded Files:</p>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-1">
+                {formData.images.map((url, index) => (
+                  <div key={index} className="border rounded p-2 relative">
+                    <img src={url} alt={`Uploaded ${index}`} className="w-full h-24 object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({
+                        ...prev,
+                        images: prev.images.filter((_, i) => i !== index)
+                      }))}
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1"
+                    >
+                      <XCircle className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <button
@@ -315,7 +526,13 @@ export default function PublicDisasterReport() {
           className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg disabled:opacity-50 hover:bg-blue-600"
           disabled={uploading}
         >
-          {uploading ? <Loader className="animate-spin w-5 h-5 mx-auto" /> : "Submit Report"}
+          {uploading ? (
+            <Loader className="animate-spin w-5 h-5 mx-auto" />
+          ) : isOnline ? (
+            "Submit Report"
+          ) : (
+            "Save Report Offline"
+          )}
         </button>
       </form>
     </div>

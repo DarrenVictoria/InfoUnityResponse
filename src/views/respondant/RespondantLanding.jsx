@@ -118,7 +118,7 @@ const RespondantLanding = () => {
       <NavigationBar />
       {/* Offline Status Banner */}
       {!isOnline && (
-        <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mx-4 my-4 rounded-md">
+        <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mx-4 my-4 mt-16 rounded-md">
           <div className="flex items-center">
             <AlertCircle className="mr-2" />
             <p>

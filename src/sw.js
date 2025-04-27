@@ -156,6 +156,34 @@ registerRoute(
     })
 );
 
+// Cache the disaster report page and its dependencies
+registerRoute(
+    ({ url }) => url.pathname === '/addreport',
+    new StaleWhileRevalidate({
+        cacheName: 'disaster-report-page-cache',
+        plugins: [
+            new ExpirationPlugin({
+                maxEntries: 5,
+                maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+            }),
+        ],
+    })
+);
+
+// Cache the Dexie.js library (you need to make sure to serve it from a path you control)
+registerRoute(
+    ({ url }) => url.pathname.includes('dexie'),
+    new CacheFirst({
+        cacheName: 'libraries-cache',
+        plugins: [
+            new ExpirationPlugin({
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+            }),
+        ],
+    })
+);
+
 // Firebase messaging setup
 importScripts('https://www.gstatic.com/firebasejs/9.x.x/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/9.x.x/firebase-messaging-compat.js');

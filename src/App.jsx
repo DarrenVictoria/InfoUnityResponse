@@ -50,6 +50,7 @@ import VolunteerLanding from './views/volunteer-user/volunteeruser-landing';
 import UserProfile from './views/respondant/UserProfile';
 import SOSPage from './views/respondant/SOSPage';
 import DisasterCataloguePage from './views/respondant/disaster-catalouge/DisasterCataloguePage';
+import OfflineAwareContainerMain from './components/OfflineAwareContainerMain';
 
 
 
@@ -299,7 +300,9 @@ useEffect(() => {
                           path="/addreport"
                           element={
                               <ProtectedRoute allowedRoles={['Respondent']}>
-                                  <PublicDisasterReport />
+                                  <OfflineAwareContainerMain pageName="Disaster Report" showFullPage={false}>
+                                        <PublicDisasterReport />
+                                </OfflineAwareContainerMain>
                               </ProtectedRoute>
                           }
                       />
