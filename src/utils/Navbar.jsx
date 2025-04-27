@@ -213,7 +213,7 @@ const NavigationBar = () => {
             </>
           ) : (
             <button
-              onClick={() => (window.location.href = "/login")}
+              onClick={() => (window.location.href = "/role-selection")}
               className="w-full px-4 py-2 text-white font-medium rounded-md bg-blue-900 hover:bg-blue-800 transition-colors"
             >
               {t("nav.login")}

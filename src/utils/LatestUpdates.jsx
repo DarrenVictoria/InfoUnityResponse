@@ -490,9 +490,9 @@ const WarningCard = ({ warning, formatTimestamp, t }) => {
         <h3 className="font-semibold">{getTranslatedWarningMessage()}</h3>
         <p className="text-sm text-gray-600">{warning.location || `${warning.dsDivision}, ${warning.district}`}</p>
         
-        {warning.description && warning.description.trim() !== "" && (
+        {/* {warning.description && warning.description.trim() !== "" && (
           <p className="text-sm text-gray-600 line-clamp-2">{warning.description}</p>
-        )}
+        )} */}
         
         <div className="flex flex-wrap gap-2 mt-1">
           {warning.alertLevel && (
