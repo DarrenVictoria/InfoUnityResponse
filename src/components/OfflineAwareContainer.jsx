@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { AlertTriangle, Wifi, WifiOff } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 
 const OfflineAwareContainer = ({ children, pageName, color }) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [lastUpdated, setLastUpdated] = useState(null);
+  const [isPageCached, setIsPageCached] = useState(true); // Assume true initially to avoid flicker
 
-  // Track online status
   useEffect(() => {
     const handleOnlineStatusChange = () => {
       setIsOnline(navigator.onLine);
@@ -14,27 +13,31 @@ const OfflineAwareContainer = ({ children, pageName, color }) => {
     window.addEventListener('online', handleOnlineStatusChange);
     window.addEventListener('offline', handleOnlineStatusChange);
 
-    // Try to get the last cache timestamp
-    const checkCacheTimestamp = async () => {
-      if ('caches' in window) {
+    // Check if this page is in the cache when offline
+    const checkCache = async () => {
+      if (!navigator.onLine && 'caches' in window) {
         try {
-          const cache = await caches.open('disaster-pages-cache');
-          const response = await cache.match(window.location.href);
+          // Check both potential caches
+          const disasterCache = await caches.open('disaster-pages-cache');
+          const htmlCache = await caches.open('html-pages-cache');
           
-          if (response) {
-            const headers = response.headers;
-            const dateHeader = headers.get('date') || headers.get('last-modified');
-            if (dateHeader) {
-              setLastUpdated(new Date(dateHeader));
-            }
-          }
+          const currentPath = window.location.pathname;
+          
+          // Check if current URL is cached
+          const disasterMatch = await disasterCache.match(currentPath);
+          const htmlMatch = await htmlCache.match(currentPath);
+          
+          setIsPageCached(!!disasterMatch || !!htmlMatch);
         } catch (err) {
-          console.error('Error checking cache timestamp:', err);
+          console.error('Error checking cache for current page:', err);
+          setIsPageCached(true); // Assume cached on error
         }
+      } else {
+        setIsPageCached(true); // Online, so page is available
       }
     };
-    
-    checkCacheTimestamp();
+
+    checkCache();
 
     return () => {
       window.removeEventListener('online', handleOnlineStatusChange);
@@ -44,22 +47,21 @@ const OfflineAwareContainer = ({ children, pageName, color }) => {
 
   return (
     <>
-      {/* Offline Status Banner */}
       {!isOnline && (
-        <div className={`bg-${color}-50 border-l-4 border-${color}-500 text-${color}-700 p-4 mx-4 my-4 rounded-md`}>
+        <div className={`bg-${color}-50 border-l-4 border-${color}-500 text-${color}-700 p-4 mb-4 rounded`}>
           <div className="flex items-center">
-            <WifiOff className="mr-2" size={18} />
+            <AlertCircle className="mr-2" />
             <div>
-              <p className="font-medium">You are viewing cached {pageName} information</p>
-              {lastUpdated && (
-                <p className="text-sm">Last updated: {lastUpdated.toLocaleString()}</p>
+              <p className="font-bold">You are currently offline</p>
+              {isPageCached ? (
+                <p className="text-sm">Viewing cached content for {pageName} disaster information.</p>
+              ) : (
+                <p className="text-sm">This page may not be fully available offline. Some features might be limited.</p>
               )}
-              <p className="text-sm mt-1">Some features may be limited while offline</p>
             </div>
           </div>
         </div>
       )}
-      
       {children}
     </>
   );

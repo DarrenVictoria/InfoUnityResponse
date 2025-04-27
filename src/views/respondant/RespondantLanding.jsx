@@ -45,23 +45,50 @@ const RespondantLanding = () => {
     const checkOfflineAvailability = async () => {
       if (!navigator.onLine && 'caches' in window) {
         try {
-          const cache = await caches.open('disaster-pages-cache');
-          const keys = await cache.keys();
+          // First check the dedicated disaster pages cache
+          let cache = await caches.open('disaster-pages-cache');
+          let keys = await cache.keys();
           
-          // Extract page paths from cache keys
+          // Also check general HTML pages cache for redundancy
+          const htmlCache = await caches.open('html-pages-cache');
+          const htmlKeys = await htmlCache.keys();
+          
+          // Combine all cached URLs
+          keys = [...keys, ...htmlKeys];
+          
+          // Extract page paths from cache keys and look for pattern matches
           const availablePages = keys.map(key => {
             const url = new URL(key.url);
             return url.pathname;
           });
           
           const disasterTypes = [
-            { type: 'drought', path: '/help/drought', available: availablePages.some(p => p.includes('drought')) },
-            { type: 'floods', path: '/help/floods', available: availablePages.some(p => p.includes('floods')) },
-            { type: 'landslides', path: '/help/landslides', available: availablePages.some(p => p.includes('landslides')) },
-            { type: 'tsunamis', path: '/help/tsunamis', available: availablePages.some(p => p.includes('tsunamis')) }
+            { 
+              type: 'drought', 
+              path: '/help/drought', 
+              available: availablePages.some(p => p.includes('/help/drought'))
+            },
+            { 
+              type: 'floods', 
+              path: '/help/floods', 
+              available: availablePages.some(p => p.includes('/help/floods'))
+            },
+            { 
+              type: 'landslides', 
+              path: '/help/landslides', 
+              available: availablePages.some(p => p.includes('/help/landslides'))
+            },
+            { 
+              type: 'tsunamis', 
+              path: '/help/tsunamis', 
+              available: availablePages.some(p => p.includes('/help/tsunamis'))
+            }
           ];
           
           setOfflineDisasterPages(disasterTypes);
+          
+          // Log what was found for debugging
+          console.log('Cached disaster pages found:', availablePages);
         } catch (err) {
           console.error('Error checking offline availability:', err);
           // Assume all are available if we can't check
@@ -72,6 +99,14 @@ const RespondantLanding = () => {
             { type: 'tsunamis', path: '/help/tsunamis', available: true }
           ]);
         }
+      } else {
+        // If online, all pages should be available
+        setOfflineDisasterPages([
+          { type: 'drought', path: '/help/drought', available: true },
+          { type: 'floods', path: '/help/floods', available: true },
+          { type: 'landslides', path: '/help/landslides', available: true },
+          { type: 'tsunamis', path: '/help/tsunamis', available: true }
+        ]);
       }
     };
     

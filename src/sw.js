@@ -114,9 +114,24 @@ registerRoute(
     criticalStrategy
 );
 
+registerRoute(
+    ({ url }) => url.pathname.startsWith('/help/'),
+    new StaleWhileRevalidate({
+        cacheName: 'disaster-pages-cache',
+        plugins: [
+            new ExpirationPlugin({
+                maxEntries: 10,
+                maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+            }),
+        ],
+    })
+);
+
 // Respondant landing page - Use NetworkFirst but fallback to cache
 registerRoute(
-    ({ url }) => url.pathname === '/respondant-landing' || url.pathname === '/',
+    ({ url }) => url.pathname === '/respondant-landing' ||
+        url.pathname === '/' ||
+        url.pathname === '/home',
     new NetworkFirst({
         cacheName: 'landing-pages-cache',
         plugins: [
