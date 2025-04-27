@@ -299,11 +299,11 @@ useEffect(() => {
                       <Route
                           path="/addreport"
                           element={
-                              <ProtectedRoute allowedRoles={['Respondent']}>
+                           
                                   <OfflineAwareContainerMain pageName="Disaster Report" showFullPage={false}>
                                         <PublicDisasterReport />
                                 </OfflineAwareContainerMain>
-                              </ProtectedRoute>
+                         
                           }
                       />
 
