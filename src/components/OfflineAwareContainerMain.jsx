@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AlertCircle, WifiOff } from 'lucide-react';
 
-const OfflineAwareContainer = ({ children, pageName, showFullPage = false }) => {
+const OfflineAwareContainerMain = ({ children, pageName, showFullPage = false }) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [isPageCached, setIsPageCached] = useState(false);
 
