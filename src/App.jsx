@@ -197,9 +197,9 @@ useEffect(() => {
                       <Route
                           path="/home"
                           element={
-                              <ProtectedRoute allowedRoles={['Respondent']}>
+                              
                                   <RespondantLanding />
-                              </ProtectedRoute>
+                              
                           }
                       />
 
@@ -260,36 +260,36 @@ useEffect(() => {
 <Route
                           path="/help/floods"
                           element={
-                              <ProtectedRoute allowedRoles={['Respondent']}>
+                             
                                   <FloodDisasterSupportPage/>
-                              </ProtectedRoute>
+                             
                           }
                       />
 
 <Route
                           path="/help/landslides"
                           element={
-                              <ProtectedRoute allowedRoles={['Respondent']}>
+                              
                                   <LandslideDisasterSupportPage/>
-                              </ProtectedRoute>
+                              
                           }
                       />
 
 <Route
                           path="/help/drought"
                           element={
-                              <ProtectedRoute allowedRoles={['Respondent']}>
+                              
                                   <DroughtDisasterSupportPage/>
-                              </ProtectedRoute>
+                            
                           }
                       />
 
 <Route
                           path="/help/tsunamis"
                           element={
-                              <ProtectedRoute allowedRoles={['Respondent']}>
+                           
                                   <TsunamiDisasterSupportPage/>
-                              </ProtectedRoute>
+                              
                           }
                       />
 
