@@ -129,9 +129,8 @@ registerRoute(
 
 // Respondant landing page - Use NetworkFirst but fallback to cache
 registerRoute(
-    ({ url }) => url.pathname === '/respondant-landing' ||
-        url.pathname === '/' ||
-        url.pathname === '/home',
+    ({ url }) => url.pathname === '/home' ||
+        url.pathname === '/',
     new NetworkFirst({
         cacheName: 'landing-pages-cache',
         plugins: [
