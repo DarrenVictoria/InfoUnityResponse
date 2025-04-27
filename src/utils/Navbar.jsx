@@ -463,7 +463,7 @@ const NavigationBar = () => {
               renderProfileDropdown()
             ) : (
               <button
-                onClick={() => (window.location.href = "/login")}
+                onClick={() => (window.location.href = "/role-selection")}
                 className="px-4 py-2 bg-blue-900 text-white rounded-md hover:bg-blue-800 transition-colors"
               >
                 {t("nav.login")}

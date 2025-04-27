@@ -6,6 +6,7 @@ import 'swiper/css/pagination';
 import 'swiper/css/navigation';
 import { Pagination, Navigation } from 'swiper/modules';
 import NavigationBar from '../../../utils/Navbar';
+import OfflineAwareContainer from '../../../components/OfflineAwareContainer';
 
 const DroughtDisasterSupportPage = () => {
   // Load saved checklists from localStorage or use defaults
@@ -159,6 +160,7 @@ const DroughtDisasterSupportPage = () => {
   return (
     <div className="min-h-screen bg-orange-50">
       <NavigationBar/>
+      <OfflineAwareContainer pageName="drought" color="orange">
       {/* Header */}
       <header className="bg-orange-600 text-white p-4 shadow-md mt-16">
         <div className="container mx-auto flex justify-between items-center">
@@ -576,6 +578,8 @@ const DroughtDisasterSupportPage = () => {
         )}
       </main>
 
+      
+
       {/* Footer */}
       <footer className="bg-orange-800 text-white p-4 mt-8">
         <div className="container mx-auto text-center">
@@ -585,7 +589,10 @@ const DroughtDisasterSupportPage = () => {
           </p>
         </div>
       </footer>
+
+      </OfflineAwareContainer>
     </div>
+    
   );
 };
 

@@ -8,6 +8,7 @@ import { NotificationService } from './services/notificationService';
 import { NotificationProvider } from './context/NotificationContext';
 import { NotificationWrapper } from './components/NotificationWrapper';
 import { WarningService } from './services/warningService';
+import NetworkStatusManager from './components/NetworkStatusManager';
 
 import UpdateNotification from './components/UpdateNotification';
 import Layout from './components/Layout';
@@ -48,6 +49,7 @@ import AdminBlogManagement from './views/respondant/disaster-catalouge/AdminBlog
 import VolunteerLanding from './views/volunteer-user/volunteeruser-landing';
 import UserProfile from './views/respondant/UserProfile';
 import SOSPage from './views/respondant/SOSPage';
+import DisasterCataloguePage from './views/respondant/disaster-catalouge/DisasterCataloguePage';
 
 
 
@@ -160,6 +162,26 @@ useEffect(() => {
                       <Route path="/register/respondent" element={<RespondentRegister />} />
                       <Route path="/register/volunteer" element={<VolunteerRegister />} />
                       
+
+                      <Route
+                          path="/profile"
+                          element={
+                              <ProtectedRoute allowedRoles={['Respondent']}>
+                                  <UserProfile/>
+                              </ProtectedRoute>
+                          }
+                      />
+
+<Route
+                          path="/testcat"
+                          element={
+                              <ProtectedRoute allowedRoles={['Respondent']}>
+                                  <DisasterCataloguePage/>
+                              </ProtectedRoute>
+                          }
+                      />
+
+
 
                       <Route
                           path="/profile"
@@ -379,7 +401,9 @@ useEffect(() => {
                   <NotificationWrapper currentUser={currentUser} />
               </Layout>
           </NextUIProvider>
+          <NetworkStatusManager />
       </NotificationProvider>
+      
   );
 }
 

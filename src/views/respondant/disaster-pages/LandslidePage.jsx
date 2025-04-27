@@ -6,6 +6,7 @@ import 'swiper/css/pagination';
 import 'swiper/css/navigation';
 import { Pagination, Navigation } from 'swiper/modules';
 import NavigationBar from '../../../utils/Navbar';
+import OfflineAwareContainer from '../../../components/OfflineAwareContainer';
 
 const LandslideDisasterSupportPage = () => {
   // Load saved checklists from localStorage or use defaults
@@ -162,6 +163,7 @@ const LandslideDisasterSupportPage = () => {
   return (
     <div className="min-h-screen bg-yellow-50">
       <NavigationBar/>
+      <OfflineAwareContainer pageName="landslide" color="yellow">
       {/* Header */}
       <header className="bg-yellow-600 text-white p-4 shadow-md mt-16">
         <div className="container mx-auto flex justify-between items-center">
@@ -588,6 +590,7 @@ const LandslideDisasterSupportPage = () => {
           </p>
         </div>
       </footer>
+      </OfflineAwareContainer>
     </div>
   );
 };

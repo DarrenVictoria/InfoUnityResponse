@@ -70,6 +70,42 @@ const manifestForPlugin = {
           statuses: [0, 200]
         }
       }
+    },
+    {
+      // Cache all static assets
+      urlPattern: /\.(css|js|png|jpg|jpeg|svg|gif|webp|ico|woff|woff2|ttf|eot)$/,
+      handler: 'CacheFirst',
+      options: {
+        cacheName: 'static-assets',
+        expiration: {
+          maxEntries: 200,
+          maxAgeSeconds: 30 * 24 * 60 * 60 // 30 days
+        }
+      }
+    },
+    {
+      // Cache HTML navigation
+      urlPattern: /\.html$/,
+      handler: 'NetworkFirst',
+      options: {
+        cacheName: 'html-cache',
+        expiration: {
+          maxEntries: 50,
+          maxAgeSeconds: 24 * 60 * 60 // 24 hours
+        }
+      }
+    },
+    {
+      // Cache Firestore documents
+      urlPattern: /firestore\.googleapis\.com/,
+      handler: 'NetworkFirst',
+      options: {
+        cacheName: 'firestore-cache',
+        expiration: {
+          maxEntries: 100,
+          maxAgeSeconds: 4 * 60 * 60 // 4 hours
+        }
+      }
     }],
     globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}']
   },

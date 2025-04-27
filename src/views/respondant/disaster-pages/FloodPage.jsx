@@ -6,6 +6,7 @@ import 'swiper/css/pagination';
 import 'swiper/css/navigation';
 import { Pagination, Navigation } from 'swiper/modules';
 import NavigationBar from '../../../utils/Navbar';
+import OfflineAwareContainer from '../../../components/OfflineAwareContainer';
 
 
 const FloodDisasterSupportPage = () => {
@@ -164,6 +165,7 @@ const FloodDisasterSupportPage = () => {
   return (
     <div className="min-h-screen bg-blue-50">
       <NavigationBar/>
+      <OfflineAwareContainer pageName="flood" color="blue">
       {/* Header */}
       <header className="bg-blue-600 text-white p-4 shadow-md mt-16">
         <div className="container mx-auto flex justify-between items-center">
@@ -599,6 +601,7 @@ const FloodDisasterSupportPage = () => {
           </p>
         </div>
       </footer>
+      </OfflineAwareContainer>
     </div>
   );
 };

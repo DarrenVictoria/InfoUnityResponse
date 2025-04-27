@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useNavigate } from 'react';
-import { MapPin, MessageCircle, Heart, Search, Users, DollarSign, AlertTriangle ,AlertOctagon,ChevronDown, ChevronUp } from 'lucide-react';
+import { MapPin, MessageCircle, Heart, Search, Users, DollarSign, AlertTriangle ,AlertOctagon,ChevronDown, ChevronUp,AlertCircle } from 'lucide-react';
 import { Card, CardHeader, CardBody, Button } from "@nextui-org/react";
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../../firebase';
@@ -22,10 +22,76 @@ import Tsunami from '../../assets/Tsunami.png';
 
 const RespondantLanding = () => {
   const { t } = useTranslation();
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [offlineDisasterPages, setOfflineDisasterPages] = useState([]);
+
+  // Track online/offline status
+  useEffect(() => {
+    const handleOnlineStatusChange = () => {
+      setIsOnline(navigator.onLine);
+    };
+
+    window.addEventListener('online', handleOnlineStatusChange);
+    window.addEventListener('offline', handleOnlineStatusChange);
+
+    return () => {
+      window.removeEventListener('online', handleOnlineStatusChange);
+      window.removeEventListener('offline', handleOnlineStatusChange);
+    };
+  }, []);
+
+  // Check which disaster pages are available in cache when offline
+  useEffect(() => {
+    const checkOfflineAvailability = async () => {
+      if (!navigator.onLine && 'caches' in window) {
+        try {
+          const cache = await caches.open('disaster-pages-cache');
+          const keys = await cache.keys();
+          
+          // Extract page paths from cache keys
+          const availablePages = keys.map(key => {
+            const url = new URL(key.url);
+            return url.pathname;
+          });
+          
+          const disasterTypes = [
+            { type: 'drought', path: '/help/drought', available: availablePages.some(p => p.includes('drought')) },
+            { type: 'floods', path: '/help/floods', available: availablePages.some(p => p.includes('floods')) },
+            { type: 'landslides', path: '/help/landslides', available: availablePages.some(p => p.includes('landslides')) },
+            { type: 'tsunamis', path: '/help/tsunamis', available: availablePages.some(p => p.includes('tsunamis')) }
+          ];
+          
+          setOfflineDisasterPages(disasterTypes);
+        } catch (err) {
+          console.error('Error checking offline availability:', err);
+          // Assume all are available if we can't check
+          setOfflineDisasterPages([
+            { type: 'drought', path: '/help/drought', available: true },
+            { type: 'floods', path: '/help/floods', available: true },
+            { type: 'landslides', path: '/help/landslides', available: true },
+            { type: 'tsunamis', path: '/help/tsunamis', available: true }
+          ]);
+        }
+      }
+    };
+    
+    checkOfflineAvailability();
+  }, [isOnline]); 
 
   return (
     <div>
       <NavigationBar />
+      {/* Offline Status Banner */}
+      {!isOnline && (
+        <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mx-4 my-4 rounded-md">
+          <div className="flex items-center">
+            <AlertCircle className="mr-2" />
+            <p>
+              <strong>You are offline.</strong> You can still access disaster support guides that were previously cached.
+            </p>
+          </div>
+        </div>
+      )}
       <Hero t={t} />
       <InfoUnitySection />
       <DisasterUpdatesComponent />
