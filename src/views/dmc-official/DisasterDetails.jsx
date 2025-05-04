@@ -486,7 +486,7 @@ const DisasterDetails = () => {
   const ResourceRequestsSection = ({ disaster, onUpdate }) => {
     const [newRequest, setNewRequest] = useState({
       type: '',
-      status: 'Pending',
+      status: 'Request Received',
       contactDetails: {
         contactPersonName: '',
         contactMobileNumber: ''
@@ -611,52 +611,48 @@ const DisasterDetails = () => {
         </div>
   
         {/* Requests List */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {disaster.resourceRequests?.map((request, index) => (
-            <div key={index} className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold">{request.type}</h3>
-                <div className="flex items-center gap-2">
-                  <select
-                    className={`px-2 py-1 rounded-full text-sm ${
-                      request.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                      request.status === 'Fulfilled' ? 'bg-green-100 text-green-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}
-                    value={request.status}
-                    onChange={(e) => handleUpdateStatus(index, e.target.value)}
-                  >
-                    <option value="Pending">Pending</option>
-                    <option value="Fulfilled">Fulfilled</option>
-                    <option value="Cancelled">Cancelled</option>
-                  </select>
-                  <button
-                    onClick={() => handleDeleteRequest(index)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center space-x-2">
-                  <Users className="h-4 w-4 text-gray-500" />
-                  <span>{request.contactDetails.contactPersonName}</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Clock className="h-4 w-4 text-gray-500" />
-                  <span>{request.contactDetails.contactMobileNumber}</span>
-                </div>
-                {request.description && (
-                  <p className="text-gray-600 mt-2">{request.description}</p>
-                )}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {disaster.resourceRequests?.map((request, index) => (
+          <div key={index} className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold">{request.type}</h3>
+              <div className="flex items-center gap-2">
+                <span className={`px-2 py-1 rounded-full text-xs ${
+                  request.status === 'Approved' ? 'bg-green-100 text-green-800' :
+                  request.status === 'Request Received' ? 'bg-blue-100 text-blue-800' :
+                  request.status === 'Pending Approval' ? 'bg-yellow-100 text-yellow-800' :
+                  request.status === 'Dispatched' ? 'bg-purple-100 text-purple-800' :
+                  'bg-red-100 text-red-800'
+                }`}>
+                  {request.status}
+                </span>
+                <button
+                  onClick={() => handleDeleteRequest(index)}
+                  className="text-red-500 hover:text-red-700"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </div>
             </div>
-          ))}
-        </div>
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center space-x-2">
+                <Users className="h-4 w-4 text-gray-500" />
+                <span>{request.contactDetails.contactPersonName}</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Clock className="h-4 w-4 text-gray-500" />
+                <span>{request.contactDetails.contactMobileNumber}</span>
+              </div>
+              {request.description && (
+                <p className="text-gray-600 mt-2">{request.description}</p>
+              )}
+            </div>
+          </div>
+        ))}
       </div>
-    );
-  };
+    </div>
+  );
+};
 
   const VolunteerRequestsSection = ({ disaster, onUpdate }) => {
     const [isEditing, setIsEditing] = useState(false);

@@ -31,7 +31,7 @@ const disasterIcons = {
 
 const PulsatingCircleMarker = ({ center, disaster, onMouseOver, onMouseOut }) => {
   const [radius, setRadius] = useState(10);
-  const IconComponent = disasterIcons[disaster.disasterType];
+  const IconComponent = disasterIcons[disaster.disasterType] || null; // Fallback to null if not found
 
   React.useEffect(() => {
     let frame;
@@ -75,11 +75,13 @@ const PulsatingCircleMarker = ({ center, disaster, onMouseOver, onMouseOut }) =>
           mouseout: onMouseOut,
         }}
       >
-        <div className="relative w-0 h-0">
-          <div className="absolute -mt-3 -ml-3">
-            <IconComponent style={{ color: 'white', fontSize: '24px' }} />
+        {IconComponent && (
+          <div className="relative w-0 h-0">
+            <div className="absolute -mt-3 -ml-3">
+              <IconComponent style={{ color: 'white', fontSize: '24px' }} />
+            </div>
           </div>
-        </div>
+        )}
       </CircleMarker>
     </>
   );

@@ -51,6 +51,7 @@ import UserProfile from './views/respondant/UserProfile';
 import SOSPage from './views/respondant/SOSPage';
 import DisasterCataloguePage from './views/respondant/disaster-catalouge/DisasterCataloguePage';
 import OfflineAwareContainerMain from './components/OfflineAwareContainerMain';
+import ResourceRequestManagement from './views/dmc-official/ResourceRequestManagement';
 
 
 
@@ -321,6 +322,15 @@ useEffect(() => {
                           element={
                               <ProtectedRoute allowedRoles={['Dmc system admin']}>
                                   <DMCLanding />
+                              </ProtectedRoute>
+                          }
+                      />
+
+<Route
+                          path="/dmc/resourcemanage"
+                          element={
+                              <ProtectedRoute allowedRoles={['Dmc system admin']}>
+                                  <ResourceRequestManagement />
                               </ProtectedRoute>
                           }
                       />

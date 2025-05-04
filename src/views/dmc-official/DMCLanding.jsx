@@ -486,18 +486,18 @@ const DMCLanding = () => {
       </div>
 
       {/* Bottom Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div 
+      <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+        {/* <div 
           className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow cursor-pointer"
           onClick={() => navigateToSection('/missing-persons')}
         >
           <h2 className="text-xl font-bold mb-2">Monitor Missing Person Registry</h2>
           <p className="text-gray-600">Track and manage missing person reports</p>
-        </div>
+        </div> */}
 
         <div 
           className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow cursor-pointer"
-          onClick={() => navigateToSection('/resource-allocation')}
+          onClick={() => navigateToSection('/dmc/resourcemanage')}
         >
           <h2 className="text-xl font-bold mb-2">Resource Allocation Management</h2>
           <p className="text-gray-600">Manage and allocate resources for disaster response</p>
