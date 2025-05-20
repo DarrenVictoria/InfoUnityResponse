@@ -3,11 +3,11 @@ import { useTranslation } from "react-i18next";
 import {
   ChevronDown,
   Globe,
-  BookOpen,
-  Bot,
-  Users,
-  Wrench,
-  Search,
+  LayoutDashboard,
+  CheckCircle,
+  BellRing,
+  PlusCircle,
+  Package,
   AlertTriangle,
   User,
   Menu,
@@ -39,12 +39,12 @@ const NavDropdown = ({
         className={`
           ${
             isMobile
-              ? "flex items-center w-full text-gray-700"
-              : "px-3 py-2 text-gray-700 hover:text-gray-900 rounded-md flex items-center"
+              ? "flex items-center w-full text-gray-200"
+              : "px-3 py-2 text-gray-200 hover:text-white rounded-md flex items-center"
           }
         `}
       >
-        {Icon && <Icon className="h-4 w-4 mr-2" />}
+        {Icon && <Icon className="h-4 w-4 mr-1" />}
         {t(translationKey)}
         <ChevronDown
           className={`ml-1 h-4 w-4 transform ${isOpen ? "rotate-180" : ""}`}
@@ -56,7 +56,7 @@ const NavDropdown = ({
           ${
             isMobile
               ? "mt-2 pl-4 space-y-2"
-              : "absolute top-full left-0 w-56 bg-white border rounded-md shadow-lg py-1 mt-1"
+              : "absolute top-full left-0 w-56 bg-gray-800 border border-gray-700 rounded-md shadow-lg py-1 mt-1"
           }
         `}
         >
@@ -68,12 +68,12 @@ const NavDropdown = ({
                 flex items-center
                 ${
                   isMobile
-                    ? "px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-                    : "px-4 py-2 text-gray-700 hover:bg-gray-100 text-sm"
+                    ? "px-3 py-2 text-gray-200 hover:bg-gray-700 rounded-md"
+                    : "px-4 py-2 text-gray-200 hover:bg-gray-700 text-sm"
                 }
               `}
             >
-              {item.icon && <item.icon className="h-4 w-4 mr-2" />}
+              {item.icon && <item.icon className="h-4 w-4 mr-1" />}
               {t(item.translationKey)}
             </a>
           ))}
@@ -83,7 +83,7 @@ const NavDropdown = ({
   );
 };
 
-const NavigationBar = () => {
+const AdminNavigationBar = () => {
   const { t, i18n } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -97,26 +97,10 @@ const NavigationBar = () => {
     { code: "ta", name: "தமிழ்" },
   ];
 
-  const navItems = {
-    learn: {
-      translationKey: "nav.learn",
-      items: [
-        { translationKey: "nav.disasterCatalogue", icon: BookOpen, href: "disastercatalogue" },
-        { translationKey: "nav.aiChatbot", icon: Bot, href: "support-chat" },
-      ],
-    },
-    tools: {
-      translationKey: "nav.tools",
-      items: [
-        // { translationKey: "nav.responseManagement", icon: Wrench, href: "#" },
-        {
-          translationKey: "nav.missingPersonRegistry",
-          icon: Search,
-          href: "missingperson",
-        },
-      ],
-    },
-  };
+  // Admin navigation items
+  const adminNavItems = [
+    
+  ];
 
   // Handle screen resize
   useEffect(() => {
@@ -177,7 +161,7 @@ const NavigationBar = () => {
   };
 
   const renderMobileMenu = () => (
-    <div className="lg:hidden bg-white border-t">
+    <div className="lg:hidden bg-gray-900 border-t border-gray-700">
       <div className="px-2 pt-2 pb-3 space-y-1">
         {renderNavItems()}
         {renderLanguageSelector()}
@@ -186,7 +170,7 @@ const NavigationBar = () => {
           {/* SOS Button */}
           <button 
             onClick={() => window.location.assign("/sos")}
-            className="w-full px-4 py-2 text-red-600 font-medium rounded-md border-2 border-red-600 hover:bg-red-50 flex items-center justify-center">
+            className="w-full px-4 py-2 text-red-400 font-medium rounded-md border-2 border-red-400 hover:bg-red-900 hover:bg-opacity-30 flex items-center justify-center">
             <AlertTriangle className="h-4 w-4 mr-1" />
             {t("nav.sos")}
           </button>
@@ -195,10 +179,10 @@ const NavigationBar = () => {
             <>
               <button
                 onClick={handleProfileToggle}
-                className="w-full px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md flex items-center justify-between transition-colors"
+                className="w-full px-4 py-2 text-gray-200 hover:bg-gray-800 rounded-md flex items-center justify-between transition-colors"
               >
                 <div className="flex items-center">
-                  <User className="h-5 w-5 text-gray-600" />
+                  <User className="h-5 w-5 text-gray-300" />
                   <span className="ml-2">
                     {user.displayName || t("nav.profile")}
                   </span>
@@ -214,7 +198,7 @@ const NavigationBar = () => {
           ) : (
             <button
               onClick={() => (window.location.href = "/role-selection")}
-              className="w-full px-4 py-2 text-white font-medium rounded-md bg-blue-900 hover:bg-blue-800 transition-colors"
+              className="w-full px-4 py-2 text-white font-medium rounded-md bg-indigo-700 hover:bg-indigo-600 transition-colors"
             >
               {t("nav.login")}
             </button>
@@ -249,7 +233,7 @@ const NavigationBar = () => {
           <a
             key={index}
             href={getDashboardPath(role)}
-            className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+            className="block px-3 py-2 text-gray-200 hover:bg-gray-700 rounded-md transition-colors"
             onClick={() => setIsMenuOpen(false)}
           >
             {role} Dashboard
@@ -263,13 +247,13 @@ const NavigationBar = () => {
     if (!user) return null;
 
     return (
-      <div className="px-3 py-2 space-y-2 bg-gray-50 rounded-md mx-2">
+      <div className="px-3 py-2 space-y-2 bg-gray-800 rounded-md mx-2">
         {/* User Info */}
-        <div className="px-2 py-3 border-b border-gray-200">
-          <p className="font-semibold text-gray-900">
+        <div className="px-2 py-3 border-b border-gray-700">
+          <p className="font-semibold text-gray-100">
             {user?.displayName || "User"}
           </p>
-          <p className="text-gray-500 text-xs">{user?.email}</p>
+          <p className="text-gray-400 text-xs">{user?.email}</p>
         </div>
 
         <RoleBasedNavigation roles={roles} setIsMenuOpen={setIsMenuOpen} />
@@ -277,9 +261,9 @@ const NavigationBar = () => {
         {/* Logout Button */}
         <button
           onClick={handleLogout}
-          className="w-full flex items-center justify-center px-3 py-2 text-red-600 hover:bg-red-50 rounded-md transition-colors"
+          className="w-full flex items-center justify-center px-3 py-2 text-red-400 hover:bg-red-900 hover:bg-opacity-30 rounded-md transition-colors"
         >
-          <LogOut className="h-4 w-4 mr-2" />
+          <LogOut className="h-4 w-4 mr-1" />
           {t("nav.logout")}
         </button>
       </div>
@@ -288,44 +272,23 @@ const NavigationBar = () => {
 
   const renderNavItems = () => (
     <>
-      <a
-        href="realtime"
-        className={`
-        ${
-          isMobile
-            ? "block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md text-left"
-            : "px-3 py-2 text-gray-700 hover:text-gray-900 rounded-md"
-        }
-      `}
-      >
-        {t("nav.realtime")}
-      </a>
-
-      {Object.entries(navItems).map(([key, { translationKey, items }]) => (
-        <NavDropdown
-          key={key}
-          translationKey={translationKey}
-          items={items}
-          isOpen={openDropdown === key}
-          onToggle={() => handleDropdownToggle(key)}
-          isMobile={isMobile}
-        />
+      {adminNavItems.map((item, index) => (
+        <a
+          key={index}
+          href={item.href}
+          className={`
+            flex items-center
+            ${
+              isMobile
+                ? "block px-3 py-2 text-gray-200 hover:bg-gray-700 rounded-md text-left"
+                : "px-3 py-2 text-gray-200 hover:text-white rounded-md"
+            }
+          `}
+        >
+          {item.icon && <item.icon className="h-4 w-4 mr-1" />}
+          {t(item.translationKey)}
+        </a>
       ))}
-
-      <a
-        href="/volunteer/home"
-        className={`
-        flex items-center
-        ${
-          isMobile
-            ? "px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-            : "px-3 py-2 text-gray-700 hover:text-gray-900 rounded-md"
-        }
-      `}
-      >
-        <Users className="h-4 w-4 mr-2" />
-        {t("nav.volunteer")}
-      </a>
     </>
   );
 
@@ -341,22 +304,22 @@ const NavigationBar = () => {
         className={`
           ${
             isMobile
-              ? "flex items-center w-full text-gray-700"
-              : "p-2 rounded-md hover:bg-gray-100 flex items-center"
+              ? "flex items-center w-full text-gray-200"
+              : "p-2 rounded-md hover:bg-gray-700 flex items-center"
           }
         `}
       >
-        <Globe className="h-5 w-5 text-gray-600 mr-2" />
+        <Globe className="h-5 w-5 text-gray-300 mr-1" />
         <span
           className={
-            isMobile ? "" : "ml-1 text-sm hidden xl:inline text-gray-700"
+            isMobile ? "" : "ml-1 text-sm hidden xl:inline text-gray-200"
           }
         >
           {languages.find((lang) => lang.code === i18n.language)?.name ||
             "English"}
         </span>
         <ChevronDown
-          className={`ml-1 h-4 w-4 text-gray-700 transform ${
+          className={`ml-1 h-4 w-4 text-gray-300 transform ${
             openDropdown === "language" ? "rotate-180" : ""
           }`}
         />
@@ -367,7 +330,7 @@ const NavigationBar = () => {
           ${
             isMobile
               ? "mt-2 pl-4 space-y-2"
-              : "absolute top-full right-0 w-32 bg-white border rounded-md shadow-lg py-1 mt-1"
+              : "absolute top-full right-0 w-32 bg-gray-800 border border-gray-700 rounded-md shadow-lg py-1 mt-1"
           }
         `}
         >
@@ -379,8 +342,8 @@ const NavigationBar = () => {
                 w-full text-left
                 ${
                   isMobile
-                    ? "px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-                    : "px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    ? "px-3 py-2 text-gray-200 hover:bg-gray-700 rounded-md"
+                    : "px-4 py-2 text-gray-200 hover:bg-gray-700"
                 }
               `}
             >
@@ -396,9 +359,9 @@ const NavigationBar = () => {
     <div className="relative dropdown-container">
       <button
         onClick={handleProfileToggle}
-        className="flex items-center p-2 hover:bg-gray-100 rounded-md transition-colors"
+        className="flex items-center p-2 hover:bg-gray-700 rounded-md transition-colors"
       >
-        <User className="h-5 w-5 text-gray-600" />
+        <User className="h-5 w-5 text-gray-300" />
         <ChevronDown
           className={`h-4 w-4 ml-1 transform transition-transform duration-200 ${
             isProfileOpen ? "rotate-180" : ""
@@ -406,13 +369,13 @@ const NavigationBar = () => {
         />
       </button>
       {isProfileOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg z-50">
+        <div className="absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-md shadow-lg z-50">
           {/* User Info */}
-          <div className="p-4 border-b">
-            <p className="font-semibold text-gray-900">
+          <div className="p-4 border-b border-gray-700">
+            <p className="font-semibold text-gray-100">
               {user?.displayName || "User"}
             </p>
-            <p className="text-gray-500 text-xs">{user?.email}</p>
+            <p className="text-gray-400 text-xs">{user?.email}</p>
           </div>
 
           <RoleBasedNavigation roles={roles} setIsMenuOpen={setIsMenuOpen} />
@@ -420,9 +383,9 @@ const NavigationBar = () => {
           {/* Logout Button */}
           <button
             onClick={handleLogout}
-            className="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 transition-colors border-t"
+            className="block w-full text-left px-4 py-2 text-red-400 hover:bg-red-900 hover:bg-opacity-30 transition-colors border-t border-gray-700"
           >
-            <LogOut className="h-4 w-4 mr-2 inline" />
+            <LogOut className="h-4 w-4 mr-1 inline" />
             {t("nav.logout")}
           </button>
         </div>
@@ -431,15 +394,15 @@ const NavigationBar = () => {
   );
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md z-[9999]">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-gray-900 shadow-md z-[9999]">
       <div className="max-w-[1920px] mx-auto px-4 lg:px-6 flex items-center justify-between h-16">
           <div
             className="flex items-center flex-shrink-0 cursor-pointer"
-            onClick={() => (window.location.href = "/")}
+            onClick={() => (window.location.href = "/dmc/home")}
           >
             <img src="/favicon-32x32.png" alt="Logo" className="h-10 w-10" />
-            <span className="ml-2 text-lg font-bold text-black">
-              {t("InfoUnity Response")}
+            <span className="ml-2 text-lg font-bold text-white">
+              {t("InfoUnity Response")} <span className="text-indigo-400">Admin</span>
             </span>
           </div>
 
@@ -454,7 +417,7 @@ const NavigationBar = () => {
 
             <button 
               onClick={() => window.location.assign("/sos")}
-              className="px-1 py-1 text-red-600 font-medium rounded-md border-2 border-red-600 hover:bg-red-50 flex items-center transition-colors">
+              className="px-1 py-1 text-red-400 font-medium rounded-md border-2 border-red-400 hover:bg-red-900 hover:bg-opacity-30 flex items-center transition-colors">
               <AlertTriangle className="h-4 w-4 mr-1" />
               <span className="hidden sm:inline">{t("nav.sos")}</span>
             </button>
@@ -464,7 +427,7 @@ const NavigationBar = () => {
             ) : (
               <button
                 onClick={() => (window.location.href = "/role-selection")}
-                className="px-4 py-2 bg-blue-900 text-white rounded-md hover:bg-blue-800 transition-colors"
+                className="px-4 py-2 bg-indigo-700 text-white rounded-md hover:bg-indigo-600 transition-colors"
               >
                 {t("nav.login")}
               </button>
@@ -478,7 +441,7 @@ const NavigationBar = () => {
               setIsMenuOpen(!isMenuOpen);
               setOpenDropdown(null);
             }}
-            className="p-2 rounded-md text-gray-700 hover:bg-gray-100 transition-colors"
+            className="p-2 rounded-md text-gray-300 hover:bg-gray-700 transition-colors"
           >
             {isMenuOpen ? (
               <X className="h-6 w-6" />
@@ -495,4 +458,4 @@ const NavigationBar = () => {
   );
 };
 
-export default NavigationBar;
+export default AdminNavigationBar;

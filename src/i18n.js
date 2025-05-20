@@ -298,6 +298,12 @@ const resources = {
           "red": "Red Alert"
         }
       },
+
+      "nav.dashboard": "Dashboard",
+      "nav.verifyDisaster": "Verify Disaster",
+      "nav.sendWarning": "Send Warning",
+      "nav.addDisaster": "Add Disaster",
+      "nav.manageResource": "Manage Resources"
     },
   },
   si: {
@@ -598,6 +604,11 @@ const resources = {
           "red": "රතු ඇඟවීම"
         }
       },
+      "nav.dashboard": "ප්‍රධාන පුවරුව",
+      "nav.verifyDisaster": "ආපදා තහවුරු කරන්න",
+      "nav.sendWarning": "අනතුරු ඇඟවීම යවන්න",
+      "nav.addDisaster": "ආපදාවක් එක් කරන්න",
+      "nav.manageResource": "සම්පත් කළමනාකරණය"
     },
   },
   ta: {
@@ -895,7 +906,12 @@ const resources = {
           "high": "உயர்",
           "red": "சிவப்பு எச்சரிக்கை"
         }
-      }
+      },
+      "nav.dashboard": "டாஷ்போர்டு",
+      "nav.verifyDisaster": "பேரழிவை சரிபார்க்க",
+      "nav.sendWarning": "எச்சரிக்கை அனுப்ப",
+      "nav.addDisaster": "பேரழிவை சேர்க்க",
+      "nav.manageResource": "வளங்களை நிர்வகிக்க"
     },
   },
 };

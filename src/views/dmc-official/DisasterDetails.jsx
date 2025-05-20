@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { db } from '../../../firebase';
-import { doc, getDoc,updateDoc,setDoc} from 'firebase/firestore';
-import { MapPin, Users, Home, AlertTriangle, Heart, Clock, Minus, Plus, Trash2,Plus as PlusIcon, Edit2, Save, X} from 'lucide-react';
+import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
+import { MapPin, Users, Home, AlertTriangle, Heart, Clock, Minus, Plus, Trash2, Plus as PlusIcon, Edit2, Save, X } from 'lucide-react';
 import DisasterLocationMap from '../../components/DisasterLocationMap';
+import AdminNavigationBar from '../../utils/AdminNavbar';
 
 const VOLUNTEER_CATEGORIES = {
   "Emergency Response": ["Search and Rescue (SAR)", "Medical Assistance", "Firefighting Support", "Evacuation Assistance", "Damage Assessment"],
@@ -17,27 +18,37 @@ const VOLUNTEER_CATEGORIES = {
 
 const RESOURCE_TYPES = ["Food", "Shelter", "Clothing"];
 
-
-
 const DisasterDetails = () => {
   const { id } = useParams();
   const [disaster, setDisaster] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showEndDisasterModal, setShowEndDisasterModal] = useState(false);
   const [endDate, setEndDate] = useState('');
+  const [mapCenter, setMapCenter] = useState(null);
 
   const fetchDisasterDetails = async () => {
     try {
       const disasterDoc = await getDoc(doc(db, 'verifiedDisasters', id));
       if (disasterDoc.exists()) {
         const data = disasterDoc.data();
-        setDisaster({
+        const disasterData = {
           ...data,
           disasterId: id,
           safeLocations: data.safeLocations || [],
           resourceRequests: data.resourceRequests || [],
           volunteerRequests: data.volunteerRequests || {},
-        });
+          predictedResources: data.predictedResources || {},
+          disasterLocation: data.disasterLocation || {}
+        };
+        setDisaster(disasterData);
+        
+        // Set map center coordinates
+        if (data.disasterLocation?.latitude && data.disasterLocation?.longitude) {
+          setMapCenter({
+            lat: data.disasterLocation.latitude,
+            lng: data.disasterLocation.longitude
+          });
+        }
       } else {
         console.error('No such document!');
       }
@@ -77,7 +88,6 @@ const DisasterDetails = () => {
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex flex-col space-y-4">
-            {/* Disaster Type and Location */}
             <div className="flex items-center space-x-4">
               <AlertTriangle className="h-8 w-8 text-red-500" />
               <div>
@@ -94,7 +104,6 @@ const DisasterDetails = () => {
               </div>
             </div>
             
-            {/* Dates */}
             <div className="flex space-x-6 text-sm">
               <div>
                 <span className="text-gray-600">Started:</span>
@@ -113,7 +122,7 @@ const DisasterDetails = () => {
     );
   };
 
-  const HumanEffectSection = ({ disaster, onUpdate }) => {
+ const HumanEffectSection = ({ disaster, onUpdate }) => {
     
 
     const handleCountChange = async (field, value) => {
@@ -695,6 +704,7 @@ const DisasterDetails = () => {
 
     return (
       <div className="mt-8">
+        
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold">Volunteer Requests</h2>
           {!isEditing ? (
@@ -790,6 +800,151 @@ const DisasterDetails = () => {
     );
   };
 
+
+
+  const LocationMapSection = ({ disaster }) => {
+    return (
+      <div className="mt-8">
+        <h2 className="text-xl font-bold mb-4">Disaster Location</h2>
+        <div className="bg-white rounded-lg shadow p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Latitude</label>
+              <input
+                type="text"
+                className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                value={disaster.disasterLocation?.latitude || ''}
+                readOnly
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Longitude</label>
+              <input
+                type="text"
+                className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                value={disaster.disasterLocation?.longitude || ''}
+                readOnly
+              />
+            </div>
+          </div>
+          
+          {mapCenter && (
+            <div className="h-96 w-full rounded-lg overflow-hidden">
+              <DisasterLocationMap  
+                latitude={mapCenter.lat}
+                longitude={mapCenter.lng}
+                disasterType={disaster.disasterType}
+                location={`${disaster.district}, ${disaster.dsDivision}`}
+                riskLevel={disaster.riskLevel}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const ResourcePredictionSection = ({ disaster, onUpdate }) => {
+    const [editing, setEditing] = useState(false);
+    const [editedResources, setEditedResources] = useState({ ...disaster.predictedResources });
+
+    const handleResourceChange = (resource, value) => {
+      const numValue = parseFloat(value) || 0;
+      setEditedResources(prev => ({
+        ...prev,
+        [resource]: numValue
+      }));
+    };
+
+    const saveResourceChanges = async () => {
+      try {
+        const disasterRef = doc(db, 'verifiedDisasters', disaster.disasterId);
+        await updateDoc(disasterRef, {
+          predictedResources: editedResources
+        });
+        setEditing(false);
+        onUpdate();
+      } catch (error) {
+        console.error('Error updating resources:', error);
+        alert('Failed to update resource predictions');
+      }
+    };
+
+    const commonResources = [
+      { name: 'rice', label: 'Rice (kg)' },
+      { name: 'dhal', label: 'Dhal (kg)' },
+      { name: 'biscuits', label: 'Biscuits (packets)' },
+      { name: 'milkPowder', label: 'Milk Powder (kg)' },
+      { name: 'water', label: 'Water (liters)' },
+      { name: 'foodPortions', label: 'Food Portions' },
+      { name: 'soap', label: 'Soap (bars)' },
+      { name: 'toothpaste', label: 'Toothpaste (tubes)' }
+    ];
+
+    return (
+      <div className="mt-8">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold">Predicted Resource Needs</h2>
+          {!editing ? (
+            <button
+              onClick={() => setEditing(true)}
+              className="px-3 py-1 bg-blue-500 text-white rounded-lg flex items-center gap-2"
+            >
+              <Edit2 className="h-4 w-4" />
+              Edit Predictions
+            </button>
+          ) : (
+            <div className="flex gap-2">
+              <button
+                onClick={saveResourceChanges}
+                className="px-3 py-1 bg-green-500 text-white rounded-lg flex items-center gap-2"
+              >
+                <Save className="h-4 w-4" />
+                Save
+              </button>
+              <button
+                onClick={() => {
+                  setEditing(false);
+                  setEditedResources({ ...disaster.predictedResources });
+                }}
+                className="px-3 py-1 bg-gray-500 text-white rounded-lg flex items-center gap-2"
+              >
+                <X className="h-4 w-4" />
+                Cancel
+              </button>
+            </div>
+          )}
+        </div>
+
+        <div className="bg-white rounded-lg shadow p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {commonResources.map(resource => (
+              <div key={resource.name} className="p-3 border rounded-lg">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {resource.label}
+                </label>
+                {editing ? (
+                  <input
+                    type="number"
+                    className="w-full p-2 border rounded"
+                    value={editedResources[resource.name] || 0}
+                    onChange={(e) => handleResourceChange(resource.name, e.target.value)}
+                    min="0"
+                    step="0.1"
+                  />
+                ) : (
+                  <div className="p-2 bg-gray-50 rounded">
+                    {disaster.predictedResources?.[resource.name] || 0}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const handleEndDisaster = async () => {
     try {
       const disasterRef = doc(db, 'verifiedDisasters', id);
@@ -818,14 +973,11 @@ const DisasterDetails = () => {
 
       setShowEndDisasterModal(false);
       alert('Disaster marked as ended successfully!');
-      // Refresh the disaster details to reflect the updated status
       fetchDisasterDetails();
     } catch (error) {
       console.error('Error ending disaster:', error);
       alert('Failed to mark disaster as ended.');
     }
-
-    
   };
 
   if (loading) {
@@ -855,153 +1007,132 @@ const DisasterDetails = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header Section */}
-      
+      <AdminNavigationBar />
 
-      <DisasterHeader disaster={disaster} />
+      <div className="pt-16">
+        <DisasterHeader disaster={disaster} />
 
-    
-
-      {/* Status Cards */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {/* Risk Level Card */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Risk Level</p>
-                <h3 className="text-xl font-bold">{disaster.riskLevel}</h3>
-              </div>
-              <div className={`w-3 h-3 rounded-full ${getRiskLevelColor(disaster.riskLevel)}`}></div>
-            </div>
-          </div>
-
-          
-
-          {/* Volunteers Card */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Volunteers Needed</p>
-                <h3 className="text-xl font-bold">
-                  {Object.values(disaster.volunteerRequests || {}).reduce((a, b) => a + b, 0)}
-                </h3>
-              </div>
-              <Users className="h-6 w-6 text-blue-500" />
-            </div>
-          </div>
-
-          {/* Missing Persons Card */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Missing Persons</p>
-                <h3 className="text-xl font-bold">{disaster.humanEffect?.missing || 0}</h3>
-              </div>
-              <Heart className="h-6 w-6 text-yellow-500" />
-            </div>
-          </div>
-
-          {/* Deaths Card */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Deaths</p>
-                <h3 className="text-xl font-bold">{disaster.humanEffect?.deaths || 0}</h3>
-              </div>
-              <AlertTriangle className="h-6 w-6 text-red-500" />
-            </div>
-          </div>
-        </div>
-
-        <div className="max-w-7xl mx-auto px-4">
-        <DisasterLocationMap  
-          latitude={disaster.latitude}
-          longitude={disaster.longitude}
-          disasterType={disaster.disasterType}
-          location={`${disaster.district}, ${disaster.dsDivision}`}
-          riskLevel={disaster.riskLevel}
-          style={{ zIndex: -99999 }}
-        />
-      </div>
-
-      <InfrastructureEffectSection 
-          disaster={disaster} 
-          onUpdate={handleDataUpdate} 
-        />
-
-
-      <HumanEffectSection 
-          disaster={disaster} 
-          onUpdate={handleDataUpdate} 
-        />
-
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <SafeLocationsSection 
-          disaster={disaster} 
-          onUpdate={handleDataUpdate} 
-        />
-        
-        <ResourceRequestsSection 
-          disaster={disaster} 
-          onUpdate={handleDataUpdate} 
-        />
-        
-        <VolunteerRequestsSection 
-          disaster={disaster} 
-          onUpdate={handleDataUpdate} 
-        />
-        
-        
-      </div>
-
-
-
-        {/* Conditional Rendering for Mark Disaster as Ended */}
         <div className="max-w-7xl mx-auto px-4 py-6">
-          {disaster.status === 'Ended' ? (
-            <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4" role="alert">
-              <p className="font-bold">Disaster Status</p>
-              <p>This disaster has already been marked as ended.</p>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Risk Level</p>
+                  <h3 className="text-xl font-bold">{disaster.riskLevel}</h3>
+                </div>
+                <div className={`w-3 h-3 rounded-full ${getRiskLevelColor(disaster.riskLevel)}`}></div>
+              </div>
             </div>
-          ) : (
-            <button
-              className="px-4 py-2 bg-red-500 text-white rounded-lg"
-              onClick={() => setShowEndDisasterModal(true)}
-            >
-              Mark Disaster as Ended
-            </button>
+
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Volunteers Needed</p>
+                  <h3 className="text-xl font-bold">
+                    {Object.values(disaster.volunteerRequests || {}).reduce((a, b) => a + b, 0)}
+                  </h3>
+                </div>
+                <Users className="h-6 w-6 text-blue-500" />
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Missing Persons</p>
+                  <h3 className="text-xl font-bold">{disaster.humanEffect?.missing || 0}</h3>
+                </div>
+                <Heart className="h-6 w-6 text-yellow-500" />
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Deaths</p>
+                  <h3 className="text-xl font-bold">{disaster.humanEffect?.deaths || 0}</h3>
+                </div>
+                <AlertTriangle className="h-6 w-6 text-red-500" />
+              </div>
+            </div>
+          </div>
+
+          <LocationMapSection disaster={disaster} />
+          
+          <ResourcePredictionSection 
+            disaster={disaster} 
+            onUpdate={handleDataUpdate} 
+          />
+
+          <InfrastructureEffectSection 
+            disaster={disaster} 
+            onUpdate={handleDataUpdate} 
+          />
+
+          <HumanEffectSection 
+            disaster={disaster} 
+            onUpdate={handleDataUpdate} 
+          />
+
+          <SafeLocationsSection 
+            disaster={disaster} 
+            onUpdate={handleDataUpdate} 
+          />
+          
+          <ResourceRequestsSection 
+            disaster={disaster} 
+            onUpdate={handleDataUpdate} 
+          />
+          
+          <VolunteerRequestsSection 
+            disaster={disaster} 
+            onUpdate={handleDataUpdate} 
+          />
+
+          <div className="max-w-7xl mx-auto px-4 py-6">
+            {disaster.status === 'Ended' ? (
+              <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4" role="alert">
+                <p className="font-bold">Disaster Status</p>
+                <p>This disaster has already been marked as ended.</p>
+              </div>
+            ) : (
+              <button
+                className="px-4 py-2 bg-red-500 text-white rounded-lg"
+                onClick={() => setShowEndDisasterModal(true)}
+              >
+                Mark Disaster as Ended
+              </button>
+            )}
+          </div>
+
+          {showEndDisasterModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white p-6 rounded-lg">
+                <h2 className="text-xl font-bold mb-4">Mark Disaster as Ended</h2>
+                <input
+                  type="datetime-local"
+                  className="w-full px-4 py-2 border rounded-lg mb-4"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                />
+                <div className="flex justify-end space-x-4">
+                  <button
+                    className="px-4 py-2 bg-gray-500 text-white rounded-lg"
+                    onClick={() => setShowEndDisasterModal(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="px-4 py-2 bg-red-500 text-white rounded-lg"
+                    onClick={handleEndDisaster}
+                  >
+                    Confirm
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
         </div>
-
-        {/* End Disaster Modal */}
-        {showEndDisasterModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-            <div className="bg-white p-6 rounded-lg">
-              <h2 className="text-xl font-bold mb-4">Mark Disaster as Ended</h2>
-              <input
-                type="datetime-local"
-                className="w-full px-4 py-2 border rounded-lg mb-4"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-              />
-              <div className="flex justify-end space-x-4">
-                <button
-                  className="px-4 py-2 bg-gray-500 text-white rounded-lg"
-                  onClick={() => setShowEndDisasterModal(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="px-4 py-2 bg-red-500 text-white rounded-lg"
-                  onClick={handleEndDisaster}
-                >
-                  Confirm
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

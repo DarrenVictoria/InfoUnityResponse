@@ -5,6 +5,7 @@ import { db } from '../../../firebase';
 import { collection, addDoc, doc, setDoc, updateDoc ,getDoc, getDocs} from "firebase/firestore";
 import LocationSelectorPin from '../../components/LocationSelectorPin';
 import * as tf from '@tensorflow/tfjs';
+import AdminNavigationBar from '../../utils/AdminNavbar';
 
 // Common disaster types in Sri Lanka
 const DISASTER_TYPES = [
@@ -114,8 +115,26 @@ export default function DisasterReportingStepper() {
     }
     
   });
+const MINIMUM_REQUIREMENTS = {
+  water: 2,          // liters per person per day
+  rice: 0.3,         // kg per person per day (dry rations)
+  dhal: 0.15,        // kg per person per day (dry rations)
+  cannedFish: 0.1,   // cans per person per day (dry rations)
+  milkPowder: 0.05,  // kg per person per day
+  sugar: 0.05,       // kg per person per day
+  tea: 0.02,         // kg per person per day
+  biscuits: 0.1,     // packets per person per day
+  soap: 0.1,         // bars per person per day
+  toothpaste: 0.05   // tubes per person per day
+};
+  
+
 
   useEffect(() => {
+
+    
+
+    
     const fetchDataAndTrainModel = async () => {
       const trainingData = await getDocs(collection(db, 'ResourceData'));
       if (trainingData.docs.length >= 10) { // Ensure there's enough data
@@ -229,7 +248,8 @@ export default function DisasterReportingStepper() {
   
     return (
       <div className="mb-12 overflow-x-auto">
-        <div className="relative min-w-[800px]">
+        <AdminNavigationBar/>
+        <div className="relative min-w-[800px] mt-14">
           {/* Progress Bar */}
           <div className="absolute top-4 left-0 right-0 h-0.5 bg-gray-200">
             <div 
@@ -688,98 +708,91 @@ export default function DisasterReportingStepper() {
     </div>
   );
 
-  const initializeTensorFlowModel = async () => {
-    const model = tf.sequential();
-    
-    model.add(tf.layers.dense({
-      inputShape: [3], // total displaced, families affected, infrastructure damage
-      units: 64,
-      activation: 'relu'
-    }));
-    
-    model.add(tf.layers.dense({
-      units: 32,
-      activation: 'relu'
-    }));
-    
-    model.add(tf.layers.dense({
-      units: 10, // output for 10 essential items
-      activation: 'relu' // Ensure non-negative outputs
-    }));
-    
-    model.compile({
-      optimizer: tf.train.adam(0.001),
-      loss: 'meanSquaredError'
-    });
-    
-    return model;
+
+
+
+
+
+const roundValues = (resources) => {
+  return {
+    water: Math.round(resources.water),
+    rice: Math.round(resources.rice * 2) / 2, // Nearest 0.5 kg
+    dhal: Math.round(resources.dhal * 2) / 2,
+    cannedFish: Math.round(resources.cannedFish),
+    milkPowder: Math.round(resources.milkPowder * 2) / 2,
+    sugar: Math.round(resources.sugar * 2) / 2,
+    tea: Math.round(resources.tea * 2) / 2,
+    biscuits: Math.round(resources.biscuits),
+    soap: Math.round(resources.soap),
+    toothpaste: Math.round(resources.toothpaste),
+    foodPortions: Math.round(resources.foodPortions)
   };
+};
 
 
-  const predictResources = (model, humanEffect, duration) => {
-    const inputTensor = tf.tensor2d([
-      [
-        humanEffect.affectedPeople,
-        humanEffect.affectedFamilies,
-        humanEffect.injured + humanEffect.deaths + humanEffect.missing
-      ]
-    ]);
-  
-    const prediction = model.predict(inputTensor);
-    const predictedValues = prediction.dataSync();
-  
-    // Ensure no negative values
-    const clamp = (value) => Math.max(0, value);
-  
-    return {
-      water: clamp(predictedValues[0]) * duration,
-      rice: clamp(predictedValues[1]) * duration,
-      dhal: clamp(predictedValues[2]) * duration,
-      cannedFish: clamp(predictedValues[3]) * duration,
-      milkPowder: clamp(predictedValues[4]) * duration,
-      sugar: clamp(predictedValues[5]) * duration,
-      tea: clamp(predictedValues[6]) * duration,
-      biscuits: clamp(predictedValues[7]) * duration,
-      soap: clamp(predictedValues[8]) * duration,
-      toothpaste: clamp(predictedValues[9]) * duration,
-      foodPortions: clamp(predictedValues[10]) * duration, // Add foodPortions for prepared meals
-    };
+  const applyMinimums = (resources, people, duration) => {
+  return {
+    water: Math.max(people * MINIMUM_REQUIREMENTS.water * duration, resources.water),
+    rice: Math.max(people * MINIMUM_REQUIREMENTS.rice * duration, resources.rice),
+    dhal: Math.max(people * MINIMUM_REQUIREMENTS.dhal * duration, resources.dhal),
+    cannedFish: Math.max(people * MINIMUM_REQUIREMENTS.cannedFish * duration, resources.cannedFish),
+    milkPowder: Math.max(people * MINIMUM_REQUIREMENTS.milkPowder * duration, resources.milkPowder),
+    sugar: Math.max(people * MINIMUM_REQUIREMENTS.sugar * duration, resources.sugar),
+    tea: Math.max(people * MINIMUM_REQUIREMENTS.tea * duration, resources.tea),
+    biscuits: Math.max(people * MINIMUM_REQUIREMENTS.biscuits * duration, resources.biscuits),
+    soap: Math.max(people * MINIMUM_REQUIREMENTS.soap * duration, resources.soap),
+    toothpaste: Math.max(people * MINIMUM_REQUIREMENTS.toothpaste * duration, resources.toothpaste),
+    foodPortions: resources.foodPortions
   };
+};
 
-  const roundValues = (resources) => {
-    return {
-      water: Math.round(resources.water), // Round to nearest liter
-      rice: Math.round(resources.rice * 2) / 2, // Round to nearest 0.5 kg
-      dhal: Math.round(resources.dhal * 2) / 2, // Round to nearest 0.5 kg
-      cannedFish: Math.round(resources.cannedFish), // Round to nearest whole number
-      milkPowder: Math.round(resources.milkPowder * 2) / 2, // Round to nearest 0.5 kg
-      sugar: Math.round(resources.sugar * 2) / 2, // Round to nearest 0.5 kg
-      tea: Math.round(resources.tea * 2) / 2, // Round to nearest 0.5 kg
-      biscuits: Math.round(resources.biscuits), // Round to nearest whole number
-      soap: Math.round(resources.soap), // Round to nearest whole number
-      toothpaste: Math.round(resources.toothpaste), // Round to nearest whole number
-    };
-  };
+const initializeTensorFlowModel = async () => {
+  const model = tf.sequential();
+  
+  // Input layer - 4 features (affectedPeople, affectedFamilies, casualties, duration)
+  model.add(tf.layers.dense({
+    inputShape: [4],
+    units: 64,
+    activation: 'relu'
+  }));
+  
+  // Hidden layers
+  model.add(tf.layers.dense({
+    units: 32,
+    activation: 'relu'
+  }));
+  
+  // Output layer - 10 resources + foodPortions
+  model.add(tf.layers.dense({
+    units: 11, // One output for each resource type
+    activation: 'relu' // Ensure non-negative outputs
+  }));
+  
+  model.compile({
+    optimizer: tf.train.adam(0.001),
+    loss: 'meanSquaredError'
+  });
+  
+  return model;
+};
 
-
-  const trainModel = async () => {
+const trainModel = async () => {
+  try {
     const model = await initializeTensorFlowModel();
-    const trainingData = await getDocs(collection(db, 'ResourceData'));
-  
-    const inputs = trainingData.docs.map(doc => [
-      doc.data().totalDisplaced,
-      doc.data().familiesAffected,
-      doc.data().infrastructureDamage,
-    ]);
-  
-    const outputs = trainingData.docs.map(doc => [
-      doc.data().predictedDryRations,
-      doc.data().predictedPreparedMeals,
-    ]);
-  
+    const trainingData = await fetchTrainingData();
+    
+    if (trainingData.length < 10) {
+      console.log('Not enough training data (minimum 10 records required)');
+      return model; // Return untrained model if not enough data
+    }
+
+    // Prepare input tensors
+    const inputs = trainingData.map(data => data.inputs);
+    const outputs = trainingData.map(data => data.outputs);
+    
     const xs = tf.tensor2d(inputs);
     const ys = tf.tensor2d(outputs);
-  
+    
     await model.fit(xs, ys, {
       epochs: 100,
       batchSize: 32,
@@ -789,10 +802,87 @@ export default function DisasterReportingStepper() {
         },
       },
     });
-  
-    alert('Model trained successfully!');
-  };
+    
+    console.log('Model trained successfully');
+    return model;
+    
+  } catch (error) {
+    console.error('Error training model:', error);
+    throw error;
+  }
+};
 
+const fetchTrainingData = async () => {
+  try {
+    const querySnapshot = await getDocs(collection(db, 'ResourceData'));
+    const trainingData = [];
+    
+    querySnapshot.forEach(doc => {
+      const data = doc.data();
+      trainingData.push({
+        // Input features
+        inputs: [
+          data.totalDisplaced,
+          data.familiesAffected,
+          data.infrastructureDamage,
+          data.durationDays || 1 // Default to 1 day if not specified
+        ],
+        // Output targets (actual resources used)
+        outputs: [
+          data.actual.water,
+          data.actual.rice,
+          data.actual.dhal,
+          data.actual.cannedFish,
+          data.actual.milkPowder,
+          data.actual.sugar,
+          data.actual.tea,
+          data.actual.biscuits,
+          data.actual.soap,
+          data.actual.toothpaste,
+          data.actual.foodPortions || 0 // Default to 0 if not specified
+        ]
+      });
+    });
+    
+    return trainingData;
+    
+  } catch (error) {
+    console.error('Error fetching training data:', error);
+    throw error;
+  }
+};
+
+const predictResources = (model, humanEffect, duration) => {
+  // Prepare input tensor with duration
+  const inputTensor = tf.tensor2d([
+    [
+      humanEffect.affectedPeople,
+      humanEffect.affectedFamilies,
+      humanEffect.injured + humanEffect.deaths + humanEffect.missing,
+      duration || 1 // Default to 1 day if not specified
+    ]
+  ]);
+
+  const prediction = model.predict(inputTensor);
+  const predictedValues = prediction.dataSync();
+
+  // Ensure no negative values
+  const clamp = (value) => Math.max(0, value);
+
+  return {
+    water: clamp(predictedValues[0]),
+    rice: clamp(predictedValues[1]),
+    dhal: clamp(predictedValues[2]),
+    cannedFish: clamp(predictedValues[3]),
+    milkPowder: clamp(predictedValues[4]),
+    sugar: clamp(predictedValues[5]),
+    tea: clamp(predictedValues[6]),
+    biscuits: clamp(predictedValues[7]),
+    soap: clamp(predictedValues[8]),
+    toothpaste: clamp(predictedValues[9]),
+    foodPortions: clamp(predictedValues[10])
+  };
+};
 
   const addResourceRequest = async () => {
     const newRequest = {
@@ -874,36 +964,33 @@ const renderFoodTypeSelection = () => (
 
 const calculateFoodSupplies = (humanEffect, foodType, duration) => {
   const { affectedPeople } = humanEffect;
+  const baseResources = {
+    water: affectedPeople * MINIMUM_REQUIREMENTS.water * duration,
+    milkPowder: affectedPeople * MINIMUM_REQUIREMENTS.milkPowder * duration,
+    sugar: affectedPeople * MINIMUM_REQUIREMENTS.sugar * duration,
+    tea: affectedPeople * MINIMUM_REQUIREMENTS.tea * duration,
+    biscuits: affectedPeople * MINIMUM_REQUIREMENTS.biscuits * duration,
+    soap: affectedPeople * MINIMUM_REQUIREMENTS.soap * duration,
+    toothpaste: affectedPeople * MINIMUM_REQUIREMENTS.toothpaste * duration,
+  };
 
   if (foodType === 'dryRations') {
     return {
-      water: affectedPeople * 2 * duration, // 2 liters per person per day
-      rice: affectedPeople * 0.5 * duration, // 0.5 kg per person per day
-      dhal: affectedPeople * 0.2 * duration, // 0.2 kg per person per day
-      cannedFish: affectedPeople * 0.1 * duration, // 0.1 cans per person per day
-      milkPowder: affectedPeople * 0.05 * duration, // 0.05 kg per person per day
-      sugar: affectedPeople * 0.05 * duration, // 0.05 kg per person per day
-      tea: affectedPeople * 0.02 * duration, // 0.02 kg per person per day
-      biscuits: affectedPeople * 0.1 * duration, // 0.1 packs per person per day
-      soap: affectedPeople * 0.1 * duration, // 0.1 bars per person per day
-      toothpaste: affectedPeople * 0.05 * duration, // 0.05 tubes per person per day
-      foodPortions: 0, // No food portions for dry rations
-    };
-  } else {
-    return {
-      water: affectedPeople * 2 * duration, // 2 liters per person per day
-      rice: 0,
-      dhal: 0,
-      cannedFish: 0,
-      milkPowder: 0,
-      sugar: 0,
-      tea: 0,
-      biscuits: 0,
-      soap: affectedPeople * 0.1 * duration, // 0.1 bars per person per day
-      toothpaste: affectedPeople * 0.05 * duration, // 0.05 tubes per person per day
-      foodPortions: affectedPeople * 3 * duration, // 3 meals per person per day
+      ...baseResources,
+      rice: affectedPeople * MINIMUM_REQUIREMENTS.rice * duration,
+      dhal: affectedPeople * MINIMUM_REQUIREMENTS.dhal * duration,
+      cannedFish: affectedPeople * MINIMUM_REQUIREMENTS.cannedFish * duration,
+      foodPortions: 0
     };
   }
+  
+  return {
+    ...baseResources,
+    rice: 0,
+    dhal: 0,
+    cannedFish: 0,
+    foodPortions: affectedPeople * 3 * duration // 3 meals per person per day
+  };
 };
 
 const renderResourceRequests = () => (
@@ -1050,46 +1137,36 @@ const renderResourceRequests = () => (
 
 const handleFoodResourcePrediction = async () => {
   const { affectedPeople } = formData.humanEffect;
-  const duration = formData.foodDuration || 1; // Default to 1 day if not specified
+  const duration = formData.foodDuration || 1;
 
-  // Fetch training data from Firestore
-  const trainingData = await getDocs(collection(db, 'ResourceData'));
+  try {
+    let predictedResources;
+    const trainingData = await fetchTrainingData();
 
-  let predictedResources;
+    if (trainingData.length >= 10) {
+      const model = await trainModel();
+      predictedResources = predictResources(model, formData.humanEffect, duration);
+    } else {
+      predictedResources = calculateFoodSupplies(formData.humanEffect, foodType, duration);
+    }
 
-  // Check if there is enough training data (at least 10 documents)
-  if (trainingData.docs.length >= 10) {
-    // Train the model and predict resources
-    const model = await initializeTensorFlowModel();
-    predictedResources = predictResources(model, formData.humanEffect, duration);
-  } else {
-    // Fallback to manual calculation if there is insufficient training data
-    predictedResources = calculateFoodSupplies(formData.humanEffect, foodType, duration);
+    // Apply minimum requirements and round values
+    const withMinimums = applyMinimums(predictedResources, affectedPeople, duration);
+    const roundedResources = roundValues(withMinimums);
+
+    setFormData(prev => ({
+      ...prev,
+      predictedResources: roundedResources
+    }));
+
+  } catch (error) {
+    console.error('Prediction error:', error);
+    const fallback = calculateFoodSupplies(formData.humanEffect, foodType, duration);
+    setFormData(prev => ({
+      ...prev,
+      predictedResources: roundValues(applyMinimums(fallback, affectedPeople, duration))
+    }));
   }
-
-  // Ensure predictedResources has all required fields
-  predictedResources = {
-    water: predictedResources.water || 0,
-    rice: predictedResources.rice || 0,
-    dhal: predictedResources.dhal || 0,
-    cannedFish: predictedResources.cannedFish || 0,
-    milkPowder: predictedResources.milkPowder || 0,
-    sugar: predictedResources.sugar || 0,
-    tea: predictedResources.tea || 0,
-    biscuits: predictedResources.biscuits || 0,
-    soap: predictedResources.soap || 0,
-    toothpaste: predictedResources.toothpaste || 0,
-    foodPortions: predictedResources.foodPortions || 0, // Add foodPortions for prepared meals
-  };
-
-  // Round the predicted resources to practical values
-  const roundedResources = roundValues(predictedResources);
-
-  // Update the formData state with the predicted resources
-  setFormData(prev => ({
-    ...prev,
-    predictedResources: roundedResources
-  }));
 };
 
 const renderPredictedResources = () => (
@@ -1436,210 +1513,227 @@ const renderPredictedResources = () => (
     }
   };
 
-  const handleSaveReport = async () => {
-    try {
-      const model = await initializeTensorFlowModel();
-      const predictedResources = predictResources(model, formData.humanEffect);
-  
-      const cleanFormData = {
-        // Main Details
-        reportDateTime: new Date(),
-        province: formData.province?.trim() || '',
-        district: formData.district?.trim() || '',
-        dsDivision: formData.dsDivision?.trim() || '',
-        disasterType: formData.disasterType?.trim() || '',
-        dateCommenced: formData.dateCommenced ? new Date(formData.dateCommenced) : null,
-        dateEnded: formData.dateEnded ? new Date(formData.dateEnded) : null,
-        riskLevel: formData.riskLevel?.trim() || '',
-        
-        // Disaster Location
+const handleSaveReport = async () => {
+  try {
+    // Validate required fields
+    const requiredFields = ['district', 'dsDivision', 'disasterType', 'dateCommenced'];
+    const missingFields = requiredFields.filter(field => !formData[field]);
+    
+    if (missingFields.length > 0) {
+      throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+    }
+
+    // Validate safe location coordinates if any exist
+    const invalidLocations = formData.safeLocations.filter(
+      loc => !isValidCoordinate(loc.latitude, loc.longitude)
+    );
+    
+    if (invalidLocations.length > 0) {
+      throw new Error('Invalid coordinates found in safe locations');
+    }
+
+    // Calculate duration (default to 1 day if not specified)
+    const duration = formData.foodDuration || 1;
+
+    // Get predicted resources (either from model or manual calculation)
+    let predictedResources;
+    const trainingData = await fetchTrainingData();
+    
+    if (trainingData.length >= 10) {
+      // Use the trained model to predict resources
+      const model = await trainModel();
+      predictedResources = predictResources(model, formData.humanEffect, duration);
+    } else {
+      // Fallback to manual calculation if insufficient training data
+      predictedResources = calculateFoodSupplies(formData.humanEffect, foodType, duration);
+    }
+
+    // Round the predicted values to practical amounts
+    const roundedResources = roundValues(predictedResources);
+
+    // Prepare the disaster report data
+    const disasterData = {
+      // Main Details
+      reportDateTime: new Date(),
+      province: formData.province?.trim() || '',
+      district: formData.district?.trim() || '',
+      dsDivision: formData.dsDivision?.trim() || '',
+      disasterType: formData.disasterType?.trim() || '',
+      dateCommenced: formData.dateCommenced ? new Date(formData.dateCommenced) : null,
+      dateEnded: formData.dateEnded ? new Date(formData.dateEnded) : null,
+      riskLevel: formData.riskLevel?.trim() || '',
+      
+      // Location
+      disasterLocation: {
         latitude: formData.disasterLocation.latitude || null,
         longitude: formData.disasterLocation.longitude || null,
-        
-        // Human Effect
-        humanEffect: {
-          affectedFamilies: parseInt(formData.humanEffect?.affectedFamilies) || 0,
-          affectedPeople: parseInt(formData.humanEffect?.affectedPeople) || 0,
-          deaths: parseInt(formData.humanEffect?.deaths) || 0,
-          injured: parseInt(formData.humanEffect?.injured) || 0,
-          missing: parseInt(formData.humanEffect?.missing) || 0
-        },
-        
-        // Infrastructure
-        infrastructure: {
-          housesFullyDamaged: parseInt(formData.infrastructure?.housesFullyDamaged) || 0,
-          housesPartiallyDamaged: parseInt(formData.infrastructure?.housesPartiallyDamaged) || 0,
-          smallInfrastructureDamages: parseInt(formData.infrastructure?.smallInfrastructureDamages) || 0,
-          criticalInfrastructureDamages: formData.infrastructure?.criticalInfrastructureDamages || []
-        },
-        
-        // Safe Locations
-        safeLocations: formData.safeLocations.map(location => ({
-          name: location.name?.trim() || '',
-          latitude: parseFloat(location.latitude) || 0,
-          longitude: parseFloat(location.longitude) || 0,
-          currentHeadcount: parseInt(location.currentHeadcount) || 0,
-          capacity: parseInt(location.capacity) || 0
-        })),
-        
-        // Resource Requests
-        resourceRequests: formData.resourceRequests.map(request => ({
-          type: request.type?.trim() || '',
-          requestedTimestamp: request.requestedTimestamp || new Date().toISOString(),
-          contactDetails: {
-            contactPersonName: request.contactDetails?.contactPersonName?.trim() || '',
-            contactMobileNumber: request.contactDetails?.contactMobileNumber?.trim() || ''
-          },
-          description: request.description?.trim() || '',
-          status: request.status || 'Request Received'
-        })),
-        
-        // Predicted Resources
-        predictedResources: {
-          water: predictedResources.water,
-          rice: predictedResources.rice,
-          dhal: predictedResources.dhal,
-          cannedFish: predictedResources.cannedFish,
-          milkPowder: predictedResources.milkPowder,
-          sugar: predictedResources.sugar,
-          tea: predictedResources.tea,
-          biscuits: predictedResources.biscuits,
-          soap: predictedResources.soap,
-          toothpaste: predictedResources.toothpaste
-        },
-        
-        // Volunteer Requests
-        volunteerNeeded: Boolean(formData.volunteerNeeded),
-        volunteerRequests: Object.entries(formData.volunteerRequests || {}).reduce((acc, [key, value]) => {
-          acc[key] = parseInt(value) || 0;
-          return acc;
-        }, {})
-      };
-  
-      // Validate required fields
-      const requiredFields = ['district', 'dsDivision', 'disasterType', 'dateCommenced'];
-      const missingFields = requiredFields.filter(field => !cleanFormData[field]);
+        name: formData.disasterLocation.name || ''
+      },
       
-      if (missingFields.length > 0) {
-        throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
-      }
-  
-      // Validate safe location coordinates
-      const invalidLocations = cleanFormData.safeLocations.filter(
-        loc => !isValidCoordinate(loc.latitude, loc.longitude)
-      );
+      // Human Impact
+      humanEffect: {
+        affectedFamilies: parseInt(formData.humanEffect?.affectedFamilies) || 0,
+        affectedPeople: parseInt(formData.humanEffect?.affectedPeople) || 0,
+        deaths: parseInt(formData.humanEffect?.deaths) || 0,
+        injured: parseInt(formData.humanEffect?.injured) || 0,
+        missing: parseInt(formData.humanEffect?.missing) || 0
+      },
       
-      if (invalidLocations.length > 0) {
-        throw new Error('Invalid coordinates found in safe locations');
-      }
+      // Infrastructure
+      infrastructure: {
+        housesFullyDamaged: parseInt(formData.infrastructure?.housesFullyDamaged) || 0,
+        housesPartiallyDamaged: parseInt(formData.infrastructure?.housesPartiallyDamaged) || 0,
+        smallInfrastructureDamages: parseInt(formData.infrastructure?.smallInfrastructureDamages) || 0,
+        criticalInfrastructureDamages: formData.infrastructure?.criticalInfrastructureDamages || []
+      },
+      
+      // Safe Locations
+      safeLocations: formData.safeLocations.map(location => ({
+        name: location.name?.trim() || '',
+        latitude: parseFloat(location.latitude) || 0,
+        longitude: parseFloat(location.longitude) || 0,
+        currentHeadcount: parseInt(location.currentHeadcount) || 0,
+        capacity: parseInt(location.capacity) || 0
+      })),
+      
+      // Resource Requests
+      resourceRequests: formData.resourceRequests.map(request => ({
+        type: request.type?.trim() || '',
+        requestedTimestamp: request.requestedTimestamp || new Date().toISOString(),
+        contactDetails: {
+          contactPersonName: request.contactDetails?.contactPersonName?.trim() || '',
+          contactMobileNumber: request.contactDetails?.contactMobileNumber?.trim() || ''
+        },
+        description: request.description?.trim() || '',
+        status: request.status || 'Request Received'
+      })),
+      
+      // Predicted Resources
+      predictedResources: roundedResources,
+      foodType: foodType,
+      
+      // Volunteer Requests
+      volunteerNeeded: Boolean(formData.volunteerNeeded),
+      volunteerRequests: Object.entries(formData.volunteerRequests || {}).reduce((acc, [key, value]) => {
+        acc[key] = parseInt(value) || 0;
+        return acc;
+      }, {})
+    };
 
-      // Calculate or predict food supplies
-      const { affectedPeople } = formData.humanEffect;
-      let foodSupplies;
-  
-      // Check if we have enough data to train the model
-      const trainingData = await getDocs(collection(db, 'ResourceData'));
-      if (trainingData.docs.length >= 10) {
-        // Use the trained model to predict food supplies
-        const model = await initializeTensorFlowModel();
-        foodSupplies = predictResources(model, formData.humanEffect);
-      } else {
-        // Use manual calculation for small datasets
-        foodSupplies = calculateFoodSupplies(formData.humanEffect, foodType);
-      }
-  
-      // Create the document and get the auto-generated ID
-      const disasterRef = await addDoc(collection(db, 'verifiedDisasters'), {
+    // Create the document and get the auto-generated ID
+    const disasterRef = await addDoc(collection(db, 'verifiedDisasters'), disasterData);
+
+    // Store training data (using predicted as actual for now - in real app, this would be actual usage data)
+    await storeTrainingData(
+      {
         ...formData,
-        predictedResources: foodSupplies,
         foodType: foodType,
-      });
+      },
+      roundedResources
+    );
 
-      await storeTrainingData(
-        {
-          ...formData,
-          foodType: foodType, // Pass the selected food type
-        },
-        foodSupplies // Use the predicted/calculated food supplies as actualData
-      );
+    // Update the document with its ID as the disasterId
+    await updateDoc(disasterRef, {
+      disasterId: disasterRef.id,
+      predictedResources: roundedResources,
+  actualResources: formData.overrideResources || roundedResources
+    });
 
-      // Update the document with its ID as the disasterId
-      await updateDoc(disasterRef, {
-        disasterId: disasterRef.id
-      });
-  
-      const locationStatusRef = doc(db, 'Location_Status', 'divisionalSecretariats');
-      const locationStatusDoc = await getDoc(locationStatusRef);
-  
-      if (locationStatusDoc.exists()) {
-        const data = locationStatusDoc.data();
-        const updatedData = { ...data };
-  
-        // Update the specific DS Division
-        if (!updatedData[cleanFormData.dsDivision]) {
-          updatedData[cleanFormData.dsDivision] = {
-            Safety: false,
-            VolunteerNeed: false,
-            WarningStatus: 'High'
-          };
-        } else {
-          updatedData[cleanFormData.dsDivision].Safety = false;
-          updatedData[cleanFormData.dsDivision].VolunteerNeed = false;
-          updatedData[cleanFormData.dsDivision].WarningStatus = 'High';
-        }
-  
-        await setDoc(locationStatusRef, updatedData);
+    // Update location status
+    const locationStatusRef = doc(db, 'Location_Status', 'divisionalSecretariats');
+    const locationStatusDoc = await getDoc(locationStatusRef);
+    
+    if (locationStatusDoc.exists()) {
+      const data = locationStatusDoc.data();
+      const updatedData = { ...data };
+      
+      // Update the specific DS Division
+      if (!updatedData[formData.dsDivision]) {
+        updatedData[formData.dsDivision] = {
+          Safety: false,
+          VolunteerNeed: false,
+          WarningStatus: 'High'
+        };
+      } else {
+        updatedData[formData.dsDivision].Safety = false;
+        updatedData[formData.dsDivision].VolunteerNeed = false;
+        updatedData[formData.dsDivision].WarningStatus = 'High';
       }
       
-      await addDoc(collection(db, 'ResourceData'), {
-      totalDisplaced: affectedPeople,
-      familiesAffected: formData.humanEffect.affectedFamilies,
-      infrastructureDamage: formData.infrastructure.housesFullyDamaged + formData.infrastructure.housesPartiallyDamaged,
-      verificationDate: new Date().toISOString(),
-    });
+      await setDoc(locationStatusRef, updatedData);
+    }
 
     console.log('Report saved successfully with ID: ', disasterRef.id);
     alert('Report submitted successfully!');
     window.location.href = '/dmc/home';
+    
   } catch (error) {
     console.error('Error saving report: ', error);
     alert(`Failed to submit report: ${error.message}`);
   }
 };
 
-const storeTrainingData = async (submission, actualData) => {
-  // Validate predictedResources
-  if (!submission.predictedResources || typeof submission.predictedResources !== 'object') {
-    throw new Error('Invalid predictedResources data');
+
+
+const storeTrainingData = async (submission, actualResources) => {
+  try {
+    // Validate inputs
+    if (!submission || !actualResources) {
+      throw new Error('Missing submission or actual resources data');
+    }
+
+    const trainingRecord = {
+      // Impact metrics
+      totalDisplaced: submission.humanEffect.affectedPeople || 0,
+      familiesAffected: submission.humanEffect.affectedFamilies || 0,
+      infrastructureDamage: 
+        (submission.infrastructure.housesFullyDamaged || 0) + 
+        (submission.infrastructure.housesPartiallyDamaged || 0),
+      durationDays: submission.foodDuration || 1,
+      
+      // Predicted values
+      predicted: {
+        water: submission.predictedResources.water || 0,
+        rice: submission.predictedResources.rice || 0,
+        dhal: submission.predictedResources.dhal || 0,
+        cannedFish: submission.predictedResources.cannedFish || 0,
+        milkPowder: submission.predictedResources.milkPowder || 0,
+        sugar: submission.predictedResources.sugar || 0,
+        tea: submission.predictedResources.tea || 0,
+        biscuits: submission.predictedResources.biscuits || 0,
+        soap: submission.predictedResources.soap || 0,
+        toothpaste: submission.predictedResources.toothpaste || 0,
+        foodPortions: submission.predictedResources.foodPortions || 0
+      },
+      
+      // Actual values used
+      actual: {
+        water: actualResources.water || 0,
+        rice: actualResources.rice || 0,
+        dhal: actualResources.dhal || 0,
+        cannedFish: actualResources.cannedFish || 0,
+        milkPowder: actualResources.milkPowder || 0,
+        sugar: actualResources.sugar || 0,
+        tea: actualResources.tea || 0,
+        biscuits: actualResources.biscuits || 0,
+        soap: actualResources.soap || 0,
+        toothpaste: actualResources.toothpaste || 0,
+        foodPortions: actualResources.foodPortions || 0
+      },
+      
+      // Metadata
+      verificationDate: new Date().toISOString(),
+      foodType: submission.foodType || 'dryRations'
+    };
+
+    // Save to Firestore
+    await addDoc(collection(db, 'ResourceData'), trainingRecord);
+    console.log('Training data stored successfully');
+    
+  } catch (error) {
+    console.error('Error storing training data:', error);
+    throw error;
   }
-
-  // Validate actualData
-  if (!actualData || typeof actualData !== 'object') {
-    throw new Error('Invalid actualData');
-  }
-
-  // Determine the food type (dryRations or preparedMeals)
-  const foodType = submission.foodType || 'dryRations'; // Default to dryRations if not specified
-
-  // Prepare training data based on food type
-  const trainingData = {
-    totalDisplaced: submission.totalDisplaced || 0,
-    familiesAffected: submission.familiesAffected || 0,
-    infrastructureDamage: submission.infrastructureDamage || 0,
-    verificationDate: new Date().toISOString(),
-  };
-
-  // Add fields based on food type
-  if (foodType === 'dryRations') {
-    trainingData.predictedDryRations = submission.predictedResources.rice || 0; // Use rice as dry rations
-    trainingData.actualDryRations = actualData.rice || 0; // Use rice as dry rations
-  } else if (foodType === 'preparedMeals') {
-    trainingData.predictedPreparedMeals = submission.predictedResources.foodPortions || 0; // Use foodPortions for prepared meals
-    trainingData.actualPreparedMeals = actualData.foodPortions || 0; // Use foodPortions for prepared meals
-  }
-
-  // Save to Firestore
-  await addDoc(collection(db, 'ResourceData'), trainingData);
 };
   
   // Helper function to validate coordinates

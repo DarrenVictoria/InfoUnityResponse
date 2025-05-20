@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { db, auth } from '../../../firebase'; // Added auth to the import
 import { collection, getDocs, doc, setDoc, updateDoc, query, where, arrayUnion, arrayRemove, getDoc, onSnapshot } from "firebase/firestore";
 import { Search, Filter, Info, Check, X, Users, AlertTriangle, Clock } from 'lucide-react';
-
+import AdminNavigationBar from '../../utils/VolAdmNavbar';
 const VOLUNTEER_CATEGORIES = {
   "Emergency Response": ["Search and Rescue (SAR)", "Medical Assistance", "Firefighting Support", "Evacuation Assistance", "Damage Assessment"],
   "Relief and Humanitarian Aid": ["Food Distribution", "Shelter Assistance", "Clothing & Supplies Distribution", "Water, Sanitation, and Hygiene (WASH) Support"],
@@ -505,7 +505,8 @@ const VolunteerAdminPage = () => {
 
   return (
     <div className="max-w-7xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Volunteer Management Dashboard</h1>
+      <AdminNavigationBar/>
+      <h1 className="text-2xl font-bold mb-6 mt-14">Volunteer Management Dashboard</h1>
 
       {/* Statistics Dashboard */}
       <div className="mb-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

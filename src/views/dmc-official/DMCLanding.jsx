@@ -5,7 +5,7 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { collection, query, getDocs } from 'firebase/firestore';
 import SriLankaMap from '../../maps/SriLankaMap';
 import { PenSquare, X, AlertCircle, Users, Package } from 'lucide-react';
-import Navbar from '../../utils/Navbar';
+import AdminNavigationBar from '../../utils/AdminNavbar';
 
 
 const EditProfileModal = ({ isOpen, onClose, userData, onUpdate }) => {
@@ -425,7 +425,7 @@ const DMCLanding = () => {
 
   return (
     <div>
-        <Navbar />
+        <AdminNavigationBar />
     <div className="p-6 max-w-7xl mx-auto">
 
       {/* Header Section */}
