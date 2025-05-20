@@ -224,41 +224,55 @@ const NavigationBar = () => {
     </div>
   );
 
-  const RoleBasedNavigation = ({ roles, setIsMenuOpen }) => {
-    // Function to get the correct dashboard path based on role
-    const getDashboardPath = (role) => {
-      const roleLower = role.toLowerCase();
-      
-      switch (roleLower) {
-        case 'respondent':
-          return '/home';
-        case 'volunteer':
-          return '/volunteer/home';
-        case 'dmc system admin':
-          return '/dmc/home';
-        case 'red cross manager':
-          return '/voladm/home';
-        default:
-          return '/home'; // Default fallback path
-      }
-    };
-  
-    return (
-      <div className="space-y-1 py-2">
-        {roles?.map((role, index) => (
-          <a
-            key={index}
-            href={getDashboardPath(role)}
-            className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            {role} Dashboard
-          </a>
-        ))}
-      </div>
-    );
+const RoleBasedNavigation = ({ roles, setIsMenuOpen }) => {
+  // Function to get the correct dashboard path based on role
+  const getDashboardPath = (role) => {
+    const roleLower = role.toLowerCase();
+    
+    switch (roleLower) {
+      case 'respondent':
+        return '/home';
+      case 'volunteer':
+        return '/volunteer/home';
+      case 'dmc system admin':
+        return '/dmc/home';
+      case 'red cross manager':
+        return '/voladm/home';
+      default:
+        return '/home'; // Default fallback path
+    }
   };
 
+  return (
+    <div className="space-y-1 py-2">
+      {roles?.map((role, index) => {
+        const roleLower = role.toLowerCase();
+        return (
+          <React.Fragment key={index}>
+            {/* Add Profile link for respondents */}
+            {roleLower === 'respondent' && (
+              <a
+                href="/profile"
+                className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <b>My Profile</b>
+              </a>
+            )}
+            <a
+              href={getDashboardPath(role)}
+              className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              {role} Dashboard
+            </a>
+            
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
+};
   const renderMobileProfileMenu = () => {
     if (!user) return null;
 

@@ -8,6 +8,7 @@ import LocationSelectorPin from '../../components/LocationSelectorPin';
 import LocationSelector from '../../components/LocationSelector';
 import { saveReportOffline, saveFileForOfflineUpload } from '../../utils/offlineStorage';
 import { useConnectivity } from '../../hooks/useConnectivity';
+import { useNavigate } from 'react-router-dom';
 
 const DISASTER_TYPES = [
   "Flood", "Landslide", "Drought", "Cyclone", "Tsunami",
@@ -18,6 +19,7 @@ const DISASTER_TYPES = [
 export default function PublicDisasterReport() {
   const { user } = useAuth();
   const { isOnline, isSyncing, syncStatus, synchronizePendingReports } = useConnectivity();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     disasterType: '',
     district: '',
@@ -39,6 +41,7 @@ export default function PublicDisasterReport() {
   const [pendingFiles, setPendingFiles] = useState([]);
   const [offlineImageIds, setOfflineImageIds] = useState([]);
   const [cachedForm, setCachedForm] = useState(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // Load cached form data when component mounts
   useEffect(() => {
@@ -62,6 +65,17 @@ export default function PublicDisasterReport() {
       console.error('Error saving form to localStorage:', err);
     }
   }, [formData]);
+
+  // Handle redirect after successful submission
+  useEffect(() => {
+    let timer;
+    if (showSuccessModal) {
+      timer = setTimeout(() => {
+        navigate('/home');
+      }, 3000);
+    }
+    return () => clearTimeout(timer);
+  }, [showSuccessModal, navigate]);
 
   const handleImageUpload = async (files) => {
     if (!user) {
@@ -223,11 +237,13 @@ export default function PublicDisasterReport() {
         // Online submission
         await addDoc(collection(firestore, 'crowdsourcedReports'), reportData);
         setSuccessMessage('Report submitted successfully!');
+        setShowSuccessModal(true);
         clearForm();
       } else {
         // Offline submission - save to IndexedDB
         await saveReportOffline(reportData);
         setSuccessMessage('Report saved offline. It will be submitted when you reconnect to the internet.');
+        setShowSuccessModal(true);
         clearForm();
       }
     } catch (err) {
@@ -244,6 +260,7 @@ export default function PublicDisasterReport() {
         const result = await synchronizePendingReports();
         if (result.success) {
           setSuccessMessage(result.message);
+          setShowSuccessModal(true);
         } else {
           setError(result.message);
         }
@@ -256,7 +273,33 @@ export default function PublicDisasterReport() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-4xl mx-auto p-6 relative">
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-sm w-full mx-4">
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
+                <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h3 className="mt-3 text-lg font-medium text-gray-900">Success!</h3>
+              <div className="mt-2">
+                <p className="text-sm text-gray-500">
+                  {successMessage || 'Operation completed successfully.'}
+                </p>
+              </div>
+              <div className="mt-4">
+                <p className="text-xs text-gray-500">
+                  You will be redirected to the home page shortly...
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <h1 className="text-2xl font-bold mb-2">Report a Disaster</h1>
       
       {/* Connectivity Status */}
@@ -308,7 +351,7 @@ export default function PublicDisasterReport() {
         </div>
       )}
       
-      {successMessage && (
+      {successMessage && !showSuccessModal && (
         <div className="bg-green-100 text-green-600 p-3 rounded-lg mb-6">
           {successMessage}
         </div>
