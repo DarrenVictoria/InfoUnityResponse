@@ -4,3 +4,17 @@
   padding: 2rem;
   text-align: center;
 }
+
+.leaflet-container {
+  background: #f8fafc !important;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 8px !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+}
+
+.leaflet-popup-close-button {
+  padding: 4px 6px !important;
+  font-size: 1.2rem !important;
+}
