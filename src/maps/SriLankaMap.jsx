@@ -216,10 +216,10 @@ const SriLankaMap = ({ selectedCluster = [], selectedReports = [] }) => {
         <div className="absolute top-4 right-4 bg-white p-4 rounded-lg shadow-lg max-w-[300px] z-[1000]">
           <h3 className="font-bold mb-2 text-lg">{hoveredDisaster.disasterType}</h3>
           <p className="text-sm mb-1">Location: {hoveredDisaster.district}, {hoveredDisaster.province}</p>
-          <p className="text-sm mb-1">Date: {new Date(hoveredDisaster.datetime).toLocaleDateString()}</p>
+          {/* <p className="text-sm mb-1">Date: {new Date(hoveredDisaster.datetime).toLocaleDateString()}</p>
           <p className="text-sm mb-1">Deaths: {hoveredDisaster.deaths}</p>
           <p className="text-sm mb-1">Volunteers needed: {hoveredDisaster.volunteerRequired}</p>
-          <p className="text-sm mb-1">Resources needed:</p>
+          <p className="text-sm mb-1">Resources needed:</p> */}
           <ul className="text-sm list-disc pl-6">
             {hoveredDisaster.resourcesRequired?.map((resource, index) => (
               <li key={index}>{resource}</li>
@@ -233,9 +233,9 @@ const SriLankaMap = ({ selectedCluster = [], selectedReports = [] }) => {
           <h3 className="font-bold mb-2 text-lg">Crowdsourced Report</h3>
           <p className="text-sm mb-1">Location: {hoveredCrowdsourced.district}</p>
           <p className="text-sm mb-1">Type: {hoveredCrowdsourced.disasterType}</p>
-          <p className="text-sm mb-1">Date: {new Date(hoveredCrowdsourced.datetime).toLocaleDateString()}</p>
+          {/* <p className="text-sm mb-1">Date: {new Date(hoveredCrowdsourced.datetime).toLocaleDateString()}</p> */}
           <p className="text-sm mb-1">Description: {hoveredCrowdsourced.description}</p>
-          <p className="text-sm mb-1">Reported by: {hoveredCrowdsourced.reportedBy}</p>
+          {/* <p className="text-sm mb-1">Reported by: {hoveredCrowdsourced.reportedBy}</p> */}
         </div>
       )}
     </div>
