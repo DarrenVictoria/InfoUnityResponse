@@ -5,6 +5,7 @@ import { MapPin, AlertCircle, CheckCircle, ChevronsUpDown, Filter, Tally5, Users
 import SriLankaMapReportMan from '../../maps/SriLankaMapReportMan';
 import { useDebounce } from 'use-debounce';
 import Supercluster from 'supercluster';
+import AdminNavigationBar from '../../utils/VolAdmNavbar';
 
 export default function DMCAdminPage() {
   const [rawReports, setRawReports] = useState([]);
@@ -38,7 +39,7 @@ export default function DMCAdminPage() {
   // Supercluster instance for spatial clustering
   const supercluster = useMemo(() => {
     const sc = new Supercluster({
-      radius: 60,
+      radius: 100,
       maxZoom: 16,
       map: props => ({ ...props.report }),
       reduce: (accumulated, props) => {
@@ -309,7 +310,8 @@ export default function DMCAdminPage() {
   }, [selectedCluster]);
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 pt-14">
+      <AdminNavigationBar/>
       {/* Sidebar */}
       <div className="w-80 bg-white border-r p-4 flex flex-col">
         <h1 className="text-xl font-bold mb-4">Disaster Reports</h1>

@@ -42,8 +42,8 @@ const ClusterMarker = ({ cluster, onClick }) => {
       {isCluster && (
         <Popup>
           <div className="cluster-popup">
-            <h4>{pointCount} reports</h4>
-            <p>Click to view details</p>
+            <h1>{pointCount} reports</h1>
+            
           </div>
         </Popup>
       )}
