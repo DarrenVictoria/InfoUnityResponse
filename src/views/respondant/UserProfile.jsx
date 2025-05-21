@@ -3,6 +3,8 @@ import { auth, db } from '../../../firebase';
 import { updateProfile, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from '@firebase/auth';
 import { doc, getDoc, updateDoc } from '@firebase/firestore';
 import PreLocationSelector from '../../components/PreLocationSelector'; // Import the LocationSelector component
+import { Navbar } from 'flowbite-react';
+import NavigationBar from '../../utils/Navbar';
 
 
 const UserProfile = () => {
@@ -303,6 +305,7 @@ const UserProfile = () => {
   
     return (
       <div className="container mx-auto p-4 max-w-4xl">
+        <NavigationBar/>
         {/* Tabs Navigation */}
         <div className="mb-4 border-b border-gray-200">
           <nav className="-mb-px flex space-x-4">
@@ -316,7 +319,7 @@ const UserProfile = () => {
             >
               Profile
             </button>
-            <button
+            {/* <button
               onClick={() => setActiveTab('password')}
               className={`py-2 px-4 ${
                 activeTab === 'password' 
@@ -325,7 +328,7 @@ const UserProfile = () => {
               }`}
             >
               Change Password
-            </button>
+            </button> */}
           </nav>
         </div>
   
@@ -401,9 +404,9 @@ const UserProfile = () => {
       {/* Password Tab Content */}
       {activeTab === 'password' && (
         <div className="bg-white shadow-md rounded-lg p-6">
-          <h2 className="text-2xl font-bold mb-4 text-gray-800">
+          {/* <h2 className="text-2xl font-bold mb-4 text-gray-800">
             Change Password
-          </h2>
+          </h2> */}
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">Current Password</label>
