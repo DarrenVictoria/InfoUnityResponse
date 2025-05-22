@@ -7,8 +7,11 @@ import 'swiper/css/navigation';
 import { Pagination, Navigation } from 'swiper/modules';
 import NavigationBar from '../../../utils/Navbar';
 import OfflineAwareContainer from '../../../components/OfflineAwareContainer';
+import { useTranslation } from 'react-i18next';
 
 const DroughtDisasterSupportPage = () => {
+  const { t, i18n } = useTranslation();
+  
   // Load saved checklists from localStorage or use defaults
   const loadSavedItems = (key, defaultItems) => {
     const saved = localStorage.getItem(key);
@@ -20,74 +23,62 @@ const DroughtDisasterSupportPage = () => {
 
   const [activeTab, setActiveTab] = useState('pre');
   
-  const emergencyKitDefaults = [
-    "Water (at least 1 gallon per person per day)",
-    "Non-perishable food (at least a 3-day supply)",
-    "Battery-powered or hand-crank radio",
-    "Flashlight and extra batteries",
-    "First aid kit",
-    "Dust mask and sunglasses",
-    "Moist towelettes and hand sanitizer",
-    "Manual can opener",
-    "Local maps",
-    "Cell phone with chargers and backup battery",
-    "Prescription medications and glasses",
-    "Infant formula and diapers",
-    "Important family documents in waterproof container"
-  ];
-
-  const homePreparationDefaults = [
-    "Install water-efficient fixtures (e.g., low-flow faucets)",
-    "Fix leaks in pipes and faucets",
-    "Collect and store rainwater",
-    "Use drought-resistant plants in landscaping",
-    "Create a water conservation plan",
-    "Prepare an emergency water supply",
-    "Review insurance coverage",
-    "Identify emergency contacts",
-    "Locate water distribution centers",
-    "Monitor drought warnings and updates"
-  ];
-
-  const duringDroughtDefaults = [
-    "Limit water usage to essential needs",
-    "Avoid watering lawns or washing cars",
-    "Reuse water when possible (e.g., for plants)",
-    "Follow local water restrictions",
-    "Stay informed about drought conditions",
-    "Keep emergency water supply accessible",
-    "Avoid outdoor activities during extreme heat"
-  ];
-
-  const afterDroughtDefaults = [
-    "Continue conserving water even after restrictions are lifted",
-    "Inspect and repair water systems for leaks",
-    "Replenish emergency water supply",
-    "Replace landscaping with drought-resistant plants",
-    "Review and update water conservation plan",
-    "Check for damage to property caused by dry conditions",
-    "Seek assistance if needed for water or food shortages"
-  ];
+  // Initialize default items directly with translation keys
+  const getDefaultItems = (prefix, count) => {
+    return Array.from({length: count}, (_, i) => t(`${prefix}${i+1}`));
+  };
 
   const [emergencyKitItems, setEmergencyKitItems] = useState(() => 
-    loadSavedItems('emergencyKit', emergencyKitDefaults)
+    loadSavedItems('emergencyKit', getDefaultItems('drought.emergencyKitItem', 13))
   );
   
   const [homePreparationItems, setHomePreparationItems] = useState(() => 
-    loadSavedItems('homePreparation', homePreparationDefaults)
+    loadSavedItems('homePreparation', getDefaultItems('drought.homePrepItem', 10))
   );
   
   const [duringDroughtItems, setDuringDroughtItems] = useState(() => 
-    loadSavedItems('duringDrought', duringDroughtDefaults)
+    loadSavedItems('duringDrought', getDefaultItems('drought.duringItem', 7))
   );
   
   const [afterDroughtItems, setAfterDroughtItems] = useState(() => 
-    loadSavedItems('afterDrought', afterDroughtDefaults)
+    loadSavedItems('afterDrought', getDefaultItems('drought.afterItem', 7))
   );
 
   const [newItemText, setNewItemText] = useState('');
   const [selectedList, setSelectedList] = useState('emergencyKit');
   const [showAddItem, setShowAddItem] = useState(false);
+
+  // Update translations when language changes
+  useEffect(() => {
+    setEmergencyKitItems(prevItems => {
+      const defaults = getDefaultItems('drought.emergencyKitItem', 13);
+      // Preserve custom items and update translations for default items
+      return prevItems.map((item, index) => 
+        index < defaults.length ? {...item, text: defaults[index]} : item
+      );
+    });
+    
+    setHomePreparationItems(prevItems => {
+      const defaults = getDefaultItems('drought.homePrepItem', 10);
+      return prevItems.map((item, index) => 
+        index < defaults.length ? {...item, text: defaults[index]} : item
+      );
+    });
+    
+    setDuringDroughtItems(prevItems => {
+      const defaults = getDefaultItems('drought.duringItem', 7);
+      return prevItems.map((item, index) => 
+        index < defaults.length ? {...item, text: defaults[index]} : item
+      );
+    });
+    
+    setAfterDroughtItems(prevItems => {
+      const defaults = getDefaultItems('drought.afterItem', 7);
+      return prevItems.map((item, index) => 
+        index < defaults.length ? {...item, text: defaults[index]} : item
+      );
+    });
+  }, [t, i18n.language]);
 
   // Save changes to localStorage
   useEffect(() => {
@@ -149,188 +140,249 @@ const DroughtDisasterSupportPage = () => {
   };
 
   const resetAllLists = () => {
-    if (confirm("Are you sure you want to reset all checklists to default?")) {
-      setEmergencyKitItems(emergencyKitDefaults.map(item => ({ text: item, checked: false })));
-      setHomePreparationItems(homePreparationDefaults.map(item => ({ text: item, checked: false })));
-      setDuringDroughtItems(duringDroughtDefaults.map(item => ({ text: item, checked: false })));
-      setAfterDroughtItems(afterDroughtDefaults.map(item => ({ text: item, checked: false })));
+    if (confirm(t("drought.resetConfirm"))) {
+      setEmergencyKitItems(loadSavedItems('emergencyKit', getDefaultItems('drought.emergencyKitItem', 13)));
+      setHomePreparationItems(loadSavedItems('homePreparation', getDefaultItems('drought.homePrepItem', 10)));
+      setDuringDroughtItems(loadSavedItems('duringDrought', getDefaultItems('drought.duringItem', 7)));
+      setAfterDroughtItems(loadSavedItems('afterDrought', getDefaultItems('drought.afterItem', 7)));
     }
+  };
+
+  // Render checklist items
+  const renderChecklistItems = (items) => {
+    return items.map((item, index) => (
+      <div key={index} className="flex items-center justify-between group">
+        <div className="flex items-start">
+          <input
+            type="checkbox"
+            checked={item.checked}
+            onChange={() => handleCheckboxChange(list, index)}
+            className="mt-1 h-4 w-4 text-orange-600 rounded"
+          />
+          <label 
+            className={`ml-2 ${item.checked ? 'line-through text-gray-400' : 'text-gray-700'}`}
+          >
+            {item.text}
+          </label>
+        </div>
+        <button 
+          onClick={() => removeItem(list, index)}
+          className="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+        >
+          <X size={16} />
+        </button>
+      </div>
+    ));
   };
 
   return (
     <div className="min-h-screen bg-orange-50">
       <NavigationBar/>
       <OfflineAwareContainer pageName="drought" color="orange">
-      {/* Header */}
-      <header className="bg-orange-600 text-white p-4 shadow-md mt-16">
-        <div className="container mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold flex items-center">
-            <Sun className="mr-2" /> 
-            Drought Disaster Support
-          </h1>
+        {/* Header */}
+        <header className="bg-orange-600 text-white p-4 shadow-md mt-16">
+          <div className="container mx-auto flex justify-between items-center">
+            <h1 className="text-2xl font-bold flex items-center">
+              <Sun className="mr-2" /> 
+              {t("drought.title")}
+            </h1>
+            <button 
+              onClick={resetAllLists}
+              className="bg-orange-500 hover:bg-orange-700 text-white py-1 px-3 rounded text-sm"
+            >
+              {t("drought.resetAll")}
+            </button>
+          </div>
+        </header>
+
+        {/* Tutorial Section */}
+        <section className="bg-white py-8">
+          <div className="container mx-auto px-4">
+            <h2 className="text-3xl font-bold text-orange-800 mb-6">{t("drought.howToStaySafe")}</h2>
+
+            {/* Card Slider */}
+            <Swiper
+              slidesPerView={1}
+              spaceBetween={20}
+              pagination={{ clickable: true }}
+              navigation={true}
+              modules={[Pagination, Navigation]}
+              breakpoints={{
+                640: { slidesPerView: 1 },
+                768: { slidesPerView: 2 },
+                1024: { slidesPerView: 3 },
+              }}
+              className="mySwiper"
+            >
+              {/* Step 1: Understanding Droughts */}
+              <SwiperSlide>
+                <div className="bg-orange-50 p-6 rounded-lg shadow-md border border-orange-200">
+                  <h3 className="text-2xl font-semibold text-orange-700 mb-3">{t("drought.understandingTitle")}</h3>
+                  <p className="text-gray-700 mb-4 font-semibold">
+                    {t("drought.understandingContent")}
+                  </p>
+                  <ul className="list-disc pl-5 text-gray-700">
+                    <li>{t("drought.understandingPoint1")}</li>
+                    <li>{t("drought.understandingPoint2")}</li>
+                    <li>{t("drought.understandingPoint3")}</li>
+                  </ul>
+                </div>
+              </SwiperSlide>
+
+              {/* Step 2: Pre-Drought Preparations */}
+              <SwiperSlide>
+                <div className="bg-orange-50 p-6 rounded-lg shadow-md border border-orange-200">
+                  <h3 className="text-2xl font-semibold text-orange-700 mb-3">{t("drought.preDroughtTitle")}</h3>
+                  <p className="text-gray-700 mb-4 font-semibold">
+                    {t("drought.preDroughtContent")}
+                  </p>
+                  <ul className="list-disc pl-5 text-gray-700">
+                    <li>{t("drought.preDroughtPoint1")}</li>
+                    <li>{t("drought.preDroughtPoint2")}</li>
+                    <li>{t("drought.preDroughtPoint3")}</li>
+                    <li>{t("drought.preDroughtPoint4")}</li>
+                  </ul>
+                </div>
+              </SwiperSlide>
+
+              {/* Step 3: During a Drought */}
+              <SwiperSlide>
+                <div className="bg-orange-50 p-6 rounded-lg shadow-md border border-orange-200">
+                  <h3 className="text-2xl font-semibold text-orange-700 mb-3">{t("drought.duringDroughtTitle")}</h3>
+                  <p className="text-gray-700 mb-4 font-semibold">
+                    {t("drought.duringDroughtContent")}
+                  </p>
+                  <ul className="list-disc pl-5 text-gray-700">
+                    <li>{t("drought.duringDroughtPoint1")}</li>
+                    <li>{t("drought.duringDroughtPoint2")}</li>
+                    <li>{t("drought.duringDroughtPoint3")}</li>
+                    <li>{t("drought.duringDroughtPoint4")}</li>
+                  </ul>
+                </div>
+              </SwiperSlide>
+
+              {/* Step 4: Post-Drought Recovery */}
+              <SwiperSlide>
+                <div className="bg-orange-50 p-6 rounded-lg shadow-md border border-orange-200">
+                  <h3 className="text-2xl font-semibold text-orange-700 mb-3">{t("drought.postDroughtTitle")}</h3>
+                  <p className="text-gray-700 mb-4 font-semibold">
+                    {t("drought.postDroughtContent")}
+                  </p>
+                  <ul className="list-disc pl-5 text-gray-700">
+                    <li>{t("drought.postDroughtPoint1")}</li>
+                    <li>{t("drought.postDroughtPoint2")}</li>
+                    <li>{t("drought.postDroughtPoint3")}</li>
+                    <li>{t("drought.postDroughtPoint4")}</li>
+                  </ul>
+                </div>
+              </SwiperSlide>
+            </Swiper>
+          </div>
+        </section>
+
+        {/* Call to Action */}
+        <div className="bg-orange-50 p-6 rounded-lg border border-orange-200">
+          <h3 className="text-xl font-semibold text-orange-800 mb-4">{t("drought.takeActionTitle")}</h3>
+          <p className="text-gray-700 mb-4">
+            {t("drought.takeActionContent")}
+          </p>
           <button 
-            onClick={resetAllLists}
-            className="bg-orange-500 hover:bg-orange-700 text-white py-1 px-3 rounded text-sm"
-          >
-            Reset All Lists
-          </button>
-        </div>
-      </header>
-
-      {/* Tutorial Section */}
-      <section className="bg-white py-8">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-orange-800 mb-6">How to Stay Safe During a Drought</h2>
-
-          {/* Card Slider */}
-          <Swiper
-            slidesPerView={1}
-            spaceBetween={20}
-            pagination={{ clickable: true }}
-            navigation={true}
-            modules={[Pagination, Navigation]}
-            breakpoints={{
-              640: { slidesPerView: 1 },
-              768: { slidesPerView: 2 },
-              1024: { slidesPerView: 3 },
+            onClick={() => {
+              setActiveTab('pre');
+              document.getElementById('main-content').scrollIntoView({ behavior: 'smooth' });
             }}
-            className="mySwiper"
+            className="bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded"
           >
-            {/* Step 1: Understanding Droughts */}
-            <SwiperSlide>
-              <div className="bg-orange-50 p-6 rounded-lg shadow-md border border-orange-200">
-                <h3 className="text-2xl font-semibold text-orange-700 mb-3">1. Understanding Droughts</h3>
-                <p className="text-gray-700 mb-4 font-semibold">
-                  Droughts are prolonged periods of water scarcity caused by below-average precipitation. They can lead to water shortages, crop failures, and increased wildfire risks.
-                </p>
-                <ul className="list-disc pl-5 text-gray-700">
-                  <li>Droughts can last for months or even years.</li>
-                  <li>Agriculture, ecosystems, and communities are heavily impacted.</li>
-                  <li>Water conservation is critical during droughts.</li>
-                </ul>
-              </div>
-            </SwiperSlide>
-
-            {/* Step 2: Pre-Drought Preparations */}
-            <SwiperSlide>
-              <div className="bg-orange-50 p-6 rounded-lg shadow-md border border-orange-200">
-                <h3 className="text-2xl font-semibold text-orange-700 mb-3">2. Pre-Drought Preparations</h3>
-                <p className="text-gray-700 mb-4 font-semibold">
-                  Being prepared before a drought can help mitigate its impact. Here are some key steps to take:
-                </p>
-                <ul className="list-disc pl-5 text-gray-700">
-                  <li>Create an emergency kit with essential supplies (see checklist below).</li>
-                  <li>Install water-efficient fixtures and fix leaks.</li>
-                  <li>Develop a water conservation plan for your household.</li>
-                  <li>Stay informed about local drought conditions and warnings.</li>
-                </ul>
-              </div>
-            </SwiperSlide>
-
-            {/* Step 3: During a Drought */}
-            <SwiperSlide>
-              <div className="bg-orange-50 p-6 rounded-lg shadow-md border border-orange-200">
-                <h3 className="text-2xl font-semibold text-orange-700 mb-3">3. During a Drought</h3>
-                <p className="text-gray-700 mb-4 font-semibold">
-                  If a drought is occurring, take immediate action to conserve water and stay safe:
-                </p>
-                <ul className="list-disc pl-5 text-gray-700">
-                  <li>Limit water usage to essential needs.</li>
-                  <li>Follow local water restrictions and guidelines.</li>
-                  <li>Avoid outdoor activities during extreme heat.</li>
-                  <li>Keep emergency water supply accessible.</li>
-                </ul>
-              </div>
-            </SwiperSlide>
-
-            {/* Step 4: Post-Drought Recovery */}
-            <SwiperSlide>
-              <div className="bg-orange-50 p-6 rounded-lg shadow-md border border-orange-200">
-                <h3 className="text-2xl font-semibold text-orange-700 mb-3">4. Post-Drought Recovery</h3>
-                <p className="text-gray-700 mb-4 font-semibold">
-                  After a drought, it's important to take steps to recover and prepare for future droughts:
-                </p>
-                <ul className="list-disc pl-5 text-gray-700">
-                  <li>Continue conserving water even after restrictions are lifted.</li>
-                  <li>Inspect and repair water systems for leaks.</li>
-                  <li>Replenish emergency water supply.</li>
-                  <li>Replace landscaping with drought-resistant plants.</li>
-                </ul>
-              </div>
-            </SwiperSlide>
-          </Swiper>
-        </div>
-      </section>
-
-      {/* Call to Action */}
-      <div className="bg-orange-50 p-6 rounded-lg border border-orange-200">
-        <h3 className="text-xl font-semibold text-orange-800 mb-4">Ready to Take Action?</h3>
-        <p className="text-gray-700 mb-4">
-          Use the interactive checklists below to ensure you're fully prepared before, during, and after a drought. These checklists will guide you through essential steps to conserve water and protect your family.
-        </p>
-        <button 
-          onClick={() => {
-            setActiveTab('pre');
-            document.getElementById('main-content').scrollIntoView({ behavior: 'smooth' });
-          }}
-          className="bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded"
-        >
-          Go to Checklists
-        </button>
-      </div>
-
-      {/* Navigation Tabs */}
-      <div className="bg-white border-b border-orange-200">
-        <div className="container mx-auto flex">
-          <button 
-            className={`px-4 py-3 font-medium ${activeTab === 'pre' ? 'text-orange-600 border-b-2 border-orange-600' : 'text-gray-600 hover:text-orange-500'}`}
-            onClick={() => setActiveTab('pre')}
-          >
-            Pre-Disaster
-          </button>
-          <button 
-            className={`px-4 py-3 font-medium ${activeTab === 'during' ? 'text-orange-600 border-b-2 border-orange-600' : 'text-gray-600 hover:text-orange-500'}`}
-            onClick={() => setActiveTab('during')}
-          >
-            During Drought
-          </button>
-          <button 
-            className={`px-4 py-3 font-medium ${activeTab === 'post' ? 'text-orange-600 border-b-2 border-orange-600' : 'text-gray-600 hover:text-orange-500'}`}
-            onClick={() => setActiveTab('post')}
-          >
-            Post-Disaster
+            {t("drought.goToChecklists")}
           </button>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <main className="container mx-auto p-4" id="main-content">
-        {/* Alert Banner */}
-        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded">
-          <div className="flex items-center">
-            <AlertTriangle className="mr-2" />
-            <p><strong>Important:</strong> This is an emergency resource. Always follow instructions from local authorities.</p>
+        {/* Navigation Tabs */}
+        <div className="bg-white border-b border-orange-200">
+          <div className="container mx-auto flex">
+            <button 
+              className={`px-4 py-3 font-medium ${activeTab === 'pre' ? 'text-orange-600 border-b-2 border-orange-600' : 'text-gray-600 hover:text-orange-500'}`}
+              onClick={() => setActiveTab('pre')}
+            >
+              {t("drought.tabPre")}
+            </button>
+            <button 
+              className={`px-4 py-3 font-medium ${activeTab === 'during' ? 'text-orange-600 border-b-2 border-orange-600' : 'text-gray-600 hover:text-orange-500'}`}
+              onClick={() => setActiveTab('during')}
+            >
+              {t("drought.tabDuring")}
+            </button>
+            <button 
+              className={`px-4 py-3 font-medium ${activeTab === 'post' ? 'text-orange-600 border-b-2 border-orange-600' : 'text-gray-600 hover:text-orange-500'}`}
+              onClick={() => setActiveTab('post')}
+            >
+              {t("drought.tabPost")}
+            </button>
           </div>
         </div>
 
-        {/* Pre-Disaster Section */}
-        {activeTab === 'pre' && (
-          <div className="space-y-6">
-            <div className="bg-white p-4 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4 flex items-center text-orange-800">
-                <Package className="mr-2" />
-                Emergency Kit Checklist
-              </h2>
-              <div className="mb-4">
-                <p className="text-gray-600 mb-2">Prepare these essential items in advance:</p>
+        {/* Main Content */}
+        <main className="container mx-auto p-4" id="main-content">
+          {/* Alert Banner */}
+          <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded">
+            <div className="flex items-center">
+              <AlertTriangle className="mr-2" />
+              <p><strong>{t("important")}:</strong> {t("drought.importantAlert")}</p>
+            </div>
+          </div>
+
+          {/* Pre-Disaster Section */}
+          {activeTab === 'pre' && (
+            <div className="space-y-6">
+              <div className="bg-white p-4 rounded-lg shadow-md">
+                <h2 className="text-xl font-semibold mb-4 flex items-center text-orange-800">
+                  <Package className="mr-2" />
+                  {t("drought.emergencyKitTitle")}
+                </h2>
+                <div className="mb-4">
+                  <p className="text-gray-600 mb-2">{t("drought.emergencyKitDesc")}</p>
+                  <div className="space-y-2">
+                    {emergencyKitItems.map((item, index) => (
+                      <div key={index} className="flex items-center justify-between group">
+                        <div className="flex items-start">
+                          <input
+                            type="checkbox"
+                            checked={item.checked}
+                            onChange={() => handleCheckboxChange('emergencyKit', index)}
+                            className="mt-1 h-4 w-4 text-orange-600 rounded"
+                          />
+                          <label 
+                            className={`ml-2 ${item.checked ? 'line-through text-gray-400' : 'text-gray-700'}`}
+                          >
+                            {item.text}
+                          </label>
+                        </div>
+                        <button 
+                          onClick={() => removeItem('emergencyKit', index)}
+                          className="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white p-4 rounded-lg shadow-md">
+                <h2 className="text-xl font-semibold mb-4 flex items-center text-orange-800">
+                  <Home className="mr-2" />
+                  {t("drought.homePrepTitle")}
+                </h2>
+                <p className="text-gray-600 mb-2">{t("drought.homePrepDesc")}</p>
                 <div className="space-y-2">
-                  {emergencyKitItems.map((item, index) => (
+                  {homePreparationItems.map((item, index) => (
                     <div key={index} className="flex items-center justify-between group">
                       <div className="flex items-start">
                         <input
                           type="checkbox"
                           checked={item.checked}
-                          onChange={() => handleCheckboxChange('emergencyKit', index)}
+                          onChange={() => handleCheckboxChange('homePreparation', index)}
                           className="mt-1 h-4 w-4 text-orange-600 rounded"
                         />
                         <label 
@@ -340,7 +392,7 @@ const DroughtDisasterSupportPage = () => {
                         </label>
                       </div>
                       <button 
-                        onClick={() => removeItem('emergencyKit', index)}
+                        onClick={() => removeItem('homePreparation', index)}
                         className="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <X size={16} />
@@ -349,250 +401,211 @@ const DroughtDisasterSupportPage = () => {
                   ))}
                 </div>
               </div>
-            </div>
 
-            <div className="bg-white p-4 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4 flex items-center text-orange-800">
-                <Home className="mr-2" />
-                Home Preparation Checklist
-              </h2>
-              <p className="text-gray-600 mb-2">Steps to conserve water and protect your property:</p>
-              <div className="space-y-2">
-                {homePreparationItems.map((item, index) => (
-                  <div key={index} className="flex items-center justify-between group">
-                    <div className="flex items-start">
-                      <input
-                        type="checkbox"
-                        checked={item.checked}
-                        onChange={() => handleCheckboxChange('homePreparation', index)}
-                        className="mt-1 h-4 w-4 text-orange-600 rounded"
-                      />
-                      <label 
-                        className={`ml-2 ${item.checked ? 'line-through text-gray-400' : 'text-gray-700'}`}
-                      >
-                        {item.text}
-                      </label>
-                    </div>
-                    <button 
-                      onClick={() => removeItem('homePreparation', index)}
-                      className="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+              {/* Add Item Button */}
+              {!showAddItem ? (
+                <button 
+                  onClick={() => {
+                    setSelectedList('emergencyKit');
+                    setShowAddItem(true);
+                  }}
+                  className="bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded flex items-center"
+                >
+                  <CheckSquare className="mr-2" size={18} /> {t("drought.addCustomItem")}
+                </button>
+              ) : (
+                <div className="bg-white p-4 rounded-lg shadow-md">
+                  <h3 className="text-lg font-medium mb-2">{t("drought.addNewItem")}</h3>
+                  <div className="flex flex-col space-y-2">
+                    <select 
+                      value={selectedList}
+                      onChange={(e) => setSelectedList(e.target.value)}
+                      className="p-2 border rounded"
                     >
-                      <X size={16} />
-                    </button>
+                      <option value="emergencyKit">{t("drought.emergencyKitTitle")}</option>
+                      <option value="homePreparation">{t("drought.homePrepTitle")}</option>
+                      <option value="duringDrought">{t("drought.duringActionsTitle")}</option>
+                      <option value="afterDrought">{t("drought.recoveryTitle")}</option>
+                    </select>
+                    <input 
+                      type="text"
+                      value={newItemText}
+                      onChange={(e) => setNewItemText(e.target.value)}
+                      placeholder={t("drought.itemPlaceholder")}
+                      className="p-2 border rounded"
+                    />
+                    <div className="flex space-x-2">
+                      <button 
+                        onClick={addItemToList}
+                        className="bg-green-500 hover:bg-green-600 text-white py-1 px-3 rounded"
+                      >
+                        {t("drought.addItem")}
+                      </button>
+                      <button 
+                        onClick={() => setShowAddItem(false)}
+                        className="bg-gray-300 hover:bg-gray-400 text-gray-800 py-1 px-3 rounded"
+                      >
+                        {t("drought.cancel")}
+                      </button>
+                    </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
             </div>
+          )}
 
-            {/* Add Item Button */}
-            {!showAddItem ? (
-              <button 
-                onClick={() => {
-                  setSelectedList('emergencyKit');
-                  setShowAddItem(true);
-                }}
-                className="bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded flex items-center"
-              >
-                <CheckSquare className="mr-2" size={18} /> Add Custom Item
-              </button>
-            ) : (
+          {/* During Drought Section */}
+          {activeTab === 'during' && (
+            <div className="space-y-6">
               <div className="bg-white p-4 rounded-lg shadow-md">
-                <h3 className="text-lg font-medium mb-2">Add New Item</h3>
-                <div className="flex flex-col space-y-2">
-                  <select 
-                    value={selectedList}
-                    onChange={(e) => setSelectedList(e.target.value)}
-                    className="p-2 border rounded"
-                  >
-                    <option value="emergencyKit">Emergency Kit</option>
-                    <option value="homePreparation">Home Preparation</option>
-                    <option value="duringDrought">During Drought</option>
-                    <option value="afterDrought">After Drought</option>
-                  </select>
-                  <input 
-                    type="text"
-                    value={newItemText}
-                    onChange={(e) => setNewItemText(e.target.value)}
-                    placeholder="Enter item description"
-                    className="p-2 border rounded"
-                  />
-                  <div className="flex space-x-2">
-                    <button 
-                      onClick={addItemToList}
-                      className="bg-green-500 hover:bg-green-600 text-white py-1 px-3 rounded"
-                    >
-                      Add Item
-                    </button>
-                    <button 
-                      onClick={() => setShowAddItem(false)}
-                      className="bg-gray-300 hover:bg-gray-400 text-gray-800 py-1 px-3 rounded"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* During Drought Section */}
-        {activeTab === 'during' && (
-          <div className="space-y-6">
-            <div className="bg-white p-4 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4 flex items-center text-red-700">
-                <AlertTriangle className="mr-2" />
-                Actions During Drought
-              </h2>
-              <p className="text-gray-600 mb-4">Critical steps to conserve water and stay safe:</p>
-              <div className="space-y-2">
-                {duringDroughtItems.map((item, index) => (
-                  <div key={index} className="flex items-center justify-between group">
-                    <div className="flex items-start">
-                      <input
-                        type="checkbox"
-                        checked={item.checked}
-                        onChange={() => handleCheckboxChange('duringDrought', index)}
-                        className="mt-1 h-4 w-4 text-orange-600 rounded"
-                      />
-                      <label 
-                        className={`ml-2 ${item.checked ? 'line-through text-gray-400' : 'text-gray-700'}`}
+                <h2 className="text-xl font-semibold mb-4 flex items-center text-red-700">
+                  <AlertTriangle className="mr-2" />
+                  {t("drought.duringActionsTitle")}
+                </h2>
+                <p className="text-gray-600 mb-4">{t("drought.duringActionsDesc")}</p>
+                <div className="space-y-2">
+                  {duringDroughtItems.map((item, index) => (
+                    <div key={index} className="flex items-center justify-between group">
+                      <div className="flex items-start">
+                        <input
+                          type="checkbox"
+                          checked={item.checked}
+                          onChange={() => handleCheckboxChange('duringDrought', index)}
+                          className="mt-1 h-4 w-4 text-orange-600 rounded"
+                        />
+                        <label 
+                          className={`ml-2 ${item.checked ? 'line-through text-gray-400' : 'text-gray-700'}`}
+                        >
+                          {item.text}
+                        </label>
+                      </div>
+                      <button 
+                        onClick={() => removeItem('duringDrought', index)}
+                        className="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
                       >
-                        {item.text}
-                      </label>
+                        <X size={16} />
+                      </button>
                     </div>
-                    <button 
-                      onClick={() => removeItem('duringDrought', index)}
-                      className="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <X size={16} />
-                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+                <h3 className="text-lg font-medium mb-2 text-red-800 flex items-center">
+                  <Info className="mr-2" />
+                  {t("drought.emergencyAlertsTitle")}
+                </h3>
+                <div className="space-y-3">
+                  <div className="p-3 bg-white rounded border border-red-100">
+                    <h4 className="font-medium">{t("drought.emergencyPhoneNumbers")}</h4>
+                    <ul className="text-sm text-gray-600">
+                      <li>Call Center: 711</li>
+                      <li>General: +94 112 136 136</li>
+                      <li>Emergency Operation Center: +94 112 136 222 / +94 112 670 002</li>
+                    </ul>
                   </div>
-                ))}
-              </div>
-            </div>
 
-            <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-              <h3 className="text-lg font-medium mb-2 text-red-800 flex items-center">
-                <Info className="mr-2" />
-                Emergency Alerts
-              </h3>
-              <div className="space-y-3">
-                <div className="p-3 bg-white rounded border border-red-100">
-                  <h4 className="font-medium">Emergency Phone Numbers</h4>
-                  <ul className="text-sm text-gray-600">
-                    <li>Call Center: 711</li>
-                    <li>General: +94 112 136 136</li>
-                    <li>Emergency Operation Center: +94 112 136 222 / +94 112 670 002</li>
-                  </ul>
-                </div>
-
-                <div className="p-3 bg-white rounded border border-red-100">
-                  <h4 className="font-medium">Emergency Broadcast Stations</h4>
-                  <p className="text-sm text-gray-600">Tune to local radio: 97.1 FM, 103.5 FM, 750 AM</p>
+                  <div className="p-3 bg-white rounded border border-red-100">
+                    <h4 className="font-medium">{t("drought.emergencyBroadcast")}</h4>
+                    <p className="text-sm text-gray-600">Tune to local radio: 97.1 FM, 103.5 FM, 750 AM</p>
+                  </div>
                 </div>
               </div>
+              
+              <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                <h3 className="text-lg font-medium mb-2 text-orange-800">{t("drought.safetyTipsTitle")}</h3>
+                <ul className="space-y-2 text-gray-700">
+                  <li className="flex items-start">
+                    <span className="text-orange-600 mr-2">•</span> 
+                    <span>{t("drought.safetyTip1")}</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-orange-600 mr-2">•</span> 
+                    <span>{t("drought.safetyTip2")}</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-orange-600 mr-2">•</span> 
+                    <span>{t("drought.safetyTip3")}</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-orange-600 mr-2">•</span> 
+                    <span>{t("drought.safetyTip4")}</span>
+                  </li>
+                </ul>
+              </div>
             </div>
-            
-            <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
-              <h3 className="text-lg font-medium mb-2 text-orange-800">Drought Safety Tips</h3>
-              <ul className="space-y-2 text-gray-700">
-                <li className="flex items-start">
-                  <span className="text-orange-600 mr-2">•</span> 
-                  <span>Limit water usage to essential needs.</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-orange-600 mr-2">•</span> 
-                  <span>Reuse water for non-drinking purposes (e.g., watering plants).</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-orange-600 mr-2">•</span> 
-                  <span>Avoid outdoor activities during extreme heat.</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-orange-600 mr-2">•</span> 
-                  <span>Follow local water restrictions and guidelines.</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        )}
+          )}
 
-        {/* Post-Disaster Section */}
-        {activeTab === 'post' && (
-          <div className="space-y-6">
-            <div className="bg-white p-4 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4 flex items-center text-green-700">
-                <Cloud className="mr-2" />
-                Recovery Checklist
-              </h2>
-              <p className="text-gray-600 mb-4">Steps to take after a drought:</p>
-              <div className="space-y-2">
-                {afterDroughtItems.map((item, index) => (
-                  <div key={index} className="flex items-center justify-between group">
-                    <div className="flex items-start">
-                      <input
-                        type="checkbox"
-                        checked={item.checked}
-                        onChange={() => handleCheckboxChange('afterDrought', index)}
-                        className="mt-1 h-4 w-4 text-orange-600 rounded"
-                      />
-                      <label 
-                        className={`ml-2 ${item.checked ? 'line-through text-gray-400' : 'text-gray-700'}`}
+          {/* Post-Disaster Section */}
+          {activeTab === 'post' && (
+            <div className="space-y-6">
+              <div className="bg-white p-4 rounded-lg shadow-md">
+                <h2 className="text-xl font-semibold mb-4 flex items-center text-green-700">
+                  <Cloud className="mr-2" />
+                  {t("drought.recoveryTitle")}
+                </h2>
+                <p className="text-gray-600 mb-4">{t("drought.recoveryDesc")}</p>
+                <div className="space-y-2">
+                  {afterDroughtItems.map((item, index) => (
+                    <div key={index} className="flex items-center justify-between group">
+                      <div className="flex items-start">
+                        <input
+                          type="checkbox"
+                          checked={item.checked}
+                          onChange={() => handleCheckboxChange('afterDrought', index)}
+                          className="mt-1 h-4 w-4 text-orange-600 rounded"
+                        />
+                        <label 
+                          className={`ml-2 ${item.checked ? 'line-through text-gray-400' : 'text-gray-700'}`}
+                        >
+                          {item.text}
+                        </label>
+                      </div>
+                      <button 
+                        onClick={() => removeItem('afterDrought', index)}
+                        className="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
                       >
-                        {item.text}
-                      </label>
+                        <X size={16} />
+                      </button>
                     </div>
-                    <button 
-                      onClick={() => removeItem('afterDrought', index)}
-                      className="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <X size={16} />
-                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-white p-4 rounded-lg shadow-md">
+                <h2 className="text-xl font-semibold mb-4 flex items-center text-orange-800">
+                  <Heart className="mr-2" />
+                  {t("drought.healthTitle")}
+                </h2>
+                <div className="space-y-3">
+                  <div className="border-l-4 border-orange-500 pl-3">
+                    <h3 className="font-medium">{t("drought.waterSafety")}</h3>
+                    <p className="text-sm text-gray-600">{t("drought.waterSafetyDesc")}</p>
                   </div>
-                ))}
+                  <div className="border-l-4 border-orange-500 pl-3">
+                    <h3 className="font-medium">{t("drought.structuralSafety")}</h3>
+                    <p className="text-sm text-gray-600">{t("drought.structuralSafetyDesc")}</p>
+                  </div>
+                  <div className="border-l-4 border-orange-500 pl-3">
+                    <h3 className="font-medium">{t("drought.emotionalSupport")}</h3>
+                    <p className="text-sm text-gray-600">{t("drought.emotionalSupportDesc")}</p>
+                  </div>
+                </div>
               </div>
             </div>
+          )}
+        </main>
 
-            <div className="bg-white p-4 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4 flex items-center text-orange-800">
-                <Heart className="mr-2" />
-                Health & Wellness
-              </h2>
-              <div className="space-y-3">
-                <div className="border-l-4 border-orange-500 pl-3">
-                  <h3 className="font-medium">Water Safety</h3>
-                  <p className="text-sm text-gray-600">Continue conserving water even after restrictions are lifted.</p>
-                </div>
-                <div className="border-l-4 border-orange-500 pl-3">
-                  <h3 className="font-medium">Structural Safety</h3>
-                  <p className="text-sm text-gray-600">Inspect and repair water systems for leaks.</p>
-                </div>
-                <div className="border-l-4 border-orange-500 pl-3">
-                  <h3 className="font-medium">Emotional Support</h3>
-                  <p className="text-sm text-gray-600">Disasters can cause emotional distress. Contact the Disaster Distress Helpline: 1-800-985-5990</p>
-                </div>
-              </div>
-            </div>
+        {/* Footer */}
+        <footer className="bg-orange-800 text-white p-4 mt-8">
+          <div className="container mx-auto text-center">
+            <p className="text-sm">
+              {t("drought.footer")}
+            </p>
           </div>
-        )}
-      </main>
-
-      
-
-      {/* Footer */}
-      <footer className="bg-orange-800 text-white p-4 mt-8">
-        <div className="container mx-auto text-center">
-          <p className="text-sm">
-            © 2025 InfoUnityResponse | This information is provided for emergency preparedness. 
-            Always follow instructions from local authorities in an emergency situation.
-          </p>
-        </div>
-      </footer>
-
+        </footer>
       </OfflineAwareContainer>
     </div>
-    
   );
 };
 
