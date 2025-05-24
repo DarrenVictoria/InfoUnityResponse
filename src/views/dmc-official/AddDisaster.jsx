@@ -151,12 +151,7 @@ const MINIMUM_REQUIREMENTS = {
     }
   }, [formData.humanEffect, formData.foodDuration]);
 
-  // Save report data to Firebase on final step
-  useEffect(() => {
-    if (currentStep === 7) {
-      handleSaveReport();
-    }
-  }, [currentStep]);
+  
 
   const handleLocationChange = (district, division) => {
     setFormData(prev => ({
@@ -1665,11 +1660,13 @@ const handleSaveReport = async () => {
 
     console.log('Report saved successfully with ID: ', disasterRef.id);
     alert('Report submitted successfully!');
-    window.location.href = '/dmc/home';
+    return disasterRef.id;
+   
     
   } catch (error) {
     console.error('Error saving report: ', error);
     alert(`Failed to submit report: ${error.message}`);
+    throw error;
   }
 };
 
@@ -1855,15 +1852,25 @@ const storeTrainingData = async (submission, actualResources) => {
     await updateDisasterDoc(stepData);
   };
 
+  const handleSubmit = async () => {
+  const confirmed = window.confirm("Are you sure you want to submit this disaster report?");
+  if (confirmed) {
+    try {
+      await handleSaveReport();
+      alert('Report submitted successfully!');
+      window.location.href = '/dmc/home';
+    } catch (error) {
+      alert(`Failed to submit report: ${error.message}`);
+    }
+  }
+};
+
   // Modify the Next/Submit button click handler
 const handleNextClick = async () => {
   if (validateStep(currentStep)) {
     if (currentStep < 7) {
       setCurrentStep(prev => prev + 1);
-    } else {
-      // Final submission - save the entire report
-      await handleSaveReport();
-    }
+    } 
   }
 };
 
@@ -1886,22 +1893,22 @@ const handleNextClick = async () => {
         </button>
 
         <button
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg flex items-center gap-2 disabled:opacity-50"
-          onClick={handleNextClick}
-          disabled={!validateStep(currentStep)}
-        >
-          {currentStep === 7 ? (
-            <>
-              Save Report
-              <Save className="w-4 h-4" />
-            </>
-          ) : (
-            <>
-              Next
-              <ChevronRight className="w-4 h-4" />
-            </>
-          )}
-        </button>
+  className="px-4 py-2 bg-blue-500 text-white rounded-lg flex items-center gap-2 disabled:opacity-50"
+  onClick={currentStep === 7 ? handleSubmit : handleNextClick}
+  disabled={!validateStep(currentStep)}
+>
+  {currentStep === 7 ? (
+    <>
+      Save Report
+      <Save className="w-4 h-4" />
+    </>
+  ) : (
+    <>
+      Next
+      <ChevronRight className="w-4 h-4" />
+    </>
+  )}
+</button>
       </div>
     </div>
   );

@@ -119,16 +119,19 @@ const SriLankaMap = ({ selectedCluster = [], selectedReports = [] }) => {
         const verifiedDisastersRef = collection(db, 'verifiedDisasters');
         const verifiedSnapshot = await getDocs(verifiedDisastersRef);
         const verifiedData = verifiedSnapshot.docs
-          .map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          }))
-          .filter(disaster => {
-            // Validate latitude and longitude
-            const lat = parseFloat(disaster.latitude);
-            const lon = parseFloat(disaster.longitude);
-            return !isNaN(lat) && !isNaN(lon);
-          });
+            .map(doc => ({
+              id: doc.id,
+              ...doc.data(),
+              // Flatten the location data for easier access
+              latitude: doc.data().disasterLocation?.latitude,
+              longitude: doc.data().disasterLocation?.longitude
+            }))
+            .filter(disaster => {
+              // Validate latitude and longitude
+              const lat = parseFloat(disaster.latitude);
+              const lon = parseFloat(disaster.longitude);
+              return !isNaN(lat) && !isNaN(lon);
+            });
 
         setVerifiedDisasters(verifiedData || []);
 
