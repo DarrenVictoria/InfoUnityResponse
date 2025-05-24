@@ -4,7 +4,7 @@ import { AlertCircle, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { db } from '../../../firebase'; 
 import { collection, addDoc, serverTimestamp, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
-
+import AdminNavigationBar from '../../utils/AdminNavbar'
 const WarningForm = () => {
   const [warningType, setWarningType] = useState('');
   const [errors, setErrors] = useState({});
@@ -416,7 +416,8 @@ const [manualCoordinates, setManualCoordinates] = useState({ latitude: null, lon
   };
 
   return (
-    <div className="flex">
+    <div className="flex pt-14">
+      <AdminNavigationBar/>
       <div className="w-1/3 p-4 bg-gray-100">
         <h3 className="text-lg font-medium text-gray-800">Warnings</h3>
         <button
