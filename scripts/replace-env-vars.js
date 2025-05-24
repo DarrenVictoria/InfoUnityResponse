@@ -13,10 +13,8 @@ function createFirebaseConfigScript() {
         measurementId: process.env.VITE_FIREBASE_MEASUREMENT_ID || ''
     };
 
-    const configScript = `
-// Auto-generated Firebase configuration
-window.FIREBASE_CONFIG = ${JSON.stringify(firebaseConfig, null, 2)};
-    `.trim();
+    const configScript = `// Auto-generated Firebase configuration
+window.FIREBASE_CONFIG = ${JSON.stringify(firebaseConfig, null, 2)};`;
 
     return configScript;
 }
@@ -25,7 +23,7 @@ function updateServiceWorkerFiles(filePath) {
     try {
         if (!fs.existsSync(filePath)) {
             console.warn(`⚠️  File not found: ${filePath}`);
-            return;
+            return false;
         }
 
         let content = fs.readFileSync(filePath, 'utf8');
@@ -47,16 +45,25 @@ function updateServiceWorkerFiles(filePath) {
 
         fs.writeFileSync(filePath, content);
         console.log(`✅ Environment variables replaced in ${filePath}`);
+        return true;
     } catch (error) {
         console.error(`❌ Error processing ${filePath}:`, error.message);
-        process.exit(1);
+        return false;
     }
 }
 
-// Create Firebase config script
 const distDir = path.join(process.cwd(), 'dist');
-const configScriptPath = path.join(distDir, 'firebase-config.js');
 
+// Ensure dist directory exists
+if (!fs.existsSync(distDir)) {
+    console.error('❌ Error: dist directory not found. Make sure to run build first.');
+    process.exit(1);
+}
+
+console.log('📁 Found dist directory');
+
+// Create Firebase config script
+const configScriptPath = path.join(distDir, 'firebase-config.js');
 try {
     const configScript = createFirebaseConfigScript();
     fs.writeFileSync(configScriptPath, configScript);
@@ -72,8 +79,22 @@ const filesToProcess = [
     path.join(distDir, 'sw.js')
 ];
 
+let processedFiles = 0;
 filesToProcess.forEach(filePath => {
-    updateServiceWorkerFiles(filePath);
+    if (updateServiceWorkerFiles(filePath)) {
+        processedFiles++;
+    }
 });
 
-console.log('🎉 Environment variable replacement completed!');
+// List all files in dist directory for debugging
+console.log('\n📋 Files in dist directory:');
+try {
+    const files = fs.readdirSync(distDir);
+    files.forEach(file => {
+        console.log(`  - ${file}`);
+    });
+} catch (error) {
+    console.warn('⚠️  Could not list dist directory contents');
+}
+
+console.log(`\n🎉 Environment variable replacement completed! Processed ${processedFiles} service worker files.`);
