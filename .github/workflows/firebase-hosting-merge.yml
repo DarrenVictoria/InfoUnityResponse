@@ -20,21 +20,26 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Create scripts directory if it doesn't exist
+      - name: Ensure scripts directory exists
+        run: mkdir -p scripts
+
       # Add a step to update version for cache busting
       - name: Update Version
         run: |
-          echo "VITE_APP_VERSION=$(date +'%Y.%m.%d.%H%M')" >> .env
+          echo "VITE_APP_VERSION=$(date +'%Y.%m.%d.%H%M')" >> $GITHUB_ENV
 
       # Clean previous build
       - name: Clean build
         run: |
           rm -rf dist/
 
+      # Build with all environment variables
       - name: Build
         run: npm run build
         env:
           NODE_OPTIONS: --max-old-space-size=4096
-          VITE_APP_VERSION: ${{ github.sha }}
+          VITE_APP_VERSION: ${{ env.VITE_APP_VERSION }}
           VITE_WEATHER_API_KEY: ${{ secrets.VITE_WEATHER_API_KEY }}
           VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
           VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
@@ -45,41 +50,134 @@ jobs:
           VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
           VITE_FIREBASE_MEASUREMENT_ID: ${{ secrets.VITE_FIREBASE_MEASUREMENT_ID }}
 
+      # Verify build output
+      - name: Verify build output
+        run: |
+          echo "Checking dist directory contents:"
+          ls -la dist/
+          if [ ! -f "dist/index.html" ]; then
+            echo "❌ Error: index.html not found in dist/"
+            exit 1
+          fi
+          echo "✅ Build verification passed"
+
       # Verify PWA assets
       - name: Verify PWA assets
         run: |
           if [ ! -f "dist/manifest.webmanifest" ]; then
-            echo "Error: manifest.webmanifest not found"
-            exit 1
+            echo "⚠️  Warning: manifest.webmanifest not found"
+          else
+            echo "✅ manifest.webmanifest found"
           fi
+          
           if [ ! -f "dist/sw.js" ]; then
-            echo "Error: sw.js not found"
-            exit 1
+            echo "⚠️  Warning: sw.js not found"
+          else
+            echo "✅ sw.js found"
+          fi
+          
+          if [ ! -f "dist/firebase-messaging-sw.js" ]; then
+            echo "⚠️  Warning: firebase-messaging-sw.js not found"
+          else
+            echo "✅ firebase-messaging-sw.js found"
+          fi
+
+      # Verify environment variables were replaced
+      - name: Verify environment variable replacement
+        run: |
+          if [ -f "dist/firebase-messaging-sw.js" ]; then
+            if grep -q "__VITE_FIREBASE_API_KEY__" dist/firebase-messaging-sw.js; then
+              echo "❌ Error: Environment variables not replaced in firebase-messaging-sw.js"
+              exit 1
+            else
+              echo "✅ Environment variables replaced in firebase-messaging-sw.js"
+            fi
+          fi
+          
+          if [ -f "dist/sw.js" ]; then
+            if grep -q "__VITE_FIREBASE_API_KEY__" dist/sw.js; then
+              echo "❌ Error: Environment variables not replaced in sw.js"
+              exit 1
+            else
+              echo "✅ Environment variables replaced in sw.js"
+            fi
           fi
 
       # Deploy to Firebase
-      - uses: FirebaseExtended/action-hosting-deploy@v0
+      - name: Deploy to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_INFOUNITY_RESPONSE }}"
           channelId: live
           projectId: infounity-response
 
-      # Add cache control headers for PWA assets
-      - name: Update Firebase Hosting headers
+      # Update Firebase configuration (optional - only if you need custom headers)
+      - name: Update Firebase Hosting Configuration
         run: |
-          echo "hosting:
-            public: dist
-            headers:
-            - pattern: '/manifest.webmanifest'
-              headers:
-                - key: Cache-Control
-                  value: 'no-cache'
-            - pattern: '/registerSW.js'
-              headers:
-                - key: Cache-Control
-                  value: 'no-cache'
-            - pattern: '/**/*.{js,css,html}'
-              headers:
-                - key: Cache-Control
-                  value: 'max-age=0'" > firebase.json
+          cat > firebase.json << EOF
+          {
+            "hosting": {
+              "public": "dist",
+              "ignore": [
+                "firebase.json",
+                "**/.*",
+                "**/node_modules/**"
+              ],
+              "rewrites": [
+                {
+                  "source": "**",
+                  "destination": "/index.html"
+                }
+              ],
+              "headers": [
+                {
+                  "source": "/manifest.webmanifest",
+                  "headers": [
+                    {
+                      "key": "Cache-Control",
+                      "value": "no-cache"
+                    }
+                  ]
+                },
+                {
+                  "source": "/registerSW.js",
+                  "headers": [
+                    {
+                      "key": "Cache-Control",
+                      "value": "no-cache"
+                    }
+                  ]
+                },
+                {
+                  "source": "/sw.js",
+                  "headers": [
+                    {
+                      "key": "Cache-Control",
+                      "value": "no-cache"
+                    }
+                  ]
+                },
+                {
+                  "source": "/firebase-messaging-sw.js",
+                  "headers": [
+                    {
+                      "key": "Cache-Control",
+                      "value": "no-cache"
+                    }
+                  ]
+                },
+                {
+                  "source": "**/*.@(js|css|html)",
+                  "headers": [
+                    {
+                      "key": "Cache-Control",
+                      "value": "max-age=31536000"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+          EOF
+          echo "✅ Firebase configuration updated"
