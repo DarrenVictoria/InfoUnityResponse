@@ -85,21 +85,30 @@ jobs:
       # Verify environment variables were replaced
       - name: Verify environment variable replacement
         run: |
+          # Check if Firebase config script was created
+          if [ ! -f "dist/firebase-config.js" ]; then
+            echo "❌ Error: firebase-config.js not found"
+            exit 1
+          else
+            echo "✅ Firebase config script created"
+          fi
+          
+          # Check service worker files exist and don't contain placeholders
           if [ -f "dist/firebase-messaging-sw.js" ]; then
-            if grep -q "__VITE_FIREBASE_API_KEY__" dist/firebase-messaging-sw.js; then
-              echo "❌ Error: Environment variables not replaced in firebase-messaging-sw.js"
+            if grep -q "PLACEHOLDER_API_KEY" dist/firebase-messaging-sw.js; then
+              echo "❌ Error: Placeholders not replaced in firebase-messaging-sw.js"
               exit 1
             else
-              echo "✅ Environment variables replaced in firebase-messaging-sw.js"
+              echo "✅ Placeholders replaced in firebase-messaging-sw.js"
             fi
           fi
           
           if [ -f "dist/sw.js" ]; then
-            if grep -q "__VITE_FIREBASE_API_KEY__" dist/sw.js; then
-              echo "❌ Error: Environment variables not replaced in sw.js"
+            if grep -q "PLACEHOLDER_API_KEY" dist/sw.js; then
+              echo "❌ Error: Placeholders not replaced in sw.js"
               exit 1
             else
-              echo "✅ Environment variables replaced in sw.js"
+              echo "✅ Placeholders replaced in sw.js"
             fi
           fi
 
