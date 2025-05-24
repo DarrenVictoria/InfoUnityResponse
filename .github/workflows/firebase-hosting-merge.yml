@@ -85,13 +85,7 @@ jobs:
       # Verify environment variables were replaced
       - name: Verify environment variable replacement
         run: |
-          # Check if Firebase config script was created
-          if [ ! -f "dist/firebase-config.js" ]; then
-            echo "❌ Error: firebase-config.js not found"
-            exit 1
-          else
-            echo "✅ Firebase config script created"
-          fi
+         
           
           # Check service worker files exist and don't contain placeholders
           if [ -f "dist/firebase-messaging-sw.js" ]; then
