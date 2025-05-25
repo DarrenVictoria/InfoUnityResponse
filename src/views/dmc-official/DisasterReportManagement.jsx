@@ -5,7 +5,7 @@ import { MapPin, AlertCircle, CheckCircle, ChevronsUpDown, Filter, Tally5, Users
 import SriLankaMapReportMan from '../../maps/SriLankaMapReportMan';
 import { useDebounce } from 'use-debounce';
 import Supercluster from 'supercluster';
-import AdminNavigationBar from '../../utils/VolAdmNavbar';
+import AdminNavigationBar from '../../utils/AdminNavbar';
 
 export default function DMCAdminPage() {
   const [rawReports, setRawReports] = useState([]);
