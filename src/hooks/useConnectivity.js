@@ -4,31 +4,108 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db as firestore, storage } from '../../firebase';
 import { getPendingReports, updateReportStatus, getPendingFileUploads, deleteFileUpload } from '../utils/offlineStorage';
 
-export function useConnectivity() {
+// NEW: Robust connectivity detection hook
+const useRobustConnectivity = () => {
     const [isOnline, setIsOnline] = useState(navigator.onLine);
-    const [isSyncing, setIsSyncing] = useState(false);
-    const [syncStatus, setSyncStatus] = useState({ total: 0, completed: 0, errors: 0 });
+    const [lastChecked, setLastChecked] = useState(Date.now());
+
+    const checkConnectivity = useCallback(async () => {
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3000);
+
+            // Try to fetch a small resource with cache-busting
+            const response = await fetch('/favicon.ico?t=' + Date.now(), {
+                method: 'HEAD',
+                cache: 'no-cache',
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+            const actuallyOnline = response.ok;
+
+            if (actuallyOnline !== isOnline) {
+                setIsOnline(actuallyOnline);
+            }
+
+            setLastChecked(Date.now());
+            return actuallyOnline;
+        } catch (error) {
+            if (isOnline) {
+                setIsOnline(false);
+            }
+            setLastChecked(Date.now());
+            return false;
+        }
+    }, [isOnline]);
 
     useEffect(() => {
-        const handleOnline = () => setIsOnline(true);
-        const handleOffline = () => setIsOnline(false);
+        const handleOnline = () => {
+            console.log('Browser online event fired');
+            setIsOnline(true);
+            setTimeout(checkConnectivity, 100);
+        };
+
+        const handleOffline = () => {
+            console.log('Browser offline event fired');
+            setIsOnline(false);
+        };
+
+        const handleVisibilityChange = () => {
+            if (!document.hidden) {
+                checkConnectivity();
+            }
+        };
+
+        const handleFocus = () => {
+            checkConnectivity();
+        };
 
         window.addEventListener('online', handleOnline);
         window.addEventListener('offline', handleOffline);
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        window.addEventListener('focus', handleFocus);
+
+        const interval = setInterval(() => {
+            const timeSinceLastCheck = Date.now() - lastChecked;
+            const checkInterval = isOnline ? 10000 : 5000;
+
+            if (timeSinceLastCheck >= checkInterval) {
+                checkConnectivity();
+            }
+        }, 2000);
+
+        checkConnectivity();
 
         return () => {
             window.removeEventListener('online', handleOnline);
             window.removeEventListener('offline', handleOffline);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            window.removeEventListener('focus', handleFocus);
+            clearInterval(interval);
         };
-    }, []);
+    }, [checkConnectivity, lastChecked, isOnline]);
+
+    return { isOnline, checkConnectivity, lastChecked };
+};
+
+// UPDATED: Your existing useConnectivity hook
+export function useConnectivity() {
+    const { isOnline, checkConnectivity } = useRobustConnectivity(); // CHANGED: Use robust detection
+    const [isSyncing, setIsSyncing] = useState(false);
+    const [syncStatus, setSyncStatus] = useState({ total: 0, completed: 0, errors: 0 });
 
     const synchronizePendingReports = useCallback(async () => {
-        if (!isOnline) return { success: false, message: 'Cannot sync while offline' };
+        // NEW: Verify we're actually online before syncing
+        const actuallyOnline = await checkConnectivity();
+        if (!actuallyOnline) {
+            return { success: false, message: 'Cannot sync while offline' };
+        }
 
         try {
             setIsSyncing(true);
 
-            // Get pending reports and file uploads
+            // KEEP YOUR EXISTING CODE FROM HERE:
             const pendingReports = await getPendingReports();
             const pendingUploads = await getPendingFileUploads();
 
@@ -72,13 +149,11 @@ export function useConnectivity() {
             // Then handle report uploads
             for (const report of pendingReports) {
                 try {
-                    // If this report has offline images, replace with uploaded URLs
                     const reportData = { ...report };
                     delete reportData.id;
                     delete reportData.offlineTimestamp;
                     delete reportData.status;
 
-                    // Replace offline image references with actual URLs if available
                     if (reportData.offlineImageIds && reportData.offlineImageIds.length > 0) {
                         reportData.images = [
                             ...reportData.images || [],
@@ -89,7 +164,6 @@ export function useConnectivity() {
                         delete reportData.offlineImageIds;
                     }
 
-                    // Submit to Firestore
                     await addDoc(collection(firestore, 'crowdsourcedReports'), reportData);
                     await updateReportStatus(report.id, 'uploaded');
 
@@ -116,12 +190,14 @@ export function useConnectivity() {
         } finally {
             setIsSyncing(false);
         }
-    }, [isOnline]);
+    }, [checkConnectivity]); // CHANGED: Add checkConnectivity dependency
 
-    // Auto-sync when coming back online
+    // UPDATED: Auto-sync with connectivity verification
     useEffect(() => {
         if (isOnline) {
-            synchronizePendingReports();
+            setTimeout(() => {
+                synchronizePendingReports();
+            }, 1000); // CHANGED: Add 1 second delay for stable connection
         }
     }, [isOnline, synchronizePendingReports]);
 
@@ -129,6 +205,10 @@ export function useConnectivity() {
         isOnline,
         isSyncing,
         syncStatus,
-        synchronizePendingReports
+        synchronizePendingReports,
+        checkConnectivity // NEW: Export for manual checks
     };
 }
+
+// NEW: Export the robust connectivity hook for other components
+export { useRobustConnectivity };

@@ -1,57 +1,54 @@
 import React, { useState, useEffect } from 'react';
 import { AlertCircle } from 'lucide-react';
+import { useRobustConnectivity } from '../hooks/useConnectivity'; // UPDATE THIS PATH
 
-const OfflineAwareContainer = ({ children, pageName, color }) => {
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [isPageCached, setIsPageCached] = useState(true); // Assume true initially to avoid flicker
+const OfflineAwareContainer = ({ children, pageName, color = 'yellow' }) => {
+  const { isOnline } = useRobustConnectivity(); // CHANGED: Use robust hook
+  const [isPageCached, setIsPageCached] = useState(true);
+  const [showOfflineBanner, setShowOfflineBanner] = useState(false); // NEW: Control banner visibility
 
   useEffect(() => {
-    const handleOnlineStatusChange = () => {
-      setIsOnline(navigator.onLine);
-    };
-
-    window.addEventListener('online', handleOnlineStatusChange);
-    window.addEventListener('offline', handleOnlineStatusChange);
-
-    // Check if this page is in the cache when offline
     const checkCache = async () => {
-      if (!navigator.onLine && 'caches' in window) {
+      if (!isOnline && 'caches' in window) {
         try {
-          // Check both potential caches
-          const disasterCache = await caches.open('disaster-pages-cache');
-          const htmlCache = await caches.open('html-pages-cache');
-          
+          const cacheNames = await caches.keys(); // NEW: Check all caches
           const currentPath = window.location.pathname;
-          
-          // Check if current URL is cached
-          const disasterMatch = await disasterCache.match(currentPath);
-          const htmlMatch = await htmlCache.match(currentPath);
-          
-          setIsPageCached(!!disasterMatch || !!htmlMatch);
+          let cached = false;
+
+          for (const cacheName of cacheNames) {
+            const cache = await caches.open(cacheName);
+            const match = await cache.match(currentPath);
+            if (match) {
+              cached = true;
+              break;
+            }
+          }
+
+          setIsPageCached(cached);
         } catch (err) {
           console.error('Error checking cache for current page:', err);
-          setIsPageCached(true); // Assume cached on error
+          setIsPageCached(false); // CHANGED: More conservative default
         }
-      } else {
-        setIsPageCached(true); // Online, so page is available
       }
     };
 
-    checkCache();
-
-    return () => {
-      window.removeEventListener('online', handleOnlineStatusChange);
-      window.removeEventListener('offline', handleOnlineStatusChange);
-    };
-  }, []);
+    // NEW: Show offline banner only when offline
+    setShowOfflineBanner(!isOnline);
+    
+    if (!isOnline) {
+      checkCache();
+    } else {
+      setIsPageCached(true);
+    }
+  }, [isOnline]);
 
   return (
     <>
-      {!isOnline && (
-        <div className={`bg-${color}-50 border-l-4 border-${color}-500 text-${color}-700 p-4 mb-4 rounded`}>
+      {showOfflineBanner && !isOnline && ( // CHANGED: Better condition
+        <div className={`bg-${color}-50 border-l-4 border-${color}-500 text-${color}-700 p-4 mb-4 rounded transition-all duration-300`}>
           <div className="flex items-center">
-            <AlertCircle className="mr-2" />
-            <div>
+            <AlertCircle className="mr-2 flex-shrink-0" />
+            <div className="flex-grow"> {/* NEW: Better flex layout */}
               <p className="font-bold">You are currently offline</p>
               {isPageCached ? (
                 <p className="text-sm">Viewing cached content for {pageName} disaster information.</p>
@@ -59,6 +56,14 @@ const OfflineAwareContainer = ({ children, pageName, color }) => {
                 <p className="text-sm">This page may not be fully available offline. Some features might be limited.</p>
               )}
             </div>
+            {/* NEW: Close button for offline banner */}
+            <button 
+              onClick={() => setShowOfflineBanner(false)}
+              className="ml-2 text-gray-500 hover:text-gray-700 text-lg font-bold flex-shrink-0"
+              aria-label="Close offline notification"
+            >
+              ×
+            </button>
           </div>
         </div>
       )}

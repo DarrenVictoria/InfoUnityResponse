@@ -1,31 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useRobustConnectivity } from '../hooks/useConnectivity'; // UPDATE THIS PATH
 
 const NetworkStatusManager = () => {
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const { isOnline } = useRobustConnectivity(); // CHANGED: Use robust hook
   const [showBanner, setShowBanner] = useState(false);
+  const [lastStatus, setLastStatus] = useState(navigator.onLine); // NEW: Track last status
   const { t } = useTranslation();
 
   useEffect(() => {
-    const handleOnline = () => {
-      setIsOnline(true);
+    // NEW: Only show banner when status actually changes
+    if (isOnline !== lastStatus) {
       setShowBanner(true);
-      setTimeout(() => setShowBanner(false), 3000);
-    };
+      setLastStatus(isOnline);
+      
+      if (isOnline) {
+        const timer = setTimeout(() => setShowBanner(false), 3000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [isOnline, lastStatus]);
 
-    const handleOffline = () => {
-      setIsOnline(false);
-      setShowBanner(true);
-    };
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
+  // NEW: Hide offline banner when coming back online
+  useEffect(() => {
+    if (isOnline && showBanner) {
+      const timer = setTimeout(() => setShowBanner(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isOnline, showBanner]);
 
   if (!showBanner) return null;
 
@@ -52,7 +54,7 @@ const NetworkStatusManager = () => {
         </div>
         <button 
           onClick={() => setShowBanner(false)} 
-          className="ml-4 text-gray-500 hover:text-gray-700"
+          className="ml-4 text-gray-500 hover:text-gray-700 text-lg font-bold" // CHANGED: Made X bigger
           aria-label="Close"
         >
           ×
