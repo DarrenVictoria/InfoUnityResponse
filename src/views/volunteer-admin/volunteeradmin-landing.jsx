@@ -464,16 +464,54 @@ const VolunteerAdminPage = () => {
       .map(([type]) => type); // Extract type names
   };
 
+  const parseFirestoreDate = (dateInput) => {
+  if (!dateInput) return null;
+  
+  // If it's a Firestore Timestamp object
+  if (typeof dateInput.toDate === 'function') {
+    return dateInput.toDate();
+  }
+  
+  // If it's an ISO string
+  if (typeof dateInput === 'string') {
+    return new Date(dateInput);
+  }
+  
+  // If it's already a Date object
+  if (dateInput instanceof Date) {
+    return dateInput;
+  }
+  
+  return null;
+};
+
   // Calculate countdown in days
-  const getCountdown = (dateCommenced) => {
-    if (!dateCommenced) return 'Unknown';
-    
-    const now = new Date();
-    const commencedDate = new Date(dateCommenced);
-    const timeDiff = commencedDate.getTime() + 14 * 24 * 60 * 60 * 1000 - now.getTime(); // 14 days from commenced
-    const daysRemaining = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
-    return daysRemaining > 0 ? `${daysRemaining} days remaining` : 'Expired';
-  };
+const getCountdown = (dateCommenced) => {
+  const commencedDate = parseFirestoreDate(dateCommenced);
+  if (!commencedDate || isNaN(commencedDate.getTime())) return 'Invalid date';
+  
+  const now = new Date();
+  const timeDiff = commencedDate.getTime() + 14 * 24 * 60 * 60 * 1000 - now.getTime();
+  
+  if (timeDiff <= 0) return 'Expired';
+  
+  const daysRemaining = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+  return `${daysRemaining} days remaining`;
+};
+
+// Updated date display function
+const formatDateDisplay = (dateInput) => {
+  const date = parseFirestoreDate(dateInput);
+  if (!date || isNaN(date.getTime())) return 'Invalid date';
+  
+  return date.toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
 
   const filteredApprovedDisasters = approvedDisasters.filter(disaster =>
     disaster.disasterType?.toLowerCase().includes(searchQueryApproved.toLowerCase()) ||
@@ -669,9 +707,9 @@ const VolunteerAdminPage = () => {
                   <p className="text-sm text-gray-600">{disaster.district}, {disaster.dsDivision}</p>
                   <p className="text-sm text-gray-600">Risk Level: {disaster.riskLevel}</p>
                   <p className="text-sm text-gray-600">
-                    Date Commenced: {new Date(disaster.dateCommenced).toLocaleString()}
+                    Date Commenced: {formatDateDisplay(disaster.dateCommenced)}
                   </p>
-                  <p className={`text-sm ${countdown === 'Expired' ? 'text-red-500' : 'text-yellow-600'}`}>
+                  <p className={`text-sm ${countdown === 'Expired' ? 'text-red-500' : countdown === 'Invalid date' ? 'text-gray-500' : 'text-yellow-600'}`}>
                     {countdown}
                   </p>
                 </div>
@@ -774,7 +812,7 @@ const VolunteerAdminPage = () => {
                     <td className="p-2 border border-gray-200">{disaster.disasterType}</td>
                     <td className="p-2 border border-gray-200">{disaster.district}</td>
                     <td className="p-2 border border-gray-200">{disaster.dsDivision}</td>
-                    <td className="p-2 border border-gray-200">{new Date(disaster.dateCommenced).toLocaleString()}</td>
+                    <td className="p-2 border border-gray-200">{formatDateDisplay(disaster.dateCommenced)}</td>
                     <td className="p-2 border border-gray-200">
                       <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-sm">
                         {disaster.volunteerStatus}
@@ -1134,6 +1172,318 @@ const VolunteerAdminPage = () => {
           </div>
         </div>
       )}
+
+            {/* Comprehensive Volunteer Management Section */}
+      <div className="mt-12">
+        <h2 className="text-xl font-bold mb-6">Volunteer Management</h2>
+        
+        {/* Volunteer Search and Filters */}
+        <div className="mb-6 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div className="relative">
+              <div className="flex items-center bg-white border rounded-lg overflow-hidden">
+                <Search className="w-5 h-5 text-gray-500 mx-3" />
+                <input
+                  type="text"
+                  placeholder="Search volunteers by name..."
+                  className="flex-1 p-2 outline-none"
+                  onChange={(e) => setSearchQueryVolunteer(e.target.value)}
+                />
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-4">
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  className="form-checkbox h-4 w-4 text-blue-600"
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedVolunteerTypes([...selectedVolunteerTypes, 'Red Cross']);
+                    } else {
+                      setSelectedVolunteerTypes(selectedVolunteerTypes.filter(t => t !== 'Red Cross'));
+                    }
+                  }}
+                />
+                <span className="ml-2 text-gray-700">Red Cross Volunteers</span>
+              </label>
+              
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  className="form-checkbox h-4 w-4 text-blue-600"
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedVolunteerTypes([...selectedVolunteerTypes, 'Assigned']);
+                    } else {
+                      setSelectedVolunteerTypes(selectedVolunteerTypes.filter(t => t !== 'Assigned'));
+                    }
+                  }}
+                />
+                <span className="ml-2 text-gray-700">Currently Assigned</span>
+              </label>
+            </div>
+            
+            <div className="relative">
+              <div className="flex items-center bg-white border rounded-lg overflow-hidden">
+                <Filter className="w-5 h-5 text-gray-500 mx-3" />
+                <input
+                  type="text"
+                  placeholder="Filter by skills..."
+                  className="flex-1 p-2 outline-none"
+                  onChange={(e) => handleSearchVolunteerTypes(e.target.value)}
+                />
+              </div>
+              {volunteerTypeSuggestions.length > 0 && (
+                <div className="absolute z-10 bg-white border rounded-lg mt-1 w-full max-h-40 overflow-y-auto">
+                  {volunteerTypeSuggestions.map((type) => (
+                    <div
+                      key={type}
+                      className="p-2 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => {
+                        setSelectedVolunteerTypes((prev) =>
+                          prev.includes(type) ? prev : [...prev, type]
+                        );
+                        setVolunteerTypeSuggestions([]);
+                      }}
+                    >
+                      {type}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Selected Filters */}
+          {selectedVolunteerTypes.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-4">
+              {selectedVolunteerTypes.map((type) => (
+                <div
+                  key={type}
+                  className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full flex items-center gap-2 text-sm"
+                >
+                  {type}
+                  <button
+                    onClick={() =>
+                      setSelectedVolunteerTypes((prev) => prev.filter((t) => t !== type))
+                    }
+                    className="text-blue-800 hover:text-blue-600"
+                  >
+                    &times;
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        
+        {/* Volunteers Table */}
+        <div className="bg-white border rounded-lg overflow-hidden shadow-sm">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Volunteer</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Skills</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned To</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {defaultVolunteers
+                .filter(volunteer => {
+                  // Filter by search query
+                  if (searchQueryVolunteer && 
+                      !volunteer.fullName.toLowerCase().includes(searchQueryVolunteer.toLowerCase())) {
+                    return false;
+                  }
+                  
+                  // Filter by Red Cross status
+                  if (selectedVolunteerTypes.includes('Red Cross') && !volunteer.isRedCrossVolunteer) {
+                    return false;
+                  }
+                  
+                  // Filter by assigned status
+                  if (selectedVolunteerTypes.includes('Assigned') && !volunteer.isVolunteering) {
+                    return false;
+                  }
+                  
+                  // Filter by skills
+                  const volunteerSkills = volunteer.disasterCategories || [];
+                  const selectedSkills = selectedVolunteerTypes.filter(t => 
+                    t !== 'Red Cross' && t !== 'Assigned'
+                  );
+                  
+                  if (selectedSkills.length > 0 && 
+                      !selectedSkills.some(skill => volunteerSkills.includes(skill))) {
+                    return false;
+                  }
+                  
+                  return true;
+                })
+                .map((volunteer) => (
+                  <tr key={volunteer.userId} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div>
+                          <div className="font-medium text-gray-900">
+                            {volunteer.fullName}
+                            {volunteer.isRedCrossVolunteer && (
+                              <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                Red Cross
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {volunteer.district}, {volunteer.dsDivision}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{volunteer.mobileNumber || 'N/A'}</div>
+                      <div className="text-sm text-gray-500">{volunteer.email || 'N/A'}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-wrap gap-1">
+                        {(volunteer.disasterCategories || []).slice(0, 3).map((skill) => (
+                          <span key={skill} className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                            {skill}
+                          </span>
+                        ))}
+                        {(volunteer.disasterCategories || []).length > 3 && (
+                          <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs">
+                            +{(volunteer.disasterCategories || []).length - 3} more
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        volunteer.isVolunteering 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {volunteer.isVolunteering ? 'Assigned' : 'Available'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {volunteer.isVolunteering ? (
+                        <div>
+                          {volunteer.assignedDisasterIds?.length > 0 ? (
+                            volunteer.assignedDisasterIds.map(disasterId => {
+                              const disaster = [...approvedDisasters, ...cannotAttendDisasters].find(d => d.id === disasterId);
+                              return disaster ? (
+                                <div key={disasterId} className="mb-2">
+                                  <div className="font-medium">{disaster.disasterType}</div>
+                                  <div className="text-xs">{disaster.district}, {disaster.dsDivision}</div>
+                                </div>
+                              ) : null;
+                            })
+                          ) : 'No disaster info'}
+                        </div>
+                      ) : (
+                        'Not assigned'
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      {volunteer.isVolunteering ? (
+                        <button
+                          onClick={() => {
+                            const disasterId = volunteer.assignedDisasterIds?.[0];
+                            if (disasterId) {
+                              const disaster = [...approvedDisasters, ...cannotAttendDisasters].find(d => d.id === disasterId);
+                              if (disaster) {
+                                handleUnassignVolunteer({
+                                  userId: volunteer.userId,
+                                  fullName: volunteer.fullName,
+                                  isRedCrossVolunteer: volunteer.isRedCrossVolunteer,
+                                  assignedAt: new Date().toISOString()
+                                });
+                              }
+                            }
+                          }}
+                          className="text-red-600 hover:text-red-900 mr-3"
+                        >
+                          Unassign
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            // Find suitable disasters based on volunteer's location and skills
+                            const suitableDisasters = approvedDisasters.filter(disaster => 
+                              disaster.district === volunteer.district &&
+                              disaster.dsDivision === volunteer.dsDivision &&
+                              disaster.disasterCategories?.some(cat => 
+                                (volunteer.disasterCategories || []).includes(cat)
+                              )
+                            );
+                            
+                            if (suitableDisasters.length === 1) {
+                              // If only one suitable disaster, assign directly
+                              setSelectedDisaster(suitableDisasters[0]);
+                              setTimeout(() => {
+                                handleAssignVolunteer(volunteer);
+                              }, 100);
+                            } else if (suitableDisasters.length > 1) {
+                              // If multiple suitable disasters, show a selection dialog
+                              const disasterChoice = prompt(
+                                `Assign to which disaster?\n${suitableDisasters.map((d, i) => 
+                                  `${i+1}. ${d.disasterType} (${d.district}, ${d.dsDivision})`
+                                ).join('\n')}`
+                              );
+                              
+                              const choiceIndex = parseInt(disasterChoice) - 1;
+                              if (choiceIndex >= 0 && choiceIndex < suitableDisasters.length) {
+                                setSelectedDisaster(suitableDisasters[choiceIndex]);
+                                setTimeout(() => {
+                                  handleAssignVolunteer(volunteer);
+                                }, 100);
+                              }
+                            } else {
+                              alert('No suitable disasters found in this volunteer\'s area matching their skills');
+                            }
+                          }}
+                          className="text-blue-600 hover:text-blue-900"
+                        >
+                          Assign
+                        </button>
+                      )}
+                      <button
+                        onClick={() => {
+                          // Show more details about the volunteer
+                          alert(
+                            `Volunteer Details:\n\n` +
+                            `Name: ${volunteer.fullName}\n` +
+                            `Contact: ${volunteer.mobileNumber || 'N/A'}\n` +
+                            `Email: ${volunteer.email || 'N/A'}\n` +
+                            `Address: ${volunteer.address || 'N/A'}\n` +
+                            `District: ${volunteer.district || 'N/A'}\n` +
+                            `DS Division: ${volunteer.dsDivision || 'N/A'}\n` +
+                            `Skills: ${(volunteer.disasterCategories || []).join(', ') || 'None'}\n` +
+                            `Red Cross: ${volunteer.isRedCrossVolunteer ? 'Yes' : 'No'}\n` +
+                            `Status: ${volunteer.isVolunteering ? 'Assigned' : 'Available'}`
+                          );
+                        }}
+                        className="ml-3 text-gray-600 hover:text-gray-900"
+                      >
+                        Details
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+          
+          {defaultVolunteers.length === 0 && (
+            <div className="p-8 text-center text-gray-500">
+              No volunteers found. Try adjusting your search filters.
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
