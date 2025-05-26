@@ -1,3 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <testExecutions version="1">
+  <file path="D:\InfoUnityResponse\src\components\__tests__\LanguageToggle.test.jsx">
+    <testCase name="LanguageToggle renders all language buttons" duration="318"/>
+    <testCase name="LanguageToggle calls changeLanguage when buttons are clicked" duration="84"/>
+  </file>
+  <file path="D:\InfoUnityResponse\src\components\__tests__\NotificationPanel.test.jsx">
+    <testCase name="NotificationPanel renders notifications correctly" duration="239"/>
+    <testCase name="NotificationPanel renders close all button when notifications exist" duration="46"/>
+    <testCase name="NotificationPanel does not render close all button when no notifications" duration="15"/>
+    <testCase name="NotificationPanel calls onDismiss when X button is clicked" duration="53"/>
+    <testCase name="NotificationPanel calls onDismissAll when Close All button is clicked" duration="53"/>
+    <testCase name="NotificationPanel renders alert circle icons for each notification" duration="29"/>
+  </file>
+  <file path="D:\InfoUnityResponse\src\components\__tests__\DisasterLocationMap.test.jsx">
+    <testCase name="DisasterLocationMap renders map container when coordinates are provided" duration="417"/>
+    <testCase name="DisasterLocationMap renders fallback message when coordinates are missing" duration="20"/>
+  </file>
 </testExecutions>
