@@ -12,23 +12,26 @@ import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 import { Droplet, Mountain, Ship, AlertTriangle } from 'lucide-react';
 
 const getDisasterIcon = (type) => {
-    const iconSize = 24; // Adjust size as needed
-    const iconColor = '#FFFFFF'; // Icon color
+    const iconSize = 24;
+    const iconColor = '#FFFFFF';
+    
+    // Default to "Other" if type is empty or undefined
+    const normalizedType = type || 'Other';
+    
     const iconBackground = {
-      Flood: '#3182CE', // Blue
-      Landslide: '#DD6B20', // Orange
-      Marine: '#805AD5', // Purple
-      Other: '#718096' // Gray
-    }[type];
+      Flood: '#3182CE',
+      Landslide: '#DD6B20',
+      Marine: '#805AD5',
+      Other: '#718096'
+    }[normalizedType];
   
     const iconComponent = {
       Flood: <Droplet size={iconSize} color={iconColor} />,
       Landslide: <Mountain size={iconSize} color={iconColor} />,
       Marine: <Ship size={iconSize} color={iconColor} />,
       Other: <AlertTriangle size={iconSize} color={iconColor} />
-    }[type];
+    }[normalizedType];
   
-    // Convert React component to HTML string
     const iconHTML = ReactDOMServer.renderToString(iconComponent);
   
     return L.divIcon({
@@ -51,7 +54,7 @@ const getDisasterIcon = (type) => {
       iconSize: [iconSize + 8, iconSize + 8],
       iconAnchor: [(iconSize + 8) / 2, iconSize + 8]
     });
-  };
+};
 
 const DefaultIcon = new Icon({
   iconUrl: icon,
@@ -65,11 +68,21 @@ const WarningLocationMap = () => {
 
   useEffect(() => {
     const fetchWarnings = async () => {
-      const warningsRef = collection(db, 'warnings');
-      const snapshot = await getDocs(warningsRef);
-      const warningsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setWarnings(warningsData);
-    };
+  try {
+    const warningsRef = collection(db, 'warnings');
+    const snapshot = await getDocs(warningsRef);
+    const warningsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    setWarnings(warningsData);
+    
+    // Log any warnings with missing data
+    warningsData.forEach(warning => {
+      if (!warning.type) console.warn('Warning with missing type:', warning);
+      if (!warning.latitude || !warning.longitude) console.warn('Warning with missing coordinates:', warning);
+    });
+  } catch (error) {
+    console.error('Error fetching warnings:', error);
+  }
+};
 
     fetchWarnings();
   }, []);
@@ -145,12 +158,14 @@ const WarningLocationMap = () => {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          {warnings.map(warning => (
-            <Marker
-            key={warning.id}
-            position={[warning.latitude, warning.longitude]}
-            icon={getDisasterIcon(warning.type)}
-          >
+          {warnings
+  .filter(warning => warning.latitude && warning.longitude)
+  .map(warning => (
+    <Marker
+      key={warning.id}
+      position={[warning.latitude, warning.longitude]}
+      icon={getDisasterIcon(warning.type)}
+    >
             <Popup>
               <div className="p-2">
                 <div className="flex items-center gap-2 mb-2">
