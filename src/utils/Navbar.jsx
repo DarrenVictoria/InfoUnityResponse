@@ -303,7 +303,7 @@ const RoleBasedNavigation = ({ roles, setIsMenuOpen }) => {
   const renderNavItems = () => (
     <>
       <a
-        href="realtime"
+        href="/realtime"
         className={`
         ${
           isMobile

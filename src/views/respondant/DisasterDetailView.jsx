@@ -4,6 +4,7 @@ import { db } from '../../../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { MapPin, Users, Home, AlertTriangle, Heart, Clock } from 'lucide-react';
 import DisasterLocationMap from '../../components/DisasterLocationMap';
+import NavigationBar from '../../utils/Navbar';
 
 const VOLUNTEER_CATEGORIES = {
   "Emergency Response": ["Search and Rescue (SAR)", "Medical Assistance", "Firefighting Support", "Evacuation Assistance", "Damage Assessment"],
@@ -28,12 +29,14 @@ const DisasterDetails = () => {
       if (disasterDoc.exists()) {
         const data = disasterDoc.data();
         setDisaster({
-          ...data,
-          disasterId: id,
-          safeLocations: data.safeLocations || [],
-          resourceRequests: data.resourceRequests || [],
-          volunteerRequests: data.volunteerRequests || {},
-        });
+            ...data,
+            disasterId: id,
+            latitude: data.disasterLocation?.latitude,  // Flatten the coordinates
+            longitude: data.disasterLocation?.longitude,
+            safeLocations: data.safeLocations || [],
+            resourceRequests: data.resourceRequests || [],
+            volunteerRequests: data.volunteerRequests || {},
+          });
       } else {
         console.error('No such document!');
       }
@@ -66,7 +69,8 @@ const DisasterDetails = () => {
     };
   
     return (
-      <div className="bg-white shadow-sm border-b">
+      <div className="bg-white shadow-sm border-b mt-14">
+        <NavigationBar />
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex flex-col space-y-4">
             <div className="flex items-center space-x-4">
@@ -355,8 +359,8 @@ const DisasterDetails = () => {
 
         <div className="max-w-7xl mx-auto px-4">
           <DisasterLocationMap  
-            latitude={disaster.latitude}
-            longitude={disaster.longitude}
+            latitude={disaster.disasterLocation?.latitude}
+            longitude={disaster.disasterLocation?.longitude}
             disasterType={disaster.disasterType}
             location={`${disaster.district}, ${disaster.dsDivision}`}
             riskLevel={disaster.riskLevel}
