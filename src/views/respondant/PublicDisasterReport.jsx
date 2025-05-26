@@ -9,7 +9,7 @@ import LocationSelector from '../../components/LocationSelector';
 import { saveReportOffline, saveFileForOfflineUpload } from '../../utils/offlineStorage';
 import { useConnectivity } from '../../hooks/useConnectivity';
 import { useNavigate } from 'react-router-dom';
-
+import NavigationBar from '../../utils/Navbar';
 const DISASTER_TYPES = [
   "Flood", "Landslide", "Drought", "Cyclone", "Tsunami",
   "Coastal Erosion", "Lightning Strike", "Forest Fire",
@@ -273,7 +273,8 @@ export default function PublicDisasterReport() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 relative">
+    <div className="max-w-4xl mx-auto p-6 relative pt-20">
+      <NavigationBar />
       {/* Success Modal */}
       {showSuccessModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
