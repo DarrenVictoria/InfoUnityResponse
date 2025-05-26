@@ -101,8 +101,8 @@ const NavigationBar = () => {
     learn: {
       translationKey: "nav.learn",
       items: [
-        { translationKey: "nav.disasterCatalogue", icon: BookOpen, href: "disastercatalogue" },
-        { translationKey: "nav.aiChatbot", icon: Bot, href: "support-chat" },
+        { translationKey: "nav.disasterCatalogue", icon: BookOpen, href: "/disastercatalogue" },
+        { translationKey: "nav.aiChatbot", icon: Bot, href: "/support-chat" },
       ],
     },
     tools: {
@@ -112,7 +112,7 @@ const NavigationBar = () => {
         {
           translationKey: "nav.missingPersonRegistry",
           icon: Search,
-          href: "missingperson",
+          href: "/missingperson",
         },
       ],
     },
