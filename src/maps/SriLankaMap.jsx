@@ -218,7 +218,7 @@ const SriLankaMap = ({ selectedCluster = [], selectedReports = [] }) => {
       {hoveredDisaster && (
         <div className="absolute top-4 right-4 bg-white p-4 rounded-lg shadow-lg max-w-[300px] z-[1000]">
           <h3 className="font-bold mb-2 text-lg">{hoveredDisaster.disasterType}</h3>
-          <p className="text-sm mb-1">Location: {hoveredDisaster.district}, {hoveredDisaster.province}</p>
+          <p className="text-sm mb-1">Location: {hoveredDisaster.dsDivision}, {hoveredDisaster.district} </p>
           {/* <p className="text-sm mb-1">Date: {new Date(hoveredDisaster.datetime).toLocaleDateString()}</p>
           <p className="text-sm mb-1">Deaths: {hoveredDisaster.deaths}</p>
           <p className="text-sm mb-1">Volunteers needed: {hoveredDisaster.volunteerRequired}</p>
