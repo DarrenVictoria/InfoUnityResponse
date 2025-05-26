@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { db } from '../../../firebase';
 import { collection, query, where, getDocs, addDoc, updateDoc, doc, onSnapshot } from 'firebase/firestore';
-import { MapPin, AlertCircle, CheckCircle, ChevronsUpDown, Filter, Tally5, Users, Map, X, Search } from 'lucide-react';
+import { MapPin, AlertCircle, CheckCircle, ChevronsUpDown, Filter, Tally5, Users, Map, X, Search, MessageSquare } from 'lucide-react';
 import SriLankaMapReportMan from '../../maps/SriLankaMapReportMan';
 import { useDebounce } from 'use-debounce';
 import Supercluster from 'supercluster';
@@ -9,13 +9,15 @@ import AdminNavigationBar from '../../utils/AdminNavbar';
 
 export default function DMCAdminPage() {
   const [rawReports, setRawReports] = useState([]);
+  const [smsReports, setSmsReports] = useState([]);
   const [filteredReports, setFilteredReports] = useState([]);
   const [clusters, setClusters] = useState({ spatial: [], administrative: {} });
   const [filters, setFilters] = useState({
     district: 'all',
     dsDivision: 'all',
     disasterType: 'all',
-    searchQuery: ''
+    searchQuery: '',
+    reportType: 'all' // 'all', 'map', 'sms'
   });
   const [mapView, setMapView] = useState(true);
   const [selectedCluster, setSelectedCluster] = useState(null);
@@ -24,6 +26,7 @@ export default function DMCAdminPage() {
   const [isLoadingReports, setIsLoadingReports] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [activeTab, setActiveTab] = useState('mapReports'); // 'mapReports' or 'smsReports'
 
   // Get unique values for filters
   const uniqueDistricts = useMemo(() => [...new Set(rawReports.map(r => r.district).filter(Boolean))], [rawReports]);
@@ -62,32 +65,68 @@ export default function DMCAdminPage() {
 
   // Real-time updates for reports
   useEffect(() => {
-    const unsubscribe = onSnapshot(
-      query(collection(db, 'crowdsourcedReports'), where('status', '==', 'pending')),
+    // Instead of using two != filters, we'll filter in JavaScript
+const unsubscribeMapReports = onSnapshot(
+  query(
+    collection(db, 'crowdsourcedReports'), 
+    where('status', '==', 'pending')
+  ),
+  (snapshot) => {
+    const reports = snapshot.docs
+      .map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          latitude: data.latitude || 0,
+          longitude: data.longitude || 0,
+          district: data.district || 'Unknown',
+          dsDivision: data.dsDivision || 'Unknown',
+          disasterType: data.disasterType || 'Unknown',
+          ...data
+        };
+      })
+      // Filter reports that have both latitude and longitude
+      .filter(report => report.latitude !== null && report.longitude !== null);
+    
+    setRawReports(reports);
+    setFilteredReports(reports);
+  },
+  (error) => {
+    console.error('Error loading map reports:', error);
+    setError('Failed to load map reports. Please try again.');
+  }
+);
+
+    const unsubscribeSmsReports = onSnapshot(
+      query(
+        collection(db, 'crowdsourcedReports'),
+        where('status', '==', 'pending'),
+        where('source', '==', 'sms')
+      ),
       (snapshot) => {
         const reports = snapshot.docs.map(doc => {
           const data = doc.data();
           return {
             id: doc.id,
-            latitude: data.latitude || 0,
-            longitude: data.longitude || 0,
             district: data.district || 'Unknown',
             dsDivision: data.dsDivision || 'Unknown',
             disasterType: data.disasterType || 'Unknown',
             ...data
           };
-        }).filter(report => report.latitude && report.longitude);
+        });
         
-        setRawReports(reports);
-        setFilteredReports(reports); // Initially show all reports
+        setSmsReports(reports);
       },
       (error) => {
-        console.error('Error loading reports:', error);
-        setError('Failed to load reports. Please try again.');
+        console.error('Error loading SMS reports:', error);
+        setError('Failed to load SMS reports. Please try again.');
       }
     );
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribeMapReports();
+      unsubscribeSmsReports();
+    };
   }, []);
 
   // Apply filters whenever filters or rawReports change
@@ -176,21 +215,23 @@ export default function DMCAdminPage() {
     }
   }, [supercluster]);
 
-  const createVerifiedDisaster = async (reportIds) => {
+  const createVerifiedDisaster = async (reportIds, reportType = 'map') => {
     if (!reportIds || reportIds.length === 0) {
       setError('Please select at least one report to verify.');
       return;
     }
 
     try {
-      const selectedReportsData = rawReports.filter(report => reportIds.includes(report.id));
+      const selectedReportsData = reportType === 'map' 
+        ? rawReports.filter(report => reportIds.includes(report.id))
+        : smsReports.filter(report => reportIds.includes(report.id));
 
       const verifiedDisaster = {
         dateCommenced: selectedReportsData[0].timestamp || new Date(),
         dateEnded: null,
         disasterLocation: {
-          latitude: selectedReportsData[0].latitude,
-          longitude: selectedReportsData[0].longitude,
+          latitude: selectedReportsData[0].latitude || 0,
+          longitude: selectedReportsData[0].longitude || 0,
           name: `${selectedReportsData[0].district}, ${selectedReportsData[0].dsDivision}, Sri Lanka`
         },
         disasterType: selectedReportsData[0].disasterType,
@@ -230,7 +271,8 @@ export default function DMCAdminPage() {
         safeLocations: [],
         status: "verified",
         volunteerRequests: {},
-        crowdSourcedReportIds: selectedReportsData.map(report => report.id)
+        crowdSourcedReportIds: selectedReportsData.map(report => report.id),
+        source: reportType === 'sms' ? 'sms' : 'app'
       };
 
       const verifiedDisasterRef = await addDoc(collection(db, 'verifiedDisasters'), verifiedDisaster);
@@ -247,6 +289,11 @@ export default function DMCAdminPage() {
       setSuccess('Verified disaster created successfully!');
       setSelectedCluster(null);
       setSelectedReports(new Set());
+      
+      // Refresh reports
+      if (reportType === 'sms') {
+        setSmsReports(prev => prev.filter(r => !reportIds.includes(r.id)));
+      }
     } catch (err) {
       console.error('Error creating verified disaster:', err);
       setError('Failed to create verified disaster. Please try again.');
@@ -299,6 +346,53 @@ export default function DMCAdminPage() {
             className="text-green-600 hover:underline text-sm"
           >
             Verify all
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  const renderSmsReport = (report) => {
+    return (
+      <div key={report.id} className="p-4 bg-white rounded-lg shadow-md mb-4 border-l-4 border-blue-500">
+        <div className="flex justify-between items-start">
+          <div>
+            <h3 className="font-semibold text-lg">{report.disasterType || 'Unknown Disaster'}</h3>
+            <p className="text-sm text-gray-600">
+              <MessageSquare className="inline mr-1" size={14} />
+              SMS Report from {report.phoneNumber || 'Unknown number'}
+            </p>
+          </div>
+          <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">
+            {report.timestamp?.toDate()?.toLocaleDateString() || 'Unknown date'}
+          </span>
+        </div>
+        
+        <div className="mt-2">
+          <p className="text-sm">{report.description || 'No description provided'}</p>
+        </div>
+        
+        <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+          <div>
+            <span className="font-medium">District:</span> {report.district || 'Unknown'}
+          </div>
+          <div>
+            <span className="font-medium">DS Division:</span> {report.dsDivision || 'Unknown'}
+          </div>
+          <div>
+            <span className="font-medium">Reporter:</span> {report.reporterName || 'Unknown'}
+          </div>
+          <div>
+            <span className="font-medium">ID:</span> {report.reporterIdNumber || 'Unknown'}
+          </div>
+        </div>
+        
+        <div className="mt-3 flex gap-2">
+          <button
+            onClick={() => createVerifiedDisaster([report.id], 'sms')}
+            className="text-green-600 hover:underline text-sm"
+          >
+            Verify this report
           </button>
         </div>
       </div>
@@ -367,50 +461,79 @@ export default function DMCAdminPage() {
 
         <div className="flex gap-2 mb-4">
           <button
-            onClick={() => setMapView(true)}
-            className={`flex-1 p-2 rounded-lg ${mapView ? 'bg-blue-100 text-blue-800' : 'bg-gray-100'}`}
+            onClick={() => setActiveTab('mapReports')}
+            className={`flex-1 p-2 rounded-lg ${activeTab === 'mapReports' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100'}`}
           >
-            <Map size={16} className="inline mr-1" /> Map
+            <Map size={16} className="inline mr-1" /> Map Reports
           </button>
           <button
-            onClick={() => setMapView(false)}
-            className={`flex-1 p-2 rounded-lg ${!mapView ? 'bg-blue-100 text-blue-800' : 'bg-gray-100'}`}
+            onClick={() => setActiveTab('smsReports')}
+            className={`flex-1 p-2 rounded-lg ${activeTab === 'smsReports' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100'}`}
           >
-            <ChevronsUpDown size={16} className="inline mr-1" /> List
+            <MessageSquare size={16} className="inline mr-1" /> SMS Reports
           </button>
         </div>
 
         <div className="overflow-y-auto flex-1">
-          {mapView ? (
-            clusters.spatial.map(cluster => (
-              <div key={cluster.properties.cluster_id || cluster.id}>
-                {renderClusterSummary(cluster)}
+          {activeTab === 'mapReports' ? (
+            <>
+              <div className="flex gap-2 mb-2">
+                <button
+                  onClick={() => setMapView(true)}
+                  className={`flex-1 p-2 rounded-lg ${mapView ? 'bg-blue-100 text-blue-800' : 'bg-gray-100'}`}
+                >
+                  <Map size={16} className="inline mr-1" /> Map View
+                </button>
+                <button
+                  onClick={() => setMapView(false)}
+                  className={`flex-1 p-2 rounded-lg ${!mapView ? 'bg-blue-100 text-blue-800' : 'bg-gray-100'}`}
+                >
+                  <ChevronsUpDown size={16} className="inline mr-1" /> List View
+                </button>
               </div>
-            ))
-          ) : (
-            Object.entries(clusters.administrative).map(([district, dsDivisions]) => (
-              <div key={district} className="mb-4">
-                <h3 className="font-semibold mb-2">{district}</h3>
-                {Object.entries(dsDivisions).map(([dsDivision, disasterTypes]) => (
-                  <div key={dsDivision} className="ml-2 pl-2 border-l-2 border-blue-100 mb-2">
-                    <h4 className="font-medium">{dsDivision}</h4>
-                    {Object.entries(disasterTypes).map(([disasterType, reports]) => (
-                      <div key={disasterType} className="ml-2 pl-2 border-l-2 border-green-100 mb-2">
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm">{disasterType} ({reports.length})</span>
-                          <button 
-                            onClick={() => createVerifiedDisaster(reports.map(r => r.id))}
-                            className="text-green-600 text-xs hover:underline"
-                          >
-                            Verify All
-                          </button>
-                        </div>
+              
+              {mapView ? (
+                clusters.spatial.map(cluster => (
+                  <div key={cluster.properties.cluster_id || cluster.id}>
+                    {renderClusterSummary(cluster)}
+                  </div>
+                ))
+              ) : (
+                Object.entries(clusters.administrative).map(([district, dsDivisions]) => (
+                  <div key={district} className="mb-4">
+                    <h3 className="font-semibold mb-2">{district}</h3>
+                    {Object.entries(dsDivisions).map(([dsDivision, disasterTypes]) => (
+                      <div key={dsDivision} className="ml-2 pl-2 border-l-2 border-blue-100 mb-2">
+                        <h4 className="font-medium">{dsDivision}</h4>
+                        {Object.entries(disasterTypes).map(([disasterType, reports]) => (
+                          <div key={disasterType} className="ml-2 pl-2 border-l-2 border-green-100 mb-2">
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm">{disasterType} ({reports.length})</span>
+                              <button 
+                                onClick={() => createVerifiedDisaster(reports.map(r => r.id))}
+                                className="text-green-600 text-xs hover:underline"
+                              >
+                                Verify All
+                              </button>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     ))}
                   </div>
-                ))}
-              </div>
-            ))
+                ))
+              )}
+            </>
+          ) : (
+            <div className="space-y-3">
+              {smsReports.length === 0 ? (
+                <div className="text-center text-gray-500 py-4">
+                  No SMS reports pending verification
+                </div>
+              ) : (
+                smsReports.map(report => renderSmsReport(report))
+              )}
+            </div>
           )}
         </div>
       </div>
