@@ -68,8 +68,7 @@ export default function DMCAdminPage() {
     // Instead of using two != filters, we'll filter in JavaScript
 const unsubscribeMapReports = onSnapshot(
   query(
-    collection(db, 'crowdsourcedReports'), 
-    where('status', '==', 'pending')
+    collection(db, 'crowdsourcedReports')
   ),
   (snapshot) => {
     const reports = snapshot.docs
@@ -100,7 +99,6 @@ const unsubscribeMapReports = onSnapshot(
     const unsubscribeSmsReports = onSnapshot(
       query(
         collection(db, 'crowdsourcedReports'),
-        where('status', '==', 'pending'),
         where('source', '==', 'sms')
       ),
       (snapshot) => {
