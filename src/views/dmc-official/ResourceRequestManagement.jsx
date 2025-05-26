@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../../../firebase';
-import { collection, query, where, getDocs, updateDoc, doc } from 'firebase/firestore';
+import { collection, query, where, getDocs, updateDoc, doc ,getDoc} from 'firebase/firestore';
 import { Check, X, ChevronDown, ChevronUp, Search, Filter, RefreshCw, ChevronLeft, ChevronRight,HomeIcon } from 'lucide-react';
 import NavigationBar from '../../utils/Navbar';
 
@@ -20,6 +20,7 @@ const ResourceRequestManagement = () => {
   const [expandedRequest, setExpandedRequest] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [updatingStatus, setUpdatingStatus] = useState(null);
 
   // Fetch all resource requests from all disasters
   useEffect(() => {
@@ -100,6 +101,7 @@ const ResourceRequestManagement = () => {
   // Update request status
   const updateRequestStatus = async (requestId, disasterId, newStatus) => {
     try {
+      setUpdatingStatus(requestId);
       // Find the disaster document
       const disasterRef = doc(db, 'verifiedDisasters', disasterId);
       const disasterDoc = await getDoc(disasterRef);
@@ -130,7 +132,9 @@ const ResourceRequestManagement = () => {
       }
     } catch (error) {
       console.error('Error updating request status:', error);
-    }
+    }finally {
+    setUpdatingStatus(null);
+  }
   };
 
   // Toggle request expansion
@@ -320,9 +324,9 @@ const ResourceRequestManagement = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900">{request.disasterName}</div>
-                          <div className="text-sm text-gray-500">
+                          {/* <div className="text-sm text-gray-500">
                             {request.dateCommenced ? new Date(request.dateCommenced).toLocaleDateString() : 'N/A'}
-                          </div>
+                          </div> */}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900">{request.district}</div>
@@ -353,20 +357,21 @@ const ResourceRequestManagement = () => {
                                 <div className="flex flex-wrap gap-2">
                                   {RESOURCE_STATUSES.map(status => (
                                     <button
-                                      key={status}
-                                      onClick={() => updateRequestStatus(request.requestedTimestamp, request.disasterId, status)}
-                                      className={`px-3 py-1 rounded-full text-sm 
-                                        ${request.status === status ? 
-                                          status === 'Approved' ? 'bg-green-200 text-green-800 border border-green-300' :
-                                          status === 'Request Received' ? 'bg-blue-200 text-blue-800 border border-blue-300' :
-                                          status === 'Pending Approval' ? 'bg-yellow-200 text-yellow-800 border border-yellow-300' :
-                                          status === 'Dispatched' ? 'bg-purple-200 text-purple-800 border border-purple-300' :
-                                          'bg-red-200 text-red-800 border border-red-300' :
-                                          'bg-gray-100 text-gray-800 border border-gray-200 hover:bg-gray-200'}
-                                      `}
-                                    >
-                                      {status}
-                                    </button>
+                                        onClick={() => updateRequestStatus(request.requestedTimestamp, request.disasterId, status)}
+                                        disabled={updatingStatus === request.requestedTimestamp}
+                                        className={`px-3 py-1 rounded-full text-sm 
+                                          ${request.status === status ? 
+                                            status === 'Approved' ? 'bg-green-200 text-green-800 border border-green-300' :
+                                            status === 'Request Received' ? 'bg-blue-200 text-blue-800 border border-blue-300' :
+                                            status === 'Pending Approval' ? 'bg-yellow-200 text-yellow-800 border border-yellow-300' :
+                                            status === 'Dispatched' ? 'bg-purple-200 text-purple-800 border border-purple-300' :
+                                            'bg-red-200 text-red-800 border border-red-300' :
+                                            'bg-gray-100 text-gray-800 border border-gray-200 hover:bg-gray-200'}
+                                          ${updatingStatus === request.requestedTimestamp ? 'opacity-50 cursor-not-allowed' : ''}
+                                        `}
+                                      >
+                                        {status}
+                                      </button>
                                   ))}
                                 </div>
                               </div>
